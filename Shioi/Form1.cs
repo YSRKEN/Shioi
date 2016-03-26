@@ -14,6 +14,8 @@ namespace Shioi {
 		Renju FormRenju;
 		const string SoftName = "Shioi";
 		const int BoardSize = 15;
+		const string PositionStringX = "abcdefghijklmno";
+		const string PositionStringY = "123456789ABCDEF";
 		public enum Stone {
 			None,
 			Black,
@@ -68,9 +70,14 @@ namespace Shioi {
 			}
 		}
 
-		private void CopyBoardToolStripMenuItem_Click(object sender, EventArgs e) {
+		private void CopyBoardTextToolStripMenuItem_Click(object sender, EventArgs e) {
 			var output = FormRenju.ToStringBoard();
 			Clipboard.SetDataObject(output, true);
+		}
+
+		private void CopyBoardPictureToolStripMenuItem_Click(object sender, EventArgs e) {
+			var bmp = new Bitmap(PictureBox.Image);
+			Clipboard.SetImage(bmp);
 		}
 
 		private void ForwardToolStripMenuItem_Click(object sender, EventArgs e) {
@@ -123,51 +130,76 @@ namespace Shioi {
 		private void AboutAToolStripMenuItem_Click(object sender, EventArgs e) {
 
 		}
-		// 盤面を描画する
+
 		private void DrawBoard(Renju renju) {
+			// 盤面を描画する
 			var canvas = new Bitmap(PictureBox.Width, PictureBox.Height);
 			var blockSize = PictureBox.Width / 16;
+			var boardOffset = blockSize / 4;
 			var g = Graphics.FromImage(canvas);
+			// 背景
+			g.FillRectangle(Brushes.Gold, 0, 0, PictureBox.Width, PictureBox.Height);
 			// 枠線
 			for(int y = 1; y <= BoardSize; ++y) {
-				g.DrawLine(Pens.Black, blockSize, blockSize * y, blockSize * BoardSize, blockSize * y);
+				g.DrawLine(Pens.Black, blockSize + boardOffset, blockSize * y + boardOffset, blockSize * BoardSize + boardOffset, blockSize * y + boardOffset);
 			}
 			for(int x = 1; x <= BoardSize; ++x) {
-				g.DrawLine(Pens.Black, blockSize * x, blockSize, blockSize * x, blockSize * BoardSize);
+				g.DrawLine(Pens.Black, blockSize * x + boardOffset, blockSize + boardOffset, blockSize * x + boardOffset, blockSize * BoardSize + boardOffset);
+			}
+			// 座標
+			var fontSize = blockSize / 2;
+			var font = new Font("MS Gothic", fontSize, FontStyle.Bold);
+			for(int y = 0; y < BoardSize; ++y) {
+				g.DrawString(PositionStringY.Substring(y, 1), font, Brushes.Black, 0, blockSize * y + blockSize * 3 / 4 + boardOffset);
+			}
+			for(int x = 0; x < BoardSize; ++x) {
+				g.DrawString(PositionStringX.Substring(x, 1), font, Brushes.Black, blockSize * x + blockSize * 3 / 4 + boardOffset, 0);
 			}
 			// 星
 			const int StarR = 3;
-			g.FillEllipse(Brushes.Black, blockSize *  4 - StarR, blockSize *  4 - StarR, StarR * 2, StarR * 2);
-			g.FillEllipse(Brushes.Black, blockSize * 12 - StarR, blockSize *  4 - StarR, StarR * 2, StarR * 2);
-			g.FillEllipse(Brushes.Black, blockSize * 12 - StarR, blockSize * 12 - StarR, StarR * 2, StarR * 2);
-			g.FillEllipse(Brushes.Black, blockSize *  4 - StarR, blockSize * 12 - StarR, StarR * 2, StarR * 2);
-			g.FillEllipse(Brushes.Black, blockSize *  8 - StarR, blockSize *  8 - StarR, StarR * 2, StarR * 2);
+			g.FillEllipse(Brushes.Black, blockSize *  4 - StarR + boardOffset, blockSize *  4 - StarR + boardOffset, StarR * 2, StarR * 2);
+			g.FillEllipse(Brushes.Black, blockSize * 12 - StarR + boardOffset, blockSize *  4 - StarR + boardOffset, StarR * 2, StarR * 2);
+			g.FillEllipse(Brushes.Black, blockSize * 12 - StarR + boardOffset, blockSize * 12 - StarR + boardOffset, StarR * 2, StarR * 2);
+			g.FillEllipse(Brushes.Black, blockSize *  4 - StarR + boardOffset, blockSize * 12 - StarR + boardOffset, StarR * 2, StarR * 2);
+			g.FillEllipse(Brushes.Black, blockSize *  8 - StarR + boardOffset, blockSize *  8 - StarR + boardOffset, StarR * 2, StarR * 2);
 			// 石
 			var StoneR = blockSize / 2;
-			for(int y = 0; y < BoardSize; ++y) {
-				for(int x = 0; x < BoardSize; ++x) {
-					switch(renju.GetBoard(x, y)) {
-					case Stone.None:
-						break;
-					case Stone.Black:
-						g.FillEllipse(Brushes.Black, blockSize * x + StoneR, blockSize * y + StoneR, StoneR * 2, StoneR * 2);
-						break;
-					case Stone.White:
-						g.FillEllipse(Brushes.White, blockSize * x + StoneR, blockSize * y + StoneR, StoneR * 2, StoneR * 2);
-						g.DrawEllipse(Pens.Black, blockSize * x + StoneR, blockSize * y + StoneR, StoneR * 2, StoneR * 2);
-						break;
-					}
+			var font2 = new Font("MS Gothic", fontSize - 2, FontStyle.Bold);
+			for(int p = 0; p <= renju.MovePointer; ++p) {
+				var MoveXY = Renju.ConvertMove1to2(renju.Move[p]);
+				var drawX = blockSize * MoveXY[0] + StoneR + 1 + boardOffset;
+				var drawY = blockSize * MoveXY[1] + StoneR + 1 + boardOffset;
+				var pLength = (p + 1).ToString().Length;
+				var pLengthOffset = pLength * (fontSize - 2) / 2;
+				int[] offsetX1 = {0, fontSize, fontSize * 19 / 16, fontSize * 5 / 4}; 
+				var offsetX = - pLengthOffset + offsetX1[pLength];
+				var offsetY = fontSize / 2;
+				switch(renju.Board[renju.Move[p]]) {
+				case Stone.None:
+					break;
+				case Stone.Black:
+					g.FillEllipse(Brushes.Black, drawX, drawY, StoneR * 2, StoneR * 2);
+					g.DrawString((p + 1).ToString(), font2, Brushes.White, drawX + offsetX, drawY + offsetY);
+					break;
+				case Stone.White:
+					g.FillEllipse(Brushes.White, drawX, drawY, StoneR * 2, StoneR * 2);
+					g.DrawEllipse(Pens.Black, drawX, drawY, StoneR * 2, StoneR * 2);
+					g.DrawString((p + 1).ToString(), font2, Brushes.Black, drawX + offsetX, drawY + offsetY);
+					break;
 				}
 			}
 			g.Dispose();
 			PictureBox.Image = canvas;
+			// ステータスバーを変更する
+			LastMoveStatusLabel.Text = renju.GetLastMoveText();
+			TurnPlayerStatusLabel.Text = renju.GetTurnPlayerText();
 		}
 
 		private class Renju {
 			// メンバ変数
 			public List<Stone> Board;
-			List<int> Move;
-			int MovePointer;
+			public List<int> Move;
+			public int MovePointer;
 			// メソッド
 			// コンストラクタ
 			public Renju() {
@@ -339,13 +371,14 @@ namespace Shioi {
 				return output;
 			}
 			// 着手を文字列に変換する(伊達五目形式)
+			private string ToStringMoveMini(int Move) {
+				var moveXY = ConvertMove1to2(Move);
+				return PositionStringX.Substring(moveXY[0], 1) + PositionStringY.Substring(moveXY[1], 1);
+			}
 			public string ToStringMove() {
 				var output = "";
-				const string PositionStringX = "abcdefghijklmno";
-				const string PositionStringY = "123456789ABCDEF";
 				for(int p = 0; p <= MovePointer; ++p) {
-					var moveXY = ConvertMove1to2(Move[p]);
-					output += PositionStringX.Substring(moveXY[0], 1) + PositionStringY.Substring(moveXY[1], 1) + ",";
+					output += ToStringMoveMini(Move[p]) + ",";
 				}
 				output += "**,";
 				return output;
@@ -376,15 +409,18 @@ namespace Shioi {
 				MessageBox.Show(ToStringBoard(), SoftName, MessageBoxButtons.OK, MessageBoxIcon.Information);
 			}
 			// 座標変換
-			private int ConvertMove2to1(int MoveX, int MoveY) {
+			static public int ConvertMove2to1(int MoveX, int MoveY) {
 				return MoveY * BoardSize + MoveX;
 			}
-			private int[] ConvertMove1to2(int Move) {
+			static public int[] ConvertMove1to2(int Move) {
 				return new int[]{ Move % BoardSize, Move / BoardSize };
 			}
-			// 盤面データへのアクセス
-			public Stone GetBoard(int x, int y) {
-				return Board[ConvertMove2to1(x, y)];
+			// ステータスバー用文字列の生成
+			public string GetLastMoveText() {
+				return "LastMove : " + (Move.Count == 0 ? "" : ToStringMoveMini(Move[MovePointer]));
+			}
+			public string GetTurnPlayerText() {
+				return "Turn : " + (Move.Count == 0 ? "" : MovePointer % 2 == 0 ? "White" : "Black");
 			}
 		}
 	}

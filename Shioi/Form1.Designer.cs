@@ -33,7 +33,8 @@
 			this.EditToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
 			this.CopyMoveToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
 			this.PasteMoveToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
-			this.CopyBoardToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+			this.CopyBoardTextoolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+			this.CopyBoardPictureToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
 			this.GameToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
 			this.ForwardToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
 			this.BackwardToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
@@ -45,6 +46,8 @@
 			this.HelpToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
 			this.AboutAToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
 			this.StatusStrip = new System.Windows.Forms.StatusStrip();
+			this.LastMoveStatusLabel = new System.Windows.Forms.ToolStripStatusLabel();
+			this.TurnPlayerStatusLabel = new System.Windows.Forms.ToolStripStatusLabel();
 			this.PictureBox = new System.Windows.Forms.PictureBox();
 			this.BackwardButton = new System.Windows.Forms.Button();
 			this.ForwardButton = new System.Windows.Forms.Button();
@@ -52,8 +55,6 @@
 			this.LastMoveButton = new System.Windows.Forms.Button();
 			this.StartComputingButton = new System.Windows.Forms.Button();
 			this.StopComputingButton = new System.Windows.Forms.Button();
-			this.LastMoveStatusLabel = new System.Windows.Forms.ToolStripStatusLabel();
-			this.TurnPlayerStatusLabel = new System.Windows.Forms.ToolStripStatusLabel();
 			this.MenuStrip.SuspendLayout();
 			this.StatusStrip.SuspendLayout();
 			((System.ComponentModel.ISupportInitialize)(this.PictureBox)).BeginInit();
@@ -87,33 +88,33 @@
 			// NewToolStripMenuItem
 			// 
 			this.NewToolStripMenuItem.Name = "NewToolStripMenuItem";
-			this.NewToolStripMenuItem.Size = new System.Drawing.Size(152, 22);
+			this.NewToolStripMenuItem.Size = new System.Drawing.Size(129, 22);
 			this.NewToolStripMenuItem.Text = "New(&N)";
 			this.NewToolStripMenuItem.Click += new System.EventHandler(this.NewToolStripMenuItem_Click);
 			// 
 			// OpenToolStripMenuItem
 			// 
 			this.OpenToolStripMenuItem.Name = "OpenToolStripMenuItem";
-			this.OpenToolStripMenuItem.Size = new System.Drawing.Size(152, 22);
+			this.OpenToolStripMenuItem.Size = new System.Drawing.Size(129, 22);
 			this.OpenToolStripMenuItem.Text = "Open(&O)...";
 			this.OpenToolStripMenuItem.Click += new System.EventHandler(this.OpenToolStripMenuItem_Click);
 			// 
 			// SaveToolStripMenuItem
 			// 
 			this.SaveToolStripMenuItem.Name = "SaveToolStripMenuItem";
-			this.SaveToolStripMenuItem.Size = new System.Drawing.Size(152, 22);
+			this.SaveToolStripMenuItem.Size = new System.Drawing.Size(129, 22);
 			this.SaveToolStripMenuItem.Text = "Save(&A)...";
 			this.SaveToolStripMenuItem.Click += new System.EventHandler(this.SaveToolStripMenuItem_Click);
 			// 
 			// toolStripSeparator1
 			// 
 			this.toolStripSeparator1.Name = "toolStripSeparator1";
-			this.toolStripSeparator1.Size = new System.Drawing.Size(149, 6);
+			this.toolStripSeparator1.Size = new System.Drawing.Size(126, 6);
 			// 
 			// ExitToolStripMenuItem
 			// 
 			this.ExitToolStripMenuItem.Name = "ExitToolStripMenuItem";
-			this.ExitToolStripMenuItem.Size = new System.Drawing.Size(152, 22);
+			this.ExitToolStripMenuItem.Size = new System.Drawing.Size(129, 22);
 			this.ExitToolStripMenuItem.Text = "Exit(&X)";
 			this.ExitToolStripMenuItem.Click += new System.EventHandler(this.ExitToolStripMenuItem_Click);
 			// 
@@ -122,7 +123,8 @@
 			this.EditToolStripMenuItem.DropDownItems.AddRange(new System.Windows.Forms.ToolStripItem[] {
             this.CopyMoveToolStripMenuItem,
             this.PasteMoveToolStripMenuItem,
-            this.CopyBoardToolStripMenuItem});
+            this.CopyBoardTextoolStripMenuItem,
+            this.CopyBoardPictureToolStripMenuItem});
 			this.EditToolStripMenuItem.Name = "EditToolStripMenuItem";
 			this.EditToolStripMenuItem.Size = new System.Drawing.Size(53, 20);
 			this.EditToolStripMenuItem.Text = "Edit(&E)";
@@ -130,23 +132,30 @@
 			// CopyMoveToolStripMenuItem
 			// 
 			this.CopyMoveToolStripMenuItem.Name = "CopyMoveToolStripMenuItem";
-			this.CopyMoveToolStripMenuItem.Size = new System.Drawing.Size(152, 22);
+			this.CopyMoveToolStripMenuItem.Size = new System.Drawing.Size(190, 22);
 			this.CopyMoveToolStripMenuItem.Text = "Copy Move(&C)";
 			this.CopyMoveToolStripMenuItem.Click += new System.EventHandler(this.CopyMoveToolStripMenuItem_Click);
 			// 
 			// PasteMoveToolStripMenuItem
 			// 
 			this.PasteMoveToolStripMenuItem.Name = "PasteMoveToolStripMenuItem";
-			this.PasteMoveToolStripMenuItem.Size = new System.Drawing.Size(152, 22);
+			this.PasteMoveToolStripMenuItem.Size = new System.Drawing.Size(190, 22);
 			this.PasteMoveToolStripMenuItem.Text = "Paste Move(&P)";
 			this.PasteMoveToolStripMenuItem.Click += new System.EventHandler(this.PasteMoveToolStripMenuItem_Click);
 			// 
-			// CopyBoardToolStripMenuItem
+			// CopyBoardTextoolStripMenuItem
 			// 
-			this.CopyBoardToolStripMenuItem.Name = "CopyBoardToolStripMenuItem";
-			this.CopyBoardToolStripMenuItem.Size = new System.Drawing.Size(152, 22);
-			this.CopyBoardToolStripMenuItem.Text = "Copy Board(&B)";
-			this.CopyBoardToolStripMenuItem.Click += new System.EventHandler(this.CopyBoardToolStripMenuItem_Click);
+			this.CopyBoardTextoolStripMenuItem.Name = "CopyBoardTextoolStripMenuItem";
+			this.CopyBoardTextoolStripMenuItem.Size = new System.Drawing.Size(190, 22);
+			this.CopyBoardTextoolStripMenuItem.Text = "Copy Board-Text(&T)";
+			this.CopyBoardTextoolStripMenuItem.Click += new System.EventHandler(this.CopyBoardTextToolStripMenuItem_Click);
+			// 
+			// CopyBoardPictureToolStripMenuItem
+			// 
+			this.CopyBoardPictureToolStripMenuItem.Name = "CopyBoardPictureToolStripMenuItem";
+			this.CopyBoardPictureToolStripMenuItem.Size = new System.Drawing.Size(192, 22);
+			this.CopyBoardPictureToolStripMenuItem.Text = "Copy Board-Picture(&B)";
+			this.CopyBoardPictureToolStripMenuItem.Click += new System.EventHandler(this.CopyBoardPictureToolStripMenuItem_Click);
 			// 
 			// GameToolStripMenuItem
 			// 
@@ -220,7 +229,7 @@
 			// AboutAToolStripMenuItem
 			// 
 			this.AboutAToolStripMenuItem.Name = "AboutAToolStripMenuItem";
-			this.AboutAToolStripMenuItem.Size = new System.Drawing.Size(152, 22);
+			this.AboutAToolStripMenuItem.Size = new System.Drawing.Size(132, 22);
 			this.AboutAToolStripMenuItem.Text = "About(&A)...";
 			this.AboutAToolStripMenuItem.Click += new System.EventHandler(this.AboutAToolStripMenuItem_Click);
 			// 
@@ -234,6 +243,18 @@
 			this.StatusStrip.Size = new System.Drawing.Size(424, 22);
 			this.StatusStrip.TabIndex = 1;
 			this.StatusStrip.Text = "StatusStrip";
+			// 
+			// LastMoveStatusLabel
+			// 
+			this.LastMoveStatusLabel.Name = "LastMoveStatusLabel";
+			this.LastMoveStatusLabel.Size = new System.Drawing.Size(67, 17);
+			this.LastMoveStatusLabel.Text = "LastMove : ";
+			// 
+			// TurnPlayerStatusLabel
+			// 
+			this.TurnPlayerStatusLabel.Name = "TurnPlayerStatusLabel";
+			this.TurnPlayerStatusLabel.Size = new System.Drawing.Size(39, 17);
+			this.TurnPlayerStatusLabel.Text = "Turn : ";
 			// 
 			// PictureBox
 			// 
@@ -309,18 +330,6 @@
 			this.StopComputingButton.UseVisualStyleBackColor = true;
 			this.StopComputingButton.Click += new System.EventHandler(this.StopComputingButton_Click);
 			// 
-			// LastMoveStatusLabel
-			// 
-			this.LastMoveStatusLabel.Name = "LastMoveStatusLabel";
-			this.LastMoveStatusLabel.Size = new System.Drawing.Size(67, 17);
-			this.LastMoveStatusLabel.Text = "LastMove : ";
-			// 
-			// TurnPlayerStatusLabel
-			// 
-			this.TurnPlayerStatusLabel.Name = "TurnPlayerStatusLabel";
-			this.TurnPlayerStatusLabel.Size = new System.Drawing.Size(39, 17);
-			this.TurnPlayerStatusLabel.Text = "Turn : ";
-			// 
 			// MainForm
 			// 
 			this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 12F);
@@ -374,7 +383,7 @@
 		private System.Windows.Forms.ToolStripMenuItem EditToolStripMenuItem;
 		private System.Windows.Forms.ToolStripMenuItem CopyMoveToolStripMenuItem;
 		private System.Windows.Forms.ToolStripMenuItem PasteMoveToolStripMenuItem;
-		private System.Windows.Forms.ToolStripMenuItem CopyBoardToolStripMenuItem;
+		private System.Windows.Forms.ToolStripMenuItem CopyBoardTextoolStripMenuItem;
 		private System.Windows.Forms.Button BackwardButton;
 		private System.Windows.Forms.Button ForwardButton;
 		private System.Windows.Forms.Button FirstMoveButton;
@@ -383,6 +392,7 @@
 		private System.Windows.Forms.Button StopComputingButton;
 		private System.Windows.Forms.ToolStripStatusLabel LastMoveStatusLabel;
 		private System.Windows.Forms.ToolStripStatusLabel TurnPlayerStatusLabel;
+		private System.Windows.Forms.ToolStripMenuItem CopyBoardPictureToolStripMenuItem;
 	}
 }
 
