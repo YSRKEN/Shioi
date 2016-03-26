@@ -45,9 +45,18 @@
 			this.HelpToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
 			this.AboutAToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
 			this.StatusStrip = new System.Windows.Forms.StatusStrip();
-			this.pictureBox1 = new System.Windows.Forms.PictureBox();
+			this.PictureBox = new System.Windows.Forms.PictureBox();
+			this.BackwardButton = new System.Windows.Forms.Button();
+			this.ForwardButton = new System.Windows.Forms.Button();
+			this.FirstMoveButton = new System.Windows.Forms.Button();
+			this.LastMoveButton = new System.Windows.Forms.Button();
+			this.StartComputingButton = new System.Windows.Forms.Button();
+			this.StopComputingButton = new System.Windows.Forms.Button();
+			this.LastMoveStatusLabel = new System.Windows.Forms.ToolStripStatusLabel();
+			this.TurnPlayerStatusLabel = new System.Windows.Forms.ToolStripStatusLabel();
 			this.MenuStrip.SuspendLayout();
-			((System.ComponentModel.ISupportInitialize)(this.pictureBox1)).BeginInit();
+			this.StatusStrip.SuspendLayout();
+			((System.ComponentModel.ISupportInitialize)(this.PictureBox)).BeginInit();
 			this.SuspendLayout();
 			// 
 			// MenuStrip
@@ -59,7 +68,7 @@
             this.HelpToolStripMenuItem});
 			this.MenuStrip.Location = new System.Drawing.Point(0, 0);
 			this.MenuStrip.Name = "MenuStrip";
-			this.MenuStrip.Size = new System.Drawing.Size(384, 24);
+			this.MenuStrip.Size = new System.Drawing.Size(424, 24);
 			this.MenuStrip.TabIndex = 0;
 			this.MenuStrip.Text = "MenuStrip";
 			// 
@@ -78,33 +87,33 @@
 			// NewToolStripMenuItem
 			// 
 			this.NewToolStripMenuItem.Name = "NewToolStripMenuItem";
-			this.NewToolStripMenuItem.Size = new System.Drawing.Size(129, 22);
+			this.NewToolStripMenuItem.Size = new System.Drawing.Size(152, 22);
 			this.NewToolStripMenuItem.Text = "New(&N)";
 			this.NewToolStripMenuItem.Click += new System.EventHandler(this.NewToolStripMenuItem_Click);
 			// 
 			// OpenToolStripMenuItem
 			// 
 			this.OpenToolStripMenuItem.Name = "OpenToolStripMenuItem";
-			this.OpenToolStripMenuItem.Size = new System.Drawing.Size(129, 22);
+			this.OpenToolStripMenuItem.Size = new System.Drawing.Size(152, 22);
 			this.OpenToolStripMenuItem.Text = "Open(&O)...";
 			this.OpenToolStripMenuItem.Click += new System.EventHandler(this.OpenToolStripMenuItem_Click);
 			// 
 			// SaveToolStripMenuItem
 			// 
 			this.SaveToolStripMenuItem.Name = "SaveToolStripMenuItem";
-			this.SaveToolStripMenuItem.Size = new System.Drawing.Size(129, 22);
+			this.SaveToolStripMenuItem.Size = new System.Drawing.Size(152, 22);
 			this.SaveToolStripMenuItem.Text = "Save(&A)...";
 			this.SaveToolStripMenuItem.Click += new System.EventHandler(this.SaveToolStripMenuItem_Click);
 			// 
 			// toolStripSeparator1
 			// 
 			this.toolStripSeparator1.Name = "toolStripSeparator1";
-			this.toolStripSeparator1.Size = new System.Drawing.Size(126, 6);
+			this.toolStripSeparator1.Size = new System.Drawing.Size(149, 6);
 			// 
 			// ExitToolStripMenuItem
 			// 
 			this.ExitToolStripMenuItem.Name = "ExitToolStripMenuItem";
-			this.ExitToolStripMenuItem.Size = new System.Drawing.Size(129, 22);
+			this.ExitToolStripMenuItem.Size = new System.Drawing.Size(152, 22);
 			this.ExitToolStripMenuItem.Text = "Exit(&X)";
 			this.ExitToolStripMenuItem.Click += new System.EventHandler(this.ExitToolStripMenuItem_Click);
 			// 
@@ -211,32 +220,119 @@
 			// AboutAToolStripMenuItem
 			// 
 			this.AboutAToolStripMenuItem.Name = "AboutAToolStripMenuItem";
-			this.AboutAToolStripMenuItem.Size = new System.Drawing.Size(132, 22);
+			this.AboutAToolStripMenuItem.Size = new System.Drawing.Size(152, 22);
 			this.AboutAToolStripMenuItem.Text = "About(&A)...";
 			this.AboutAToolStripMenuItem.Click += new System.EventHandler(this.AboutAToolStripMenuItem_Click);
 			// 
 			// StatusStrip
 			// 
-			this.StatusStrip.Location = new System.Drawing.Point(0, 339);
+			this.StatusStrip.Items.AddRange(new System.Windows.Forms.ToolStripItem[] {
+            this.LastMoveStatusLabel,
+            this.TurnPlayerStatusLabel});
+			this.StatusStrip.Location = new System.Drawing.Point(0, 479);
 			this.StatusStrip.Name = "StatusStrip";
-			this.StatusStrip.Size = new System.Drawing.Size(384, 22);
+			this.StatusStrip.Size = new System.Drawing.Size(424, 22);
 			this.StatusStrip.TabIndex = 1;
 			this.StatusStrip.Text = "StatusStrip";
 			// 
-			// pictureBox1
+			// PictureBox
 			// 
-			this.pictureBox1.Location = new System.Drawing.Point(12, 27);
-			this.pictureBox1.Name = "pictureBox1";
-			this.pictureBox1.Size = new System.Drawing.Size(360, 309);
-			this.pictureBox1.TabIndex = 2;
-			this.pictureBox1.TabStop = false;
+			this.PictureBox.Location = new System.Drawing.Point(12, 63);
+			this.PictureBox.Name = "PictureBox";
+			this.PictureBox.Size = new System.Drawing.Size(400, 400);
+			this.PictureBox.TabIndex = 2;
+			this.PictureBox.TabStop = false;
+			// 
+			// BackwardButton
+			// 
+			this.BackwardButton.Font = new System.Drawing.Font("MS UI Gothic", 12F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(128)));
+			this.BackwardButton.Location = new System.Drawing.Point(58, 27);
+			this.BackwardButton.Name = "BackwardButton";
+			this.BackwardButton.Size = new System.Drawing.Size(40, 30);
+			this.BackwardButton.TabIndex = 3;
+			this.BackwardButton.Text = "<-";
+			this.BackwardButton.UseVisualStyleBackColor = true;
+			this.BackwardButton.Click += new System.EventHandler(this.BackwardButton_Click);
+			// 
+			// ForwardButton
+			// 
+			this.ForwardButton.Font = new System.Drawing.Font("MS UI Gothic", 12F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(128)));
+			this.ForwardButton.Location = new System.Drawing.Point(104, 27);
+			this.ForwardButton.Name = "ForwardButton";
+			this.ForwardButton.Size = new System.Drawing.Size(40, 30);
+			this.ForwardButton.TabIndex = 4;
+			this.ForwardButton.Text = "->";
+			this.ForwardButton.UseVisualStyleBackColor = true;
+			this.ForwardButton.Click += new System.EventHandler(this.ForwardButton_Click);
+			// 
+			// FirstMoveButton
+			// 
+			this.FirstMoveButton.Font = new System.Drawing.Font("MS UI Gothic", 12F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(128)));
+			this.FirstMoveButton.Location = new System.Drawing.Point(12, 27);
+			this.FirstMoveButton.Name = "FirstMoveButton";
+			this.FirstMoveButton.Size = new System.Drawing.Size(40, 30);
+			this.FirstMoveButton.TabIndex = 5;
+			this.FirstMoveButton.Text = "|<-";
+			this.FirstMoveButton.UseVisualStyleBackColor = true;
+			this.FirstMoveButton.Click += new System.EventHandler(this.FirstMoveButton_Click);
+			// 
+			// LastMoveButton
+			// 
+			this.LastMoveButton.Font = new System.Drawing.Font("MS UI Gothic", 12F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(128)));
+			this.LastMoveButton.Location = new System.Drawing.Point(150, 27);
+			this.LastMoveButton.Name = "LastMoveButton";
+			this.LastMoveButton.Size = new System.Drawing.Size(40, 30);
+			this.LastMoveButton.TabIndex = 6;
+			this.LastMoveButton.Text = "->|";
+			this.LastMoveButton.UseVisualStyleBackColor = true;
+			this.LastMoveButton.Click += new System.EventHandler(this.LastMoveButton_Click);
+			// 
+			// StartComputingButton
+			// 
+			this.StartComputingButton.Font = new System.Drawing.Font("MS UI Gothic", 12F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(128)));
+			this.StartComputingButton.Location = new System.Drawing.Point(196, 27);
+			this.StartComputingButton.Name = "StartComputingButton";
+			this.StartComputingButton.Size = new System.Drawing.Size(40, 30);
+			this.StartComputingButton.TabIndex = 7;
+			this.StartComputingButton.Text = "|>";
+			this.StartComputingButton.UseVisualStyleBackColor = true;
+			this.StartComputingButton.Click += new System.EventHandler(this.StartComputingButton_Click);
+			// 
+			// StopComputingButton
+			// 
+			this.StopComputingButton.Font = new System.Drawing.Font("MS UI Gothic", 12F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(128)));
+			this.StopComputingButton.Location = new System.Drawing.Point(242, 27);
+			this.StopComputingButton.Name = "StopComputingButton";
+			this.StopComputingButton.Size = new System.Drawing.Size(40, 30);
+			this.StopComputingButton.TabIndex = 8;
+			this.StopComputingButton.Text = "||";
+			this.StopComputingButton.UseVisualStyleBackColor = true;
+			this.StopComputingButton.Click += new System.EventHandler(this.StopComputingButton_Click);
+			// 
+			// LastMoveStatusLabel
+			// 
+			this.LastMoveStatusLabel.Name = "LastMoveStatusLabel";
+			this.LastMoveStatusLabel.Size = new System.Drawing.Size(67, 17);
+			this.LastMoveStatusLabel.Text = "LastMove : ";
+			// 
+			// TurnPlayerStatusLabel
+			// 
+			this.TurnPlayerStatusLabel.Name = "TurnPlayerStatusLabel";
+			this.TurnPlayerStatusLabel.Size = new System.Drawing.Size(39, 17);
+			this.TurnPlayerStatusLabel.Text = "Turn : ";
 			// 
 			// MainForm
 			// 
 			this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 12F);
 			this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-			this.ClientSize = new System.Drawing.Size(384, 361);
-			this.Controls.Add(this.pictureBox1);
+			this.ClientSize = new System.Drawing.Size(424, 501);
+			this.Controls.Add(this.StopComputingButton);
+			this.Controls.Add(this.StartComputingButton);
+			this.Controls.Add(this.LastMoveButton);
+			this.Controls.Add(this.FirstMoveButton);
+			this.Controls.Add(this.ForwardButton);
+			this.Controls.Add(this.BackwardButton);
+			this.Controls.Add(this.PictureBox);
 			this.Controls.Add(this.StatusStrip);
 			this.Controls.Add(this.MenuStrip);
 			this.FormBorderStyle = System.Windows.Forms.FormBorderStyle.FixedSingle;
@@ -246,7 +342,9 @@
 			this.Text = "Shioi";
 			this.MenuStrip.ResumeLayout(false);
 			this.MenuStrip.PerformLayout();
-			((System.ComponentModel.ISupportInitialize)(this.pictureBox1)).EndInit();
+			this.StatusStrip.ResumeLayout(false);
+			this.StatusStrip.PerformLayout();
+			((System.ComponentModel.ISupportInitialize)(this.PictureBox)).EndInit();
 			this.ResumeLayout(false);
 			this.PerformLayout();
 
@@ -272,11 +370,19 @@
 		private System.Windows.Forms.ToolStripMenuItem HelpToolStripMenuItem;
 		private System.Windows.Forms.ToolStripMenuItem AboutAToolStripMenuItem;
 		private System.Windows.Forms.StatusStrip StatusStrip;
-		private System.Windows.Forms.PictureBox pictureBox1;
+		private System.Windows.Forms.PictureBox PictureBox;
 		private System.Windows.Forms.ToolStripMenuItem EditToolStripMenuItem;
 		private System.Windows.Forms.ToolStripMenuItem CopyMoveToolStripMenuItem;
 		private System.Windows.Forms.ToolStripMenuItem PasteMoveToolStripMenuItem;
 		private System.Windows.Forms.ToolStripMenuItem CopyBoardToolStripMenuItem;
+		private System.Windows.Forms.Button BackwardButton;
+		private System.Windows.Forms.Button ForwardButton;
+		private System.Windows.Forms.Button FirstMoveButton;
+		private System.Windows.Forms.Button LastMoveButton;
+		private System.Windows.Forms.Button StartComputingButton;
+		private System.Windows.Forms.Button StopComputingButton;
+		private System.Windows.Forms.ToolStripStatusLabel LastMoveStatusLabel;
+		private System.Windows.Forms.ToolStripStatusLabel TurnPlayerStatusLabel;
 	}
 }
 

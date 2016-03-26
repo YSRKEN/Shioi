@@ -13,10 +13,17 @@ namespace Shioi {
 	public partial class MainForm : Form {
 		Renju FormRenju;
 		const string SoftName = "Shioi";
+		const int BoardSize = 15;
+		public enum Stone {
+			None,
+			Black,
+			White
+		}
 
 		public MainForm() {
 			InitializeComponent();
 			FormRenju = new Renju();
+			DrawBoard(FormRenju);
 		}
 
 		private void NewToolStripMenuItem_Click(object sender, EventArgs e) {
@@ -31,6 +38,7 @@ namespace Shioi {
 				return;
 			// Open select file
 			FormRenju = new Renju(ofd.FileName);
+			DrawBoard(FormRenju);
 		}
 
 		private void SaveToolStripMenuItem_Click(object sender, EventArgs e) {
@@ -89,20 +97,75 @@ namespace Shioi {
 
 		}
 
-		private void AboutAToolStripMenuItem_Click(object sender, EventArgs e) {
+		private void FirstMoveButton_Click(object sender, EventArgs e) {
+		}
+
+		private void BackwardButton_Click(object sender, EventArgs e) {
 
 		}
 
-		private class Renju {
-			// 各種定数
-			enum Stone {
-				None,
-				Black,
-				White
+		private void ForwardButton_Click(object sender, EventArgs e) {
+
+		}
+
+		private void LastMoveButton_Click(object sender, EventArgs e) {
+
+		}
+
+		private void StartComputingButton_Click(object sender, EventArgs e) {
+
+		}
+
+		private void StopComputingButton_Click(object sender, EventArgs e) {
+
+		}
+
+		private void AboutAToolStripMenuItem_Click(object sender, EventArgs e) {
+
+		}
+		// 盤面を描画する
+		private void DrawBoard(Renju renju) {
+			var canvas = new Bitmap(PictureBox.Width, PictureBox.Height);
+			var blockSize = PictureBox.Width / 16;
+			var g = Graphics.FromImage(canvas);
+			// 枠線
+			for(int y = 1; y <= BoardSize; ++y) {
+				g.DrawLine(Pens.Black, blockSize, blockSize * y, blockSize * BoardSize, blockSize * y);
 			}
-			const int BoardSize = 15;
+			for(int x = 1; x <= BoardSize; ++x) {
+				g.DrawLine(Pens.Black, blockSize * x, blockSize, blockSize * x, blockSize * BoardSize);
+			}
+			// 星
+			const int StarR = 3;
+			g.FillEllipse(Brushes.Black, blockSize *  4 - StarR, blockSize *  4 - StarR, StarR * 2, StarR * 2);
+			g.FillEllipse(Brushes.Black, blockSize * 12 - StarR, blockSize *  4 - StarR, StarR * 2, StarR * 2);
+			g.FillEllipse(Brushes.Black, blockSize * 12 - StarR, blockSize * 12 - StarR, StarR * 2, StarR * 2);
+			g.FillEllipse(Brushes.Black, blockSize *  4 - StarR, blockSize * 12 - StarR, StarR * 2, StarR * 2);
+			g.FillEllipse(Brushes.Black, blockSize *  8 - StarR, blockSize *  8 - StarR, StarR * 2, StarR * 2);
+			// 石
+			var StoneR = blockSize / 2;
+			for(int y = 0; y < BoardSize; ++y) {
+				for(int x = 0; x < BoardSize; ++x) {
+					switch(renju.GetBoard(x, y)) {
+					case Stone.None:
+						break;
+					case Stone.Black:
+						g.FillEllipse(Brushes.Black, blockSize * x + StoneR, blockSize * y + StoneR, StoneR * 2, StoneR * 2);
+						break;
+					case Stone.White:
+						g.FillEllipse(Brushes.White, blockSize * x + StoneR, blockSize * y + StoneR, StoneR * 2, StoneR * 2);
+						g.DrawEllipse(Pens.Black, blockSize * x + StoneR, blockSize * y + StoneR, StoneR * 2, StoneR * 2);
+						break;
+					}
+				}
+			}
+			g.Dispose();
+			PictureBox.Image = canvas;
+		}
+
+		private class Renju {
 			// メンバ変数
-			List<Stone> Board;
+			public List<Stone> Board;
 			List<int> Move;
 			int MovePointer;
 			// メソッド
@@ -308,10 +371,6 @@ namespace Shioi {
 				}
 				MovePointer = Move.Count - 1;
 			}
-			// 盤面を描画する
-			public void DrawBoard() {
-				
-			}
 			// 盤面を表示する(デバッグ用)
 			public void PutBoard() {
 				MessageBox.Show(ToStringBoard(), SoftName, MessageBoxButtons.OK, MessageBoxIcon.Information);
@@ -322,6 +381,10 @@ namespace Shioi {
 			}
 			private int[] ConvertMove1to2(int Move) {
 				return new int[]{ Move % BoardSize, Move / BoardSize };
+			}
+			// 盤面データへのアクセス
+			public Stone GetBoard(int x, int y) {
+				return Board[ConvertMove2to1(x, y)];
 			}
 		}
 	}
