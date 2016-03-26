@@ -12,7 +12,7 @@ using System.Windows.Forms;
 namespace Shioi {
 	public partial class MainForm : Form {
 		Renju FormRenju;
-		const string SoftName = "Shiori";
+		const string SoftName = "Shioi";
 
 		public MainForm() {
 			InitializeComponent();
@@ -31,7 +31,6 @@ namespace Shioi {
 				return;
 			// Open select file
 			FormRenju = new Renju(ofd.FileName);
-			FormRenju.PutBoard();
 		}
 
 		private void SaveToolStripMenuItem_Click(object sender, EventArgs e) {
@@ -46,6 +45,24 @@ namespace Shioi {
 
 		private void ExitToolStripMenuItem_Click(object sender, EventArgs e) {
 			this.Close();
+		}
+
+		private void CopyMoveToolStripMenuItem_Click(object sender, EventArgs e) {
+			var output = FormRenju.ToStringMove();
+			Clipboard.SetDataObject(output, true);
+		}
+
+		private void PasteMoveToolStripMenuItem_Click(object sender, EventArgs e) {
+			var data = Clipboard.GetDataObject();
+			if(data.GetDataPresent(DataFormats.Text)) {
+				var input = (string)data.GetData(DataFormats.Text);
+				FormRenju.Parse(input);
+			}
+		}
+
+		private void CopyBoardToolStripMenuItem_Click(object sender, EventArgs e) {
+			var output = FormRenju.ToStringBoard();
+			Clipboard.SetDataObject(output, true);
 		}
 
 		private void ForwardToolStripMenuItem_Click(object sender, EventArgs e) {
@@ -120,24 +137,11 @@ namespace Shioi {
 						MovePointer = Move.Count - 1;
 					}
 					break;
-				case ".dt5": {
-						const string PositionStringX = "abcdefghijklmno";
-						const string PositionStringY = "123456789ABCDEF";
-						var moveStr = fileData.Split(',');
-						var setStone = Stone.Black;
-						foreach(var str in moveStr) {
-							var x = PositionStringX.IndexOf(str[0]);
-							var y = PositionStringY.IndexOf(str[1]);
-							if(x < 0 || y < 0)
-								break;
-							var move = ConvertMove2to1(x, y);
-							Move.Add(move);
-							Board[move] = setStone;
-							setStone = (setStone == Stone.Black ? Stone.White : Stone.Black);
-						}
-					}
+				case ".dt5":
+					Parse(fileData);
 					break;
-				case ".lws": {
+				case ".lws":
+					{
 						const string PositionStringX = "ABCDEFGHIJKLMNO";
 						var moveStr = fileData.Split(' ');
 						var setStone = Stone.Black;
@@ -151,6 +155,7 @@ namespace Shioi {
 							Board[move] = setStone;
 							setStone = (setStone == Stone.Black ? Stone.White : Stone.Black);
 						}
+						MovePointer = Move.Count - 1;
 					}
 					break;
 				case ".rnj": {
@@ -197,13 +202,7 @@ namespace Shioi {
 					break;
 				case ".dt5":
 					{
-						const string PositionStringX = "abcdefghijklmno";
-						const string PositionStringY = "123456789ABCDEF";
-						for(int p = 0; p <= MovePointer; ++p) {
-							var moveXY = ConvertMove1to2(Move[p]);
-							fileData += PositionStringX.Substring(moveXY[0], 1) + PositionStringY.Substring(moveXY[1], 1) + ",";
-						}
-						fileData += "**,";
+						fileData = ToStringMove();
 					}
 					break;
 				case ".lws":
@@ -231,8 +230,8 @@ namespace Shioi {
 				sw.Write(fileData);
 				sw.Close();
 			}
-			// 盤面を表示する(デバッグ用)
-			public void PutBoard() {
+			// 盤面を文字列に変換する
+			public string ToStringBoard() {
 				// 星の座標
 				List<int> StarPosition = new List<int> { ConvertMove2to1(3, 3), ConvertMove2to1(11, 3), ConvertMove2to1(11, 11), ConvertMove2to1(3, 11), ConvertMove2to1(7, 7) };
 				// 出力用文字列
@@ -274,7 +273,48 @@ namespace Shioi {
 					}
 					output += "\n";
 				}
-				MessageBox.Show(output, SoftName, MessageBoxButtons.OK, MessageBoxIcon.Information);
+				return output;
+			}
+			// 着手を文字列に変換する(伊達五目形式)
+			public string ToStringMove() {
+				var output = "";
+				const string PositionStringX = "abcdefghijklmno";
+				const string PositionStringY = "123456789ABCDEF";
+				for(int p = 0; p <= MovePointer; ++p) {
+					var moveXY = ConvertMove1to2(Move[p]);
+					output += PositionStringX.Substring(moveXY[0], 1) + PositionStringY.Substring(moveXY[1], 1) + ",";
+				}
+				output += "**,";
+				return output;
+			}
+			// 文字列を着手に変換して読み込む(伊達五目形式)
+			public void Parse(string input) {
+				Board = new List<Stone>(Enumerable.Repeat(Stone.None, BoardSize * BoardSize));
+				Move = new List<int>();
+				MovePointer = -1;
+				const string PositionStringX = "abcdefghijklmno";
+				const string PositionStringY = "123456789ABCDEF";
+				var moveStr = input.Split(',');
+				var setStone = Stone.Black;
+				foreach(var str in moveStr) {
+					var x = PositionStringX.IndexOf(str[0]);
+					var y = PositionStringY.IndexOf(str[1]);
+					if(x < 0 || y < 0)
+						break;
+					var move = ConvertMove2to1(x, y);
+					Move.Add(move);
+					Board[move] = setStone;
+					setStone = (setStone == Stone.Black ? Stone.White : Stone.Black);
+				}
+				MovePointer = Move.Count - 1;
+			}
+			// 盤面を描画する
+			public void DrawBoard() {
+				
+			}
+			// 盤面を表示する(デバッグ用)
+			public void PutBoard() {
+				MessageBox.Show(ToStringBoard(), SoftName, MessageBoxButtons.OK, MessageBoxIcon.Information);
 			}
 			// 座標変換
 			private int ConvertMove2to1(int MoveX, int MoveY) {
