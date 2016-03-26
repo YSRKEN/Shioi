@@ -81,19 +81,31 @@ namespace Shioi {
 		}
 
 		private void ForwardToolStripMenuItem_Click(object sender, EventArgs e) {
-
+			++FormRenju.MovePointer;
+			if(FormRenju.MovePointer >= FormRenju.Move.Count)
+				FormRenju.MovePointer = FormRenju.Move.Count - 1;
+			DrawBoard(FormRenju);
 		}
 
 		private void BackwardToolStripMenuItem_Click(object sender, EventArgs e) {
-
+			if(FormRenju.MovePointer < 0)
+				return;
+			--FormRenju.MovePointer;
+			if(FormRenju.MovePointer < 0)
+				FormRenju.MovePointer = 0;
+			DrawBoard(FormRenju);
 		}
 
 		private void FirstMoveToolStripMenuItem_Click(object sender, EventArgs e) {
-
+			if(FormRenju.MovePointer < 0)
+				return;
+			FormRenju.MovePointer = 0;
+			DrawBoard(FormRenju);
 		}
 
 		private void LastMoveToolStripMenuItem_Click(object sender, EventArgs e) {
-
+			FormRenju.MovePointer = FormRenju.Move.Count - 1;
+			DrawBoard(FormRenju);
 		}
 
 		private void StartComputingToolStripMenuItem_Click(object sender, EventArgs e) {
@@ -105,18 +117,19 @@ namespace Shioi {
 		}
 
 		private void FirstMoveButton_Click(object sender, EventArgs e) {
+			FirstMoveToolStripMenuItem_Click(sender, e);
 		}
 
 		private void BackwardButton_Click(object sender, EventArgs e) {
-
+			BackwardToolStripMenuItem_Click(sender, e);
 		}
 
 		private void ForwardButton_Click(object sender, EventArgs e) {
-
+			ForwardToolStripMenuItem_Click(sender, e);
 		}
 
 		private void LastMoveButton_Click(object sender, EventArgs e) {
-
+			LastMoveToolStripMenuItem_Click(sender, e);
 		}
 
 		private void StartComputingButton_Click(object sender, EventArgs e) {
@@ -135,7 +148,7 @@ namespace Shioi {
 			// 盤面を描画する
 			var canvas = new Bitmap(PictureBox.Width, PictureBox.Height);
 			var blockSize = PictureBox.Width / 16;
-			var boardOffset = blockSize / 4;
+			var boardOffset = blockSize * 3 / 8;
 			var g = Graphics.FromImage(canvas);
 			// 背景
 			g.FillRectangle(Brushes.Gold, 0, 0, PictureBox.Width, PictureBox.Height);
@@ -150,10 +163,10 @@ namespace Shioi {
 			var fontSize = blockSize / 2;
 			var font = new Font("MS Gothic", fontSize, FontStyle.Bold);
 			for(int y = 0; y < BoardSize; ++y) {
-				g.DrawString(PositionStringY.Substring(y, 1), font, Brushes.Black, 0, blockSize * y + blockSize * 3 / 4 + boardOffset);
+				g.DrawString(PositionStringY.Substring(y, 1), font, Brushes.Black, blockSize / 8, blockSize * y + blockSize * 3 / 4 + boardOffset);
 			}
 			for(int x = 0; x < BoardSize; ++x) {
-				g.DrawString(PositionStringX.Substring(x, 1), font, Brushes.Black, blockSize * x + blockSize * 3 / 4 + boardOffset, 0);
+				g.DrawString(PositionStringX.Substring(x, 1), font, Brushes.Black, blockSize * x + blockSize * 3 / 4 + boardOffset, blockSize / 8);
 			}
 			// 星
 			const int StarR = 3;
@@ -193,6 +206,7 @@ namespace Shioi {
 			// ステータスバーを変更する
 			LastMoveStatusLabel.Text = renju.GetLastMoveText();
 			TurnPlayerStatusLabel.Text = renju.GetTurnPlayerText();
+			StepStatusLabel.Text = renju.GetStepText();
 		}
 
 		private class Renju {
@@ -421,6 +435,9 @@ namespace Shioi {
 			}
 			public string GetTurnPlayerText() {
 				return "Turn : " + (Move.Count == 0 ? "" : MovePointer % 2 == 0 ? "White" : "Black");
+			}
+			public string GetStepText() {
+				return "Step : " + (MovePointer + 1).ToString();
 			}
 		}
 	}

@@ -55,6 +55,7 @@
 			this.LastMoveButton = new System.Windows.Forms.Button();
 			this.StartComputingButton = new System.Windows.Forms.Button();
 			this.StopComputingButton = new System.Windows.Forms.Button();
+			this.StepStatusLabel = new System.Windows.Forms.ToolStripStatusLabel();
 			this.MenuStrip.SuspendLayout();
 			this.StatusStrip.SuspendLayout();
 			((System.ComponentModel.ISupportInitialize)(this.PictureBox)).BeginInit();
@@ -132,21 +133,21 @@
 			// CopyMoveToolStripMenuItem
 			// 
 			this.CopyMoveToolStripMenuItem.Name = "CopyMoveToolStripMenuItem";
-			this.CopyMoveToolStripMenuItem.Size = new System.Drawing.Size(190, 22);
+			this.CopyMoveToolStripMenuItem.Size = new System.Drawing.Size(192, 22);
 			this.CopyMoveToolStripMenuItem.Text = "Copy Move(&C)";
 			this.CopyMoveToolStripMenuItem.Click += new System.EventHandler(this.CopyMoveToolStripMenuItem_Click);
 			// 
 			// PasteMoveToolStripMenuItem
 			// 
 			this.PasteMoveToolStripMenuItem.Name = "PasteMoveToolStripMenuItem";
-			this.PasteMoveToolStripMenuItem.Size = new System.Drawing.Size(190, 22);
+			this.PasteMoveToolStripMenuItem.Size = new System.Drawing.Size(192, 22);
 			this.PasteMoveToolStripMenuItem.Text = "Paste Move(&P)";
 			this.PasteMoveToolStripMenuItem.Click += new System.EventHandler(this.PasteMoveToolStripMenuItem_Click);
 			// 
 			// CopyBoardTextoolStripMenuItem
 			// 
 			this.CopyBoardTextoolStripMenuItem.Name = "CopyBoardTextoolStripMenuItem";
-			this.CopyBoardTextoolStripMenuItem.Size = new System.Drawing.Size(190, 22);
+			this.CopyBoardTextoolStripMenuItem.Size = new System.Drawing.Size(192, 22);
 			this.CopyBoardTextoolStripMenuItem.Text = "Copy Board-Text(&T)";
 			this.CopyBoardTextoolStripMenuItem.Click += new System.EventHandler(this.CopyBoardTextToolStripMenuItem_Click);
 			// 
@@ -237,7 +238,8 @@
 			// 
 			this.StatusStrip.Items.AddRange(new System.Windows.Forms.ToolStripItem[] {
             this.LastMoveStatusLabel,
-            this.TurnPlayerStatusLabel});
+            this.TurnPlayerStatusLabel,
+            this.StepStatusLabel});
 			this.StatusStrip.Location = new System.Drawing.Point(0, 479);
 			this.StatusStrip.Name = "StatusStrip";
 			this.StatusStrip.Size = new System.Drawing.Size(424, 22);
@@ -330,6 +332,12 @@
 			this.StopComputingButton.UseVisualStyleBackColor = true;
 			this.StopComputingButton.Click += new System.EventHandler(this.StopComputingButton_Click);
 			// 
+			// StepStatusLabel
+			// 
+			this.StepStatusLabel.Name = "StepStatusLabel";
+			this.StepStatusLabel.Size = new System.Drawing.Size(36, 17);
+			this.StepStatusLabel.Text = "Step :";
+			// 
 			// MainForm
 			// 
 			this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 12F);
@@ -393,6 +401,7 @@
 		private System.Windows.Forms.ToolStripStatusLabel LastMoveStatusLabel;
 		private System.Windows.Forms.ToolStripStatusLabel TurnPlayerStatusLabel;
 		private System.Windows.Forms.ToolStripMenuItem CopyBoardPictureToolStripMenuItem;
+		private System.Windows.Forms.ToolStripStatusLabel StepStatusLabel;
 	}
 }
 
