@@ -5,6 +5,7 @@ using System.Data;
 using System.Drawing;
 using System.IO;
 using System.Linq;
+using System.Reflection;
 using System.Text;
 using System.Threading.Tasks;
 using System.Windows.Forms;
@@ -141,7 +142,17 @@ namespace Shioi {
 		}
 
 		private void AboutAToolStripMenuItem_Click(object sender, EventArgs e) {
-
+			var assem = Assembly.GetExecutingAssembly();
+			var v = assem.GetName().Version;
+			var version = v.Major.ToString() + "." + v.Minor.ToString() + "." + v.Build.ToString() + "." + v.Revision.ToString();
+			var assemblyProduct = ((AssemblyProductAttribute)Attribute.GetCustomAttribute(assem, typeof(AssemblyProductAttribute))).Product;
+			var assemblyCopyright = ((AssemblyCopyrightAttribute)Attribute.GetCustomAttribute(assem, typeof(AssemblyCopyrightAttribute))).Copyright;
+			var verInfo = 
+				"SoftName : " + assemblyProduct + "\n"
+				+ "Version : " + version + "\n"
+				+ "Created by YSR\n"
+				+ assemblyCopyright;
+			MessageBox.Show(verInfo, SoftName);
 		}
 
 		private void DrawBoard(Renju renju) {
@@ -437,7 +448,7 @@ namespace Shioi {
 				return "Turn : " + (Move.Count == 0 ? "" : MovePointer % 2 == 0 ? "White" : "Black");
 			}
 			public string GetStepText() {
-				return "Step : " + (MovePointer + 1).ToString();
+				return "Step : " + (MovePointer + 1).ToString() + " / " + Move.Count.ToString();
 			}
 		}
 	}

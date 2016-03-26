@@ -3,6 +3,12 @@
 ## Abstract
 Shioi is renju player and solver by C++ and C#.
 
+## How to use
+- [File] "Clear board", "Open file", "Save file", "Close software"
+- [Edit] Notification : The format of move's text is used by "Date Gomoku".
+- [Game] You can seek moves of the game.
+- [Help] About of this Software
+
 ## File Format
 ### *.ban
 This format is used by "Gomoku Kyousou"(五目競争) which is a computer renju tournament.
@@ -26,6 +32,12 @@ http://homepage3.nifty.com/SGL/RENJU/
 
 ## 概要
 Shioiは、C++とC#によって書かれた連珠ソフトです。しおいって呼んでね。
+
+## 使い方
+- 「File」……上から、「盤面初期化」・「ファイルを開く」・「ファイル保存」・「終了」です。
+- 「Edit」……上から、「手順を伊達五目形式でコピー」「手順を伊達五目形式で貼り付け」「盤面をテキストでコピー」「盤面を画像でコピー」です。
+- 「Game」……上から、「一手進める」「一手戻る」「最初に戻す」「最後まで飛ぶ」になります。
+- 「Help」……ソフトウェアについての情報が確認できます。
 
 ## ファイル形式
 ### *.ban
