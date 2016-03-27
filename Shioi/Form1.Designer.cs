@@ -341,6 +341,7 @@
 			// 
 			// MainForm
 			// 
+			this.AllowDrop = true;
 			this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 12F);
 			this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
 			this.ClientSize = new System.Drawing.Size(424, 501);
@@ -358,6 +359,8 @@
 			this.MaximizeBox = false;
 			this.Name = "MainForm";
 			this.Text = "Shioi";
+			this.DragDrop += new System.Windows.Forms.DragEventHandler(this.MainForm_DragDrop);
+			this.DragEnter += new System.Windows.Forms.DragEventHandler(this.MainForm_DragEnter);
 			this.MenuStrip.ResumeLayout(false);
 			this.MenuStrip.PerformLayout();
 			this.StatusStrip.ResumeLayout(false);

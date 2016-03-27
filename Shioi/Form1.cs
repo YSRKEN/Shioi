@@ -151,6 +151,28 @@ namespace Shioi {
 			FormRenju.Move.Add(p);
 			DrawBoard();
 		}
+		private void MainForm_DragDrop(object sender, DragEventArgs e) {
+			string[] files = (string[])e.Data.GetData(DataFormats.FileDrop, false);
+			if(files.Length < 1)
+				return;
+			if(Path.GetExtension(files[0]) != ".ban"
+			&& Path.GetExtension(files[0]) != ".dt5"
+			&& Path.GetExtension(files[0]) != ".lws"
+			&& Path.GetExtension(files[0]) != ".rnj"
+			&& Path.GetExtension(files[0]) != ".kif"
+			&& Path.GetExtension(files[0]) != ".nrf")
+				return;
+			// Open select file
+			FormRenju = new Renju(files[0]);
+			DrawBoard();
+		}
+		private void MainForm_DragEnter(object sender, DragEventArgs e) {
+			if(e.Data.GetDataPresent(DataFormats.FileDrop)) {
+				e.Effect = DragDropEffects.All;
+			} else {
+				e.Effect = DragDropEffects.None;
+			}
+		}
 
 		private void DrawBoard() {
 			// 盤面を描画する
