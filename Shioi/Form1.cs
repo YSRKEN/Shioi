@@ -32,28 +32,25 @@ namespace Shioi {
 		private void NewToolStripMenuItem_Click(object sender, EventArgs e) {
 			FormRenju = new Renju();
 		}
-
 		private void OpenToolStripMenuItem_Click(object sender, EventArgs e) {
 			// Show "open file dialog"
 			var ofd = new OpenFileDialog();
-			ofd.Filter = "Gomoku Kyousou(*.ban)|*.ban|Date Gomoku(*.dt5)|*.dt5|Fiver6(*.lws)|*.lws|Renju Kozou(*.rnj)|*.rnj";
+			ofd.Filter = "Gomoku Kyousou(*.ban)|*.ban|Date Gomoku(*.dt5)|*.dt5|Fiver6(*.lws)|*.lws|Renju Kozou(*.rnj)|*.rnj|MonteCarlo Gomokunarabe(*.kif)|*.kif";
 			if(ofd.ShowDialog() != DialogResult.OK)
 				return;
 			// Open select file
 			FormRenju = new Renju(ofd.FileName);
 			DrawBoard();
 		}
-
 		private void SaveToolStripMenuItem_Click(object sender, EventArgs e) {
 			// Show "save file dialog"
 			var sfd = new SaveFileDialog();
-			sfd.Filter = "Gomoku Kyousou(*.ban)|*.ban|Date Gomoku(*.dt5)|*.dt5|Fiver6(*.lws)|*.lws|Renju Kozou(*.rnj)|*.rnj";
+			sfd.Filter = "Gomoku Kyousou(*.ban)|*.ban|Date Gomoku(*.dt5)|*.dt5|Fiver6(*.lws)|*.lws|Renju Kozou(*.rnj)|*.rnj|MonteCarlo Gomokunarabe(*.kif)|*.kif";
 			if(sfd.ShowDialog() != DialogResult.OK)
 				return;
 			// Save select file
 			FormRenju.SaveFile(sfd.FileName);
 		}
-
 		private void ExitToolStripMenuItem_Click(object sender, EventArgs e) {
 			this.Close();
 		}
@@ -62,7 +59,6 @@ namespace Shioi {
 			var output = FormRenju.ToStringMove();
 			Clipboard.SetDataObject(output, true);
 		}
-
 		private void PasteMoveToolStripMenuItem_Click(object sender, EventArgs e) {
 			var data = Clipboard.GetDataObject();
 			if(data.GetDataPresent(DataFormats.Text)) {
@@ -71,12 +67,10 @@ namespace Shioi {
 				LastMoveToolStripMenuItem_Click(sender, e);
 			}
 		}
-
 		private void CopyBoardTextToolStripMenuItem_Click(object sender, EventArgs e) {
 			var output = FormRenju.ToStringBoard();
 			Clipboard.SetDataObject(output, true);
 		}
-
 		private void CopyBoardPictureToolStripMenuItem_Click(object sender, EventArgs e) {
 			var bmp = new Bitmap(PictureBox.Image);
 			Clipboard.SetImage(bmp);
@@ -86,54 +80,44 @@ namespace Shioi {
 			FormRenju.Next();
 			DrawBoard();
 		}
-
 		private void BackwardToolStripMenuItem_Click(object sender, EventArgs e) {
 			FormRenju.Prev();
 			DrawBoard();
 		}
-
 		private void FirstMoveToolStripMenuItem_Click(object sender, EventArgs e) {
 			int pointer = FormRenju.MovePointer;
 			for(int i = 0; i <= pointer; ++i)
 				FormRenju.Prev();
 			DrawBoard();
 		}
-
 		private void LastMoveToolStripMenuItem_Click(object sender, EventArgs e) {
 			int pointer = FormRenju.MovePointer;
 			for(int i = pointer; i < FormRenju.Move.Count; ++i)
 				FormRenju.Next();
 			DrawBoard();
 		}
-
-		private void StartComputingToolStripMenuItem_Click(object sender, EventArgs e) {
-
-		}
-
-		private void StopComputingToolStripMenuItem_Click(object sender, EventArgs e) {
-
-		}
-
 		private void FirstMoveButton_Click(object sender, EventArgs e) {
 			FirstMoveToolStripMenuItem_Click(sender, e);
 		}
-
 		private void BackwardButton_Click(object sender, EventArgs e) {
 			BackwardToolStripMenuItem_Click(sender, e);
 		}
-
 		private void ForwardButton_Click(object sender, EventArgs e) {
 			ForwardToolStripMenuItem_Click(sender, e);
 		}
-
 		private void LastMoveButton_Click(object sender, EventArgs e) {
 			LastMoveToolStripMenuItem_Click(sender, e);
 		}
 
+		private void StartComputingToolStripMenuItem_Click(object sender, EventArgs e) {
+
+		}
+		private void StopComputingToolStripMenuItem_Click(object sender, EventArgs e) {
+
+		}
 		private void StartComputingButton_Click(object sender, EventArgs e) {
 
 		}
-
 		private void StopComputingButton_Click(object sender, EventArgs e) {
 
 		}
@@ -250,7 +234,8 @@ namespace Shioi {
 				System.IO.StreamReader sr = new System.IO.StreamReader(FileName, System.Text.Encoding.GetEncoding("utf-8"));
 				var fileData = sr.ReadToEnd();
 				switch(Path.GetExtension(FileName)) {
-				case ".ban": {
+				case ".ban":
+					{
 						var getLine = fileData.Replace("\r\n", "\n").Split('\n');
 						var setStone = Stone.Black;
 						foreach(var str in getLine) {
@@ -289,7 +274,8 @@ namespace Shioi {
 						MovePointer = Move.Count - 1;
 					}
 					break;
-				case ".rnj": {
+				case ".rnj":
+					{
 						var getLine = fileData.Replace("\r\n", "\n").Split('\n');
 						foreach(var str in getLine) {
 							var info = str.Split(' ');
@@ -311,6 +297,103 @@ namespace Shioi {
 							var move2 = ConvertMove2to1(x2, y2);
 							Move.Add(move2);
 							Board[move2] = Stone.White;
+						}
+						MovePointer = Move.Count - 1;
+					}
+					break;
+				case ".kif":
+					{
+						var getLine = fileData.Replace("\r\n", "\n").Split('\n');
+						var step = 0;   //現在読んでいる行
+						Stone setStone = Stone.Black;
+						foreach(var str in getLine) {
+							if(step == 0) {
+								/* 手番情報で、書式は「* /t=X」。
+								 * tの値は「次にどちらの手番か」ということだが、
+								 * 本ソフトの実装では便宜上着手数によって
+								 * 自動で手番が決まるため無視する
+								 */
+							}else if(step <= BoardSize) {
+								/* 盤面情報で、「.」「1」「2」が「空白」「黒石」「白石」に対応。
+								 * 対局途中から打つためのものだが、指し手を徹頭徹尾再現するのは
+								 * 不可能なので、スパイラルサーチによって擬似的に再現する
+								 */
+								// まず普通に読み込む
+								for(int i = 0; i < BoardSize; ++i) {
+									var stoneData = str.Substring(i, 1);
+									if(stoneData == "1") {
+										// 黒石
+										Board[ConvertMove2to1(i, step - 1)] = Stone.Black;
+									}else if(stoneData == "2") {
+										// 白石
+										Board[ConvertMove2to1(i, step - 1)] = Stone.White;
+									}
+								}
+								if(step == BoardSize) {
+									// 読み終わったら、手順をスパイラルサーチによって再現する
+									int xPos = 7, yPos = 7, moves = 1;
+									var blackPos = new List<int>();
+									var whitePos = new List<int>();
+									if(Point(xPos, yPos) == Stone.Black) blackPos.Add(ConvertMove2to1(xPos, yPos));
+									if(Point(xPos, yPos) == Stone.White) whitePos.Add(ConvertMove2to1(xPos, yPos));
+									var exitFlg = false;
+									while(true) {
+										// 下
+										for(int i = 0; i < moves; ++i) {
+											++yPos;
+											if(yPos >= BoardSize) {exitFlg = true; break;}
+											if(Point(xPos, yPos) == Stone.Black) blackPos.Add(ConvertMove2to1(xPos, yPos));
+											if(Point(xPos, yPos) == Stone.White) whitePos.Add(ConvertMove2to1(xPos, yPos));
+										}
+										if(exitFlg) break;
+										// 左
+										for(int i = 0; i < moves; ++i) {
+											--xPos;
+											if(xPos < 0) { exitFlg = true; break; }
+											if(Point(xPos, yPos) == Stone.Black) blackPos.Add(ConvertMove2to1(xPos, yPos));
+											if(Point(xPos, yPos) == Stone.White) whitePos.Add(ConvertMove2to1(xPos, yPos));
+										}
+										if(exitFlg) break;
+										++moves;
+										// 上
+										for(int i = 0; i < moves; ++i) {
+											--yPos;
+											if(yPos < 0) {exitFlg = true; break;}
+											if(Point(xPos, yPos) == Stone.Black) blackPos.Add(ConvertMove2to1(xPos, yPos));
+											if(Point(xPos, yPos) == Stone.White) whitePos.Add(ConvertMove2to1(xPos, yPos));
+										}
+										if(exitFlg) break;
+										// 右
+										for(int i = 0; i < moves; ++i) {
+											++xPos;
+											if(xPos >= BoardSize) {exitFlg = true; break;}
+											if(Point(xPos, yPos) == Stone.Black) blackPos.Add(ConvertMove2to1(xPos, yPos));
+											if(Point(xPos, yPos) == Stone.White) whitePos.Add(ConvertMove2to1(xPos, yPos));
+										}
+										if(exitFlg) break;
+										++moves;
+									}
+									while(true) {
+										if(blackPos.Count == 0) break;
+										Move.Add(blackPos[0]);
+										blackPos.RemoveAt(0);
+										if(whitePos.Count == 0) break;
+										Move.Add(whitePos[0]);
+										whitePos.RemoveAt(0);
+									}
+									setStone = (Move.Count % 2 == 0 ? Stone.Black : Stone.White);
+								}
+							} else if(str.IndexOf(",") != -1) {
+								var splitStr = str.Split(',');
+								var move = int.Parse(splitStr[0]);
+								var moveX = (move % (BoardSize + 1)) - 1;
+								var moveY = (move / (BoardSize + 1)) - 1;
+								var moveXY = ConvertMove2to1(moveX, moveY);
+								Board[moveXY] = setStone;
+								Move.Add(moveXY);
+								setStone = (setStone == Stone.Black ? Stone.White : Stone.Black);
+							}
+							++step;
 						}
 						MovePointer = Move.Count - 1;
 					}
