@@ -160,8 +160,9 @@ namespace Shioi {
 				return;
 			var p = Renju.ConvertMove2to1(x, y);
 			FormRenju.Board[p] = FormRenju.TurnPlayer();
-			FormRenju.Move.Add(p);
 			++FormRenju.MovePointer;
+			FormRenju.Move.RemoveRange(FormRenju.MovePointer, FormRenju.Move.Count - FormRenju.MovePointer);
+			FormRenju.Move.Add(p);
 			DrawBoard();
 		}
 
