@@ -26,7 +26,7 @@ namespace Shioi {
 		public MainForm() {
 			InitializeComponent();
 			FormRenju = new Renju();
-			DrawBoard(FormRenju);
+			DrawBoard();
 		}
 
 		private void NewToolStripMenuItem_Click(object sender, EventArgs e) {
@@ -41,7 +41,7 @@ namespace Shioi {
 				return;
 			// Open select file
 			FormRenju = new Renju(ofd.FileName);
-			DrawBoard(FormRenju);
+			DrawBoard();
 		}
 
 		private void SaveToolStripMenuItem_Click(object sender, EventArgs e) {
@@ -68,6 +68,7 @@ namespace Shioi {
 			if(data.GetDataPresent(DataFormats.Text)) {
 				var input = (string)data.GetData(DataFormats.Text);
 				FormRenju.Parse(input);
+				LastMoveToolStripMenuItem_Click(sender, e);
 			}
 		}
 
@@ -82,31 +83,27 @@ namespace Shioi {
 		}
 
 		private void ForwardToolStripMenuItem_Click(object sender, EventArgs e) {
-			++FormRenju.MovePointer;
-			if(FormRenju.MovePointer >= FormRenju.Move.Count)
-				FormRenju.MovePointer = FormRenju.Move.Count - 1;
-			DrawBoard(FormRenju);
+			FormRenju.Next();
+			DrawBoard();
 		}
 
 		private void BackwardToolStripMenuItem_Click(object sender, EventArgs e) {
-			if(FormRenju.MovePointer < 0)
-				return;
-			--FormRenju.MovePointer;
-			if(FormRenju.MovePointer < 0)
-				FormRenju.MovePointer = 0;
-			DrawBoard(FormRenju);
+			FormRenju.Prev();
+			DrawBoard();
 		}
 
 		private void FirstMoveToolStripMenuItem_Click(object sender, EventArgs e) {
-			if(FormRenju.MovePointer < 0)
-				return;
-			FormRenju.MovePointer = 0;
-			DrawBoard(FormRenju);
+			int pointer = FormRenju.MovePointer;
+			for(int i = 0; i <= pointer; ++i)
+				FormRenju.Prev();
+			DrawBoard();
 		}
 
 		private void LastMoveToolStripMenuItem_Click(object sender, EventArgs e) {
-			FormRenju.MovePointer = FormRenju.Move.Count - 1;
-			DrawBoard(FormRenju);
+			int pointer = FormRenju.MovePointer;
+			for(int i = pointer; i < FormRenju.Move.Count; ++i)
+				FormRenju.Next();
+			DrawBoard();
 		}
 
 		private void StartComputingToolStripMenuItem_Click(object sender, EventArgs e) {
@@ -155,7 +152,20 @@ namespace Shioi {
 			MessageBox.Show(verInfo, SoftName);
 		}
 
-		private void DrawBoard(Renju renju) {
+		private void PictureBox_MouseClick(object sender, MouseEventArgs e) {
+			var blockSize = PictureBox.Width / 16;
+			var x = e.Location.X / blockSize - 1;
+			var y = e.Location.Y / blockSize - 1;
+			if(FormRenju.Point(x, y) != Stone.None)
+				return;
+			var p = Renju.ConvertMove2to1(x, y);
+			FormRenju.Board[p] = FormRenju.TurnPlayer();
+			FormRenju.Move.Add(p);
+			++FormRenju.MovePointer;
+			DrawBoard();
+		}
+
+		private void DrawBoard() {
 			// 盤面を描画する
 			var canvas = new Bitmap(PictureBox.Width, PictureBox.Height);
 			var blockSize = PictureBox.Width / 16;
@@ -189,8 +199,8 @@ namespace Shioi {
 			// 石
 			var StoneR = blockSize / 2;
 			var font2 = new Font("MS Gothic", fontSize - 2, FontStyle.Bold);
-			for(int p = 0; p <= renju.MovePointer; ++p) {
-				var MoveXY = Renju.ConvertMove1to2(renju.Move[p]);
+			for(int p = 0; p <= FormRenju.MovePointer; ++p) {
+				var MoveXY = Renju.ConvertMove1to2(FormRenju.Move[p]);
 				var drawX = blockSize * MoveXY[0] + StoneR + 1 + boardOffset;
 				var drawY = blockSize * MoveXY[1] + StoneR + 1 + boardOffset;
 				var pLength = (p + 1).ToString().Length;
@@ -198,7 +208,7 @@ namespace Shioi {
 				int[] offsetX1 = {0, fontSize, fontSize * 19 / 16, fontSize * 5 / 4}; 
 				var offsetX = - pLengthOffset + offsetX1[pLength];
 				var offsetY = fontSize / 2;
-				switch(renju.Board[renju.Move[p]]) {
+				switch(FormRenju.Point(p)) {
 				case Stone.None:
 					break;
 				case Stone.Black:
@@ -215,9 +225,9 @@ namespace Shioi {
 			g.Dispose();
 			PictureBox.Image = canvas;
 			// ステータスバーを変更する
-			LastMoveStatusLabel.Text = renju.GetLastMoveText();
-			TurnPlayerStatusLabel.Text = renju.GetTurnPlayerText();
-			StepStatusLabel.Text = renju.GetStepText();
+			LastMoveStatusLabel.Text = FormRenju.GetLastMoveText();
+			TurnPlayerStatusLabel.Text = FormRenju.GetTurnPlayerText();
+			StepStatusLabel.Text = FormRenju.GetStepText();
 		}
 
 		private class Renju {
@@ -440,12 +450,37 @@ namespace Shioi {
 			static public int[] ConvertMove1to2(int Move) {
 				return new int[]{ Move % BoardSize, Move / BoardSize };
 			}
+			// 手番情報
+			public Stone TurnPlayer() {
+				return (MovePointer % 2 == 0 ? Stone.White : Stone.Black);
+			}
+			// 盤面の情報
+			public Stone Point(int p) {
+				return Board[Move[p]];
+			}
+			public Stone Point(int x, int y) {
+				return Board[Renju.ConvertMove2to1(x, y)];
+			}
+			// 手番を進める・戻す
+			public void Next() {
+				if(MovePointer >= Move.Count - 1)
+					return;
+				var setStone = TurnPlayer();
+				++MovePointer;
+				Board[Move[MovePointer]] = setStone;
+			}
+			public void Prev() {
+				if(MovePointer < 0)
+					return;
+				Board[Move[MovePointer]] = Stone.None;
+				--MovePointer;
+			}
 			// ステータスバー用文字列の生成
 			public string GetLastMoveText() {
-				return "LastMove : " + (Move.Count == 0 ? "" : ToStringMoveMini(Move[MovePointer]));
+				return "LastMove : " + (Move.Count == 0 | MovePointer == -1 ? "" : ToStringMoveMini(Move[MovePointer]));
 			}
 			public string GetTurnPlayerText() {
-				return "Turn : " + (Move.Count == 0 ? "" : MovePointer % 2 == 0 ? "White" : "Black");
+				return "Turn : " + (TurnPlayer() == Stone.Black ? "Black" : "White");
 			}
 			public string GetStepText() {
 				return "Step : " + (MovePointer + 1).ToString() + " / " + Move.Count.ToString();

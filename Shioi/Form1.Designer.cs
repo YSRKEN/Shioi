@@ -48,6 +48,7 @@
 			this.StatusStrip = new System.Windows.Forms.StatusStrip();
 			this.LastMoveStatusLabel = new System.Windows.Forms.ToolStripStatusLabel();
 			this.TurnPlayerStatusLabel = new System.Windows.Forms.ToolStripStatusLabel();
+			this.StepStatusLabel = new System.Windows.Forms.ToolStripStatusLabel();
 			this.PictureBox = new System.Windows.Forms.PictureBox();
 			this.BackwardButton = new System.Windows.Forms.Button();
 			this.ForwardButton = new System.Windows.Forms.Button();
@@ -55,7 +56,6 @@
 			this.LastMoveButton = new System.Windows.Forms.Button();
 			this.StartComputingButton = new System.Windows.Forms.Button();
 			this.StopComputingButton = new System.Windows.Forms.Button();
-			this.StepStatusLabel = new System.Windows.Forms.ToolStripStatusLabel();
 			this.MenuStrip.SuspendLayout();
 			this.StatusStrip.SuspendLayout();
 			((System.ComponentModel.ISupportInitialize)(this.PictureBox)).BeginInit();
@@ -258,6 +258,12 @@
 			this.TurnPlayerStatusLabel.Size = new System.Drawing.Size(39, 17);
 			this.TurnPlayerStatusLabel.Text = "Turn : ";
 			// 
+			// StepStatusLabel
+			// 
+			this.StepStatusLabel.Name = "StepStatusLabel";
+			this.StepStatusLabel.Size = new System.Drawing.Size(36, 17);
+			this.StepStatusLabel.Text = "Step :";
+			// 
 			// PictureBox
 			// 
 			this.PictureBox.Location = new System.Drawing.Point(12, 63);
@@ -265,6 +271,7 @@
 			this.PictureBox.Size = new System.Drawing.Size(400, 400);
 			this.PictureBox.TabIndex = 2;
 			this.PictureBox.TabStop = false;
+			this.PictureBox.MouseClick += new System.Windows.Forms.MouseEventHandler(this.PictureBox_MouseClick);
 			// 
 			// BackwardButton
 			// 
@@ -331,12 +338,6 @@
 			this.StopComputingButton.Text = "||";
 			this.StopComputingButton.UseVisualStyleBackColor = true;
 			this.StopComputingButton.Click += new System.EventHandler(this.StopComputingButton_Click);
-			// 
-			// StepStatusLabel
-			// 
-			this.StepStatusLabel.Name = "StepStatusLabel";
-			this.StepStatusLabel.Size = new System.Drawing.Size(36, 17);
-			this.StepStatusLabel.Text = "Step :";
 			// 
 			// MainForm
 			// 
