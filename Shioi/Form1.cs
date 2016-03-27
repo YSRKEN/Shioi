@@ -35,7 +35,7 @@ namespace Shioi {
 		private void OpenToolStripMenuItem_Click(object sender, EventArgs e) {
 			// Show "open file dialog"
 			var ofd = new OpenFileDialog();
-			ofd.Filter = "Gomoku Kyousou(*.ban)|*.ban|Date Gomoku(*.dt5)|*.dt5|Fiver6(*.lws)|*.lws|Renju Kozou(*.rnj)|*.rnj|MonteCarlo Gomokunarabe(*.kif)|*.kif";
+			ofd.Filter = "Gomoku Kyousou(*.ban)|*.ban|Date Gomoku(*.dt5)|*.dt5|Fiver6(*.lws)|*.lws|Renju Kozou(*.rnj)|*.rnj|MonteCarlo Gomokunarabe(*.kif)|*.kif|Niroi Renju hu(*.nrf)|*.nrf";
 			if(ofd.ShowDialog() != DialogResult.OK)
 				return;
 			// Open select file
@@ -45,7 +45,7 @@ namespace Shioi {
 		private void SaveToolStripMenuItem_Click(object sender, EventArgs e) {
 			// Show "save file dialog"
 			var sfd = new SaveFileDialog();
-			sfd.Filter = "Gomoku Kyousou(*.ban)|*.ban|Date Gomoku(*.dt5)|*.dt5|Fiver6(*.lws)|*.lws|Renju Kozou(*.rnj)|*.rnj|MonteCarlo Gomokunarabe(*.kif)|*.kif";
+			sfd.Filter = "Gomoku Kyousou(*.ban)|*.ban|Date Gomoku(*.dt5)|*.dt5|Fiver6(*.lws)|*.lws|Renju Kozou(*.rnj)|*.rnj|MonteCarlo Gomokunarabe(*.kif)|*.kif|Niroi Renju hu(*.nrf)|*.nrf";
 			if(sfd.ShowDialog() != DialogResult.OK)
 				return;
 			// Save select file
@@ -140,6 +140,8 @@ namespace Shioi {
 			var blockSize = PictureBox.Width / 16;
 			var x = e.Location.X / blockSize - 1;
 			var y = e.Location.Y / blockSize - 1;
+			if(x < 0 || x >= BoardSize || y < 0 || y >= BoardSize)
+				return;
 			if(FormRenju.Point(x, y) != Stone.None)
 				return;
 			var p = Renju.ConvertMove2to1(x, y);
@@ -233,6 +235,7 @@ namespace Shioi {
 				MovePointer = -1;
 				System.IO.StreamReader sr = new System.IO.StreamReader(FileName, System.Text.Encoding.GetEncoding("utf-8"));
 				var fileData = sr.ReadToEnd();
+				sr.Close();
 				switch(Path.GetExtension(FileName)) {
 				case ".ban":
 					{
@@ -258,11 +261,11 @@ namespace Shioi {
 					break;
 				case ".lws":
 					{
-						const string PositionStringX = "ABCDEFGHIJKLMNO";
+						const string PositionString = "ABCDEFGHIJKLMNO";
 						var moveStr = fileData.Split(' ');
 						var setStone = Stone.Black;
 						foreach(var str in moveStr) {
-							var x = PositionStringX.IndexOf(str[0]);
+							var x = PositionString.IndexOf(str[0]);
 							var y = BoardSize - int.Parse(str.Substring(1));
 							if(x < 0)
 								break;
@@ -398,6 +401,31 @@ namespace Shioi {
 						MovePointer = Move.Count - 1;
 					}
 					break;
+				case ".nrf": 
+					{
+						var getLine = fileData.Replace("\r\n", "\n").Split('\n');
+						var step = 0;   //現在読んでいる行
+						Stone setStone = Stone.Black;
+						const string PositionString = "123456789abcdef";
+						foreach(var str in getLine) {
+							if(step == 0) {
+								/* タイトル */
+							} else if(str.Length >= 2) {
+								var moveX = PositionString.IndexOf(str.Substring(0, 1));
+								var moveY = PositionString.IndexOf(str.Substring(1, 1));
+								if(moveX == -1 || moveY == -1) break;
+								var moveXY = ConvertMove2to1(moveX, moveY);
+								Board[moveXY] = setStone;
+								Move.Add(moveXY);
+								setStone = (setStone == Stone.Black ? Stone.White : Stone.Black);
+							} else {
+								break;
+							}
+							++step;
+						}
+						MovePointer = Move.Count - 1;
+					}
+					break;
 				}
 				return;
 			}
@@ -421,12 +449,12 @@ namespace Shioi {
 					break;
 				case ".lws":
 					{
-						const string PositionStringX = "ABCDEFGHIJKLMNO";
+						const string PositionString = "ABCDEFGHIJKLMNO";
 						for(int p = 0; p <= MovePointer; ++p) {
 							var moveXY = ConvertMove1to2(Move[p]);
 							if(p != 0)
 								fileData += " ";
-							fileData += PositionStringX[moveXY[0]] + (BoardSize - moveXY[1]).ToString();
+							fileData += PositionString[moveXY[0]] + (BoardSize - moveXY[1]).ToString();
 						}
 					}
 					break;
@@ -437,6 +465,33 @@ namespace Shioi {
 							fileData += moveXY[1].ToString() + " " + moveXY[0].ToString();
 							fileData += (p % 2 == 0 ? " " : "\r\n");
 						}
+					}
+					break;
+				case ".kif":
+					{
+						fileData += "* /t=1\r\n";
+						for(int i = 0; i < BoardSize; ++i) {
+							for(int j = 0; j < BoardSize; ++j) {
+								fileData += ".";
+							}
+							fileData += "\r\n";
+						}
+						for(int p = 0; p <= MovePointer; ++p) {
+							var moveXY = ConvertMove1to2(Move[p]);
+							var move = (moveXY[0] + 1) + 16 * (moveXY[1] + 1);
+							fileData += move.ToString() + ",人\r\n";
+						}
+					}
+					break;
+				case ".nrf":
+					{
+						const string PositionString = "123456789abcdef";
+						fileData += Path.GetFileNameWithoutExtension(FileName) + "\r\n";
+						for(int p = 0; p <= MovePointer; ++p) {
+							var moveXY = ConvertMove1to2(Move[p]);
+							fileData += PositionString.Substring(moveXY[0], 1) + PositionString.Substring(moveXY[1], 1) + "\r\n";
+						}
+						fileData += "0\r\n";
 					}
 					break;
 				}
@@ -507,8 +562,6 @@ namespace Shioi {
 				Board = new List<Stone>(Enumerable.Repeat(Stone.None, BoardSize * BoardSize));
 				Move = new List<int>();
 				MovePointer = -1;
-				const string PositionStringX = "abcdefghijklmno";
-				const string PositionStringY = "123456789ABCDEF";
 				var moveStr = input.Split(',');
 				var setStone = Stone.Black;
 				foreach(var str in moveStr) {
@@ -561,7 +614,7 @@ namespace Shioi {
 			}
 			// ステータスバー用文字列の生成
 			public string GetLastMoveText() {
-				return "LastMove : " + (Move.Count == 0 | MovePointer == -1 ? "" : ToStringMoveMini(Move[MovePointer]));
+				return "LastMove : " + (Move.Count == 0 || MovePointer == -1 ? "" : ToStringMoveMini(Move[MovePointer]));
 			}
 			public string GetTurnPlayerText() {
 				return "Turn : " + (TurnPlayer() == Stone.Black ? "Black" : "White");

@@ -27,6 +27,13 @@ http://nosovsky.narod.ru/index21.html
 This format is used by "Renju Kozou"(連珠小僧).  
 http://homepage3.nifty.com/SGL/RENJU/
 
+### *.kif
+This format is used by "MonteCarlo Gomokunarabe"(モンテカルロ五目並べ).  
+http://www.vector.co.jp/soft/winnt/game/se502329.html
+
+### *.nrf
+This format is used by "Niroi Renju hu"(にろい連珠譜).  
+http://www.vector.co.jp/soft/win95/game/se169850.html
 
 ## Version History
 |Version|Information|
@@ -63,6 +70,14 @@ http://nosovsky.narod.ru/index21.html
 ### *.rnj
 この形式は、連珠小僧というソフトウェアで使用しているものです。  
 http://homepage3.nifty.com/SGL/RENJU/
+
+### *.kif
+この形式は、モンテカルロ五目並べというソフトウェアで使用しているものです。  
+http://www.vector.co.jp/soft/winnt/game/se502329.html
+
+### *.nrf
+この形式は、にろい連珠譜というソフトウェアで使用しているものです。  
+http://www.vector.co.jp/soft/win95/game/se169850.html
 
 ## 更新履歴
 |Version|Information|
