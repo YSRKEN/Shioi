@@ -175,40 +175,33 @@ namespace Shioi {
 		}
 
 		private void DrawBoard() {
-			// 盤面を描画する
+		// Draw board
 			var canvas = new Bitmap(PictureBox.Width, PictureBox.Height);
 			var blockSize = PictureBox.Width / 16;
 			var boardOffset = blockSize * 3 / 8;
 			var g = Graphics.FromImage(canvas);
-			// 背景
+			// Draw back ground
 			g.FillRectangle(Brushes.Gold, 0, 0, PictureBox.Width, PictureBox.Height);
-			// 枠線
-			for(int y = 1; y <= BoardSize; ++y) {
-				g.DrawLine(Pens.Black, blockSize + boardOffset, blockSize * y + boardOffset, blockSize * BoardSize + boardOffset, blockSize * y + boardOffset);
-			}
-			for(int x = 1; x <= BoardSize; ++x) {
-				g.DrawLine(Pens.Black, blockSize * x + boardOffset, blockSize + boardOffset, blockSize * x + boardOffset, blockSize * BoardSize + boardOffset);
-			}
-			// 座標
+			// Draw grid line
+			for(int y = 1; y <= BoardSize; ++y) g.DrawLine(Pens.Black, blockSize + boardOffset, blockSize * y + boardOffset, blockSize * BoardSize + boardOffset, blockSize * y + boardOffset);
+			for(int x = 1; x <= BoardSize; ++x) g.DrawLine(Pens.Black, blockSize * x + boardOffset, blockSize + boardOffset, blockSize * x + boardOffset, blockSize * BoardSize + boardOffset);
+			// Draw position signature
 			var fontSize = blockSize / 2;
 			var font = new Font("MS Gothic", fontSize, FontStyle.Bold);
-			for(int y = 0; y < BoardSize; ++y) {
-				g.DrawString(PositionStringY.Substring(y, 1), font, Brushes.Black, blockSize / 8, blockSize * y + blockSize * 3 / 4 + boardOffset);
-			}
-			for(int x = 0; x < BoardSize; ++x) {
-				g.DrawString(PositionStringX.Substring(x, 1), font, Brushes.Black, blockSize * x + blockSize * 3 / 4 + boardOffset, blockSize / 8);
-			}
-			// 星
+			for(int y = 0; y < BoardSize; ++y) g.DrawString(PositionStringY.Substring(y, 1), font, Brushes.Black, blockSize / 8, blockSize * y + blockSize * 3 / 4 + boardOffset);
+			for(int x = 0; x < BoardSize; ++x) g.DrawString(PositionStringX.Substring(x, 1), font, Brushes.Black, blockSize * x + blockSize * 3 / 4 + boardOffset, blockSize / 8);
+			// Draw star-mark
 			const int StarR = 3;
 			g.FillEllipse(Brushes.Black, blockSize *  4 - StarR + boardOffset, blockSize *  4 - StarR + boardOffset, StarR * 2, StarR * 2);
 			g.FillEllipse(Brushes.Black, blockSize * 12 - StarR + boardOffset, blockSize *  4 - StarR + boardOffset, StarR * 2, StarR * 2);
 			g.FillEllipse(Brushes.Black, blockSize * 12 - StarR + boardOffset, blockSize * 12 - StarR + boardOffset, StarR * 2, StarR * 2);
 			g.FillEllipse(Brushes.Black, blockSize *  4 - StarR + boardOffset, blockSize * 12 - StarR + boardOffset, StarR * 2, StarR * 2);
 			g.FillEllipse(Brushes.Black, blockSize *  8 - StarR + boardOffset, blockSize *  8 - StarR + boardOffset, StarR * 2, StarR * 2);
-			// 石
+			// Draw stones
 			var StoneR = blockSize / 2;
 			var font2 = new Font("MS Gothic", fontSize - 2, FontStyle.Bold);
 			for(int p = 0; p <= FormRenju.MovePointer; ++p) {
+				// Calc parameter
 				var MoveXY = Renju.ConvertMove1to2(FormRenju.Move[p]);
 				var drawX = blockSize * MoveXY[0] + StoneR + 1 + boardOffset;
 				var drawY = blockSize * MoveXY[1] + StoneR + 1 + boardOffset;
@@ -217,35 +210,53 @@ namespace Shioi {
 				int[] offsetX1 = {0, fontSize, fontSize * 19 / 16, fontSize * 5 / 4}; 
 				var offsetX = - pLengthOffset + offsetX1[pLength];
 				var offsetY = fontSize / 2;
+				// Draw stone
 				switch(FormRenju.Point(p)) {
-				case Stone.None:
-					break;
 				case Stone.Black:
+					// Black stone
 					g.FillEllipse(Brushes.Black, drawX, drawY, StoneR * 2, StoneR * 2);
 					g.DrawString((p + 1).ToString(), font2, Brushes.White, drawX + offsetX, drawY + offsetY);
 					break;
 				case Stone.White:
+					// White stone
 					g.FillEllipse(Brushes.White, drawX, drawY, StoneR * 2, StoneR * 2);
 					g.DrawEllipse(Pens.Black, drawX, drawY, StoneR * 2, StoneR * 2);
 					g.DrawString((p + 1).ToString(), font2, Brushes.Black, drawX + offsetX, drawY + offsetY);
 					break;
+				case Stone.None:
+					// Other object
+					break;
+				}
+			}
+			// Draw other object
+			string[] moveTypeString = { "５", "□", "４", "３", "禁" , "43" };
+			for(int y = 0; y < BoardSize; ++y) {
+				for(int x = 0; x < BoardSize; ++x) {
+					if(FormRenju.Point(x, y) != Stone.None) continue;
+					var moveType = FormRenju.GetMoveType(Renju.ConvertMove2to1(x, y));
+					if(moveType == -1) continue;
+					var drawX = blockSize * x + StoneR + 1 + boardOffset;
+					var drawY = blockSize * y + StoneR + 1 + boardOffset;
+					var offsetX = -fontSize + fontSize * 19 / 16;
+					var offsetY = fontSize / 2;
+					g.DrawString(moveTypeString[moveType], font, Brushes.Red, drawX + offsetX, drawY + offsetY);
 				}
 			}
 			g.Dispose();
 			PictureBox.Image = canvas;
-			// ステータスバーを変更する
+		// Redraw status-bar
 			LastMoveStatusLabel.Text = FormRenju.GetLastMoveText();
 			TurnPlayerStatusLabel.Text = FormRenju.GetTurnPlayerText();
 			StepStatusLabel.Text = FormRenju.GetStepText();
 		}
 
 		private class Renju {
-			// メンバ変数
+		// Member Variable
 			public List<Stone> Board;
 			public List<int> Move;
 			public int MovePointer;
-			// メソッド
-			// コンストラクタ
+		// Method
+			// Constructor
 			public Renju() {
 				Board = new List<Stone>(Enumerable.Repeat(Stone.None, BoardSize * BoardSize));
 				Move = new List<int>();
@@ -451,7 +462,7 @@ namespace Shioi {
 				}
 				return;
 			}
-			// ファイル書き込み
+			// Write file
 			public void SaveFile(string FileName){
 				// 出力用文字列
 				var fileData = "";
@@ -522,6 +533,7 @@ namespace Shioi {
 				sw.Close();
 			}
 			// 盤面を文字列に変換する
+			// Convert board into string
 			public string ToStringBoard() {
 				// 星の座標
 				List<int> StarPosition = new List<int> { ConvertMove2to1(3, 3), ConvertMove2to1(11, 3), ConvertMove2to1(11, 11), ConvertMove2to1(3, 11), ConvertMove2to1(7, 7) };
@@ -566,7 +578,7 @@ namespace Shioi {
 				}
 				return output;
 			}
-			// 着手を文字列に変換する(伊達五目形式)
+			// Convert move into string
 			private string ToStringMoveMini(int Move) {
 				var moveXY = ConvertMove1to2(Move);
 				return PositionStringX.Substring(moveXY[0], 1) + PositionStringY.Substring(moveXY[1], 1);
@@ -579,7 +591,7 @@ namespace Shioi {
 				output += "**,";
 				return output;
 			}
-			// 文字列を着手に変換して読み込む(伊達五目形式)
+			// Convert string into move
 			public void Parse(string input) {
 				Board = new List<Stone>(Enumerable.Repeat(Stone.None, BoardSize * BoardSize));
 				Move = new List<int>();
@@ -598,29 +610,29 @@ namespace Shioi {
 				}
 				MovePointer = Move.Count - 1;
 			}
-			// 盤面を表示する(デバッグ用)
+			// Put Board String
 			public void PutBoard() {
 				MessageBox.Show(ToStringBoard(), SoftName, MessageBoxButtons.OK, MessageBoxIcon.Information);
 			}
-			// 座標変換
+			// Convert format of position
 			static public int ConvertMove2to1(int MoveX, int MoveY) {
 				return MoveY * BoardSize + MoveX;
 			}
 			static public int[] ConvertMove1to2(int Move) {
 				return new int[]{ Move % BoardSize, Move / BoardSize };
 			}
-			// 手番情報
+			// Turn player information
 			public Stone TurnPlayer() {
 				return (MovePointer % 2 == 0 ? Stone.White : Stone.Black);
 			}
-			// 盤面の情報
+			// Board information
 			public Stone Point(int p) {
 				return Board[Move[p]];
 			}
 			public Stone Point(int x, int y) {
 				return Board[Renju.ConvertMove2to1(x, y)];
 			}
-			// 手番を進める・戻す
+			// Next move, and prev move
 			public void Next() {
 				if(MovePointer >= Move.Count - 1)
 					return;
@@ -634,7 +646,199 @@ namespace Shioi {
 				Board[Move[MovePointer]] = Stone.None;
 				--MovePointer;
 			}
-			// ステータスバー用文字列の生成
+			// Get line string
+			public string GetLineString(int Move) {
+				var lineString = "#";
+				var MoveXY = ConvertMove1to2(Move);
+				const string StoneString = "012" ;
+				// Row
+				for(int k = Math.Max(MoveXY[0] - 5, 0); k <= Math.Min(MoveXY[0] + 5, BoardSize - 1); ++k) {
+					lineString += StoneString[(int)Board[ConvertMove2to1(k, MoveXY[1])]];
+				}
+				lineString += "#";
+				// Column
+				for(int k = Math.Max(MoveXY[1] - 5, 0); k <= Math.Min(MoveXY[1] + 5, BoardSize - 1); ++k) {
+					lineString += StoneString[(int)Board[ConvertMove2to1(MoveXY[0], k)]];
+				}
+				lineString += "#";
+				// Slant
+				for(int k = -5; k <= 5; ++k) {
+					var MoveX2 = MoveXY[0] + k;
+					if(MoveX2 < 0 || MoveX2 >= BoardSize) continue;
+					var MoveY2 = MoveXY[1] + k;
+					if(MoveY2 < 0 || MoveY2 >= BoardSize) continue;
+					lineString += StoneString[(int)Board[ConvertMove2to1(MoveX2, MoveY2)]];
+				}
+				lineString += "#";
+				for(int k = -5; k <= 5; ++k) {
+					var MoveX2 = MoveXY[0] - k;
+					if(MoveX2 < 0 || MoveX2 >= BoardSize) continue;
+					var MoveY2 = MoveXY[1] + k;
+					if(MoveY2 < 0 || MoveY2 >= BoardSize) continue;
+					lineString += StoneString[(int)Board[ConvertMove2to1(MoveX2, MoveY2)]];
+				}
+				lineString += "#";
+				return lineString;
+			}
+			// Judge move type
+			public int GetMoveType(int Move) {
+				// If this position isn't Stone.None, you can't judge type;
+				if(Board[Move] != Stone.None) return -1;
+				var MoveXY = ConvertMove1to2(Move);
+				int count4_1 = 0, count4_2 = 0, count3 = 0; //達四、四および三の合計
+				var rightOffsetX = new List<int> {  1,  1,  1,  0 };
+				var rightOffsetY = new List<int> { -1,  0,  1,  1 };
+				var leftOffsetX  = new List<int> { -1, -1, -1,  0 };
+				var leftOffsetY  = new List<int> {  1,  0, -1, -1 };
+				const string StoneString = "012";
+				var myStone = TurnPlayer();
+				var myStoneString = StoneString.Substring((int)myStone, 1);
+				for(int k = 0; k < 4; ++k) {
+					// Set right pattern
+					var rightPattern = "";
+					for(int x = MoveXY[0] + rightOffsetX[k], y = MoveXY[1] + rightOffsetY[k];
+						0 <= x && x < BoardSize && 0 <= y && y < BoardSize;
+						x += rightOffsetX[k], y += rightOffsetY[k]) {
+						rightPattern += StoneString.Substring((int)Board[ConvertMove2to1(x, y)], 1);
+					}
+					// Set left pattern
+					var leftPattern = "";
+					for(int x = MoveXY[0] + leftOffsetX[k], y = MoveXY[1] + leftOffsetY[k];
+						0 <= x && x < BoardSize && 0 <= y && y < BoardSize;
+						x += leftOffsetX[k], y += leftOffsetY[k]) {
+						leftPattern = StoneString.Substring((int)Board[ConvertMove2to1(x, y)], 1) + leftPattern;
+					}
+					// Quintuplex(Go-ren)
+					if(myStone == Stone.Black) {
+						var patternString = SubStr(leftPattern, -1, 5) + myStoneString + SubStr(rightPattern, 0, 5);
+						if(System.Text.RegularExpressions.Regex.IsMatch(patternString, "[^1]1{5}[^1]")) {
+							return 0;
+						}
+					} else {
+						var patternString = SubStr(leftPattern, -1, 4) + myStoneString + SubStr(rightPattern, 0, 4);
+						if(System.Text.RegularExpressions.Regex.IsMatch(patternString, "2{5}")) {
+							return 0;
+						}
+					}
+					// Too long multiplex(Cho-ren)
+					// Cho-ren of black is Prohibited move(Kinsyu).
+					if(myStone == Stone.Black) {
+						var patternString = SubStr(leftPattern, -1, 5) + myStoneString + SubStr(rightPattern, 0, 5);
+						if(System.Text.RegularExpressions.Regex.IsMatch(patternString, "1{6}")) {
+							return 4;
+						}
+					}
+					// If you make some Quadruplex of black, it's Prohibited move(Kinsyu) "Shi-Shi".
+					// 1. BO|BBB|OB   "Ryoutou-no-ShiShi"
+					// 2. BBO|BB|OBB  "Chouda-no-ShiShi"
+					// 3. BBBO|B|OBBB "Souryu-no-ShiShi"
+					if(myStone == Stone.Black) {
+						var patternString = SubStr(leftPattern, -1, 5) + "X" + SubStr(rightPattern, 0, 5);
+						if(System.Text.RegularExpressions.Regex.IsMatch(patternString, "[^1]10X1101[^1]")
+						|| System.Text.RegularExpressions.Regex.IsMatch(patternString, "[^1]101X101[^1]")
+						|| System.Text.RegularExpressions.Regex.IsMatch(patternString, "[^1]1011X01[^1]")
+						|| System.Text.RegularExpressions.Regex.IsMatch(patternString, "[^1]110X1011[^1]")
+						|| System.Text.RegularExpressions.Regex.IsMatch(patternString, "[^1]1101X011[^1]")
+						|| System.Text.RegularExpressions.Regex.IsMatch(patternString, "[^1]1110X0111[^1]")) {
+							return 4;
+						}
+					}
+					// Strong Quadruplex(Shi-ren)
+					if(myStone == Stone.Black) {
+						var patternString = SubStr(leftPattern, -1, 5) + myStoneString + SubStr(rightPattern, 0, 5);
+						if(System.Text.RegularExpressions.Regex.IsMatch(patternString, "[^1]01{4}0[^1]")) {
+							++count4_1;
+							continue;
+						}
+					} else {
+						var patternString = SubStr(leftPattern, -1, 4) + myStoneString + SubStr(rightPattern, 0, 4);
+						if(System.Text.RegularExpressions.Regex.IsMatch(patternString, "02{4}0")) {
+							++count4_1;
+							continue;
+						}
+					}
+					// Normal Quadruplex(Katsu-shi)
+					var KatsushiPattern = new List <string>{
+						myStoneString + "{4}0",
+						myStoneString + "{3}0" + myStoneString,
+						myStoneString + "{2}0" + myStoneString + "{2}",
+						myStoneString + "0" + myStoneString + "{3}",
+						"0" + myStoneString + "{4}"
+					};
+					if(myStone == Stone.Black) {
+						var patternString = SubStr(leftPattern, -1, 5) + myStoneString + SubStr(rightPattern, 0, 5);
+						bool count4_2_flg = false;
+						for(int p = 0; p < KatsushiPattern.Count; ++p) {
+							if(System.Text.RegularExpressions.Regex.IsMatch(patternString, "[^1]" + KatsushiPattern[p] + "[^1]")) {
+								count4_2_flg = true;
+								break;
+							}
+						}
+						if(count4_2_flg) {
+							++count4_2;
+							continue;
+						}
+					} else {
+						var patternString = SubStr(leftPattern, -1, 4) + myStoneString + SubStr(rightPattern, 0, 4);
+						bool count4_2_flg = false;
+						for(int p = 0; p < KatsushiPattern.Count; ++p) {
+							if(System.Text.RegularExpressions.Regex.IsMatch(patternString, KatsushiPattern[p])) {
+								count4_2_flg = true;
+								break;
+							}
+						}
+						if(count4_2_flg) {
+							++count4_2;
+							continue;
+						}
+					}
+					// Strong Triplex(Katsu-san)
+					var KatsusanPattern = new List<string>{
+						"0" + myStoneString + "{3}00",
+						"0" + myStoneString + "{2}0" + myStoneString + "0",
+						"0" + myStoneString + "0" + myStoneString + "{2}0",
+						"00" + myStoneString + "{3}0"
+					};
+					if(myStone == Stone.Black) {
+						var patternString = SubStr(leftPattern, -1, 5) + myStoneString + SubStr(rightPattern, 0, 5);
+						bool count3_flg = false;
+						for(int p = 0; p < KatsusanPattern.Count; ++p) {
+							if(System.Text.RegularExpressions.Regex.IsMatch(patternString, "[^1]" + KatsusanPattern[p] + "[^1]")) {
+								count3_flg = true;
+								break;
+							}
+						}
+						if(count3_flg) {
+							++count3;
+							continue;
+						}
+					} else {
+						var patternString = SubStr(leftPattern, -1, 4) + myStoneString + SubStr(rightPattern, 0, 4);
+						bool count3_flg = false;
+						for(int p = 0; p < KatsusanPattern.Count; ++p) {
+							if(System.Text.RegularExpressions.Regex.IsMatch(patternString, KatsusanPattern[p])) {
+								count3_flg = true;
+								break;
+							}
+						}
+						if(count3_flg) {
+							++count3;
+							continue;
+						}
+					}
+				}
+				// If you make some Quadruplex of black, it's Prohibited move(Kinsyu) "Shi-Shi".
+				if(count4_1 + count4_2 >= 2 && myStone == Stone.Black) return 4;
+				// If you make some Triplex of black, it's Prohibited move(Kinsyu) "San-San".
+				if(count3 >= 2 && myStone == Stone.Black) return 4;
+
+				// Other Judge
+				if(count4_1 > 0) return 1;
+				if(count4_2 > 0) return 2;
+				if(count3 > 0) return 3;
+				return -1;
+			}
+			// make string for status-bar
 			public string GetLastMoveText() {
 				return "LastMove : " + (Move.Count == 0 || MovePointer == -1 ? "" : ToStringMoveMini(Move[MovePointer]));
 			}
@@ -643,6 +847,20 @@ namespace Shioi {
 			}
 			public string GetStepText() {
 				return "Step : " + (MovePointer + 1).ToString() + " / " + Move.Count.ToString();
+			}
+			// SubStr
+			public string SubStr(string str, int i, int n) {
+				if(i >= 0) {
+					if(str.Length >= i + n) {
+						return str.Substring(i, n);
+					} else {
+						return str + new string('#', n - str.Length);
+					}
+				} else if(str.Length >= n) {
+					return str.Substring(str.Length - n);
+				} else {
+					return new string('#', n - str.Length) + str;
+				}
 			}
 		}
 	}
