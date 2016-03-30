@@ -39,6 +39,7 @@ http://www.vector.co.jp/soft/win95/game/se169850.html
 ## Version History
 |Version|Information|
 |-------|-----------|
+|0.3.0|Add support of Renju's rule(include of "Ina-San-San")|
 |0.2.0|drag and drop support, \*.kif and \*.nrf support, some bug fix|
 |0.1.0|first release|
 
@@ -85,5 +86,6 @@ http://www.vector.co.jp/soft/win95/game/se169850.html
 ## 更新履歴
 |Version|Information|
 |-------|-----------|
+|0.3.0|盤面における、各種追い手および禁手表示を実装(否三々対応済)|
 |0.2.0|ドラッグ＆ドロップに対応、\*.kifと\*.nrfに対応、幾つかのバグ修正|
 |0.1.0|最初のリリース|

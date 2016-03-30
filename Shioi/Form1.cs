@@ -9,6 +9,7 @@ using System.Reflection;
 using System.Text;
 using System.Threading.Tasks;
 using System.Windows.Forms;
+using System.Text.RegularExpressions;
 
 namespace Shioi {
 	public partial class MainForm : Form {
@@ -239,7 +240,7 @@ namespace Shioi {
 					var drawY = blockSize * y + StoneR + 1 + boardOffset;
 					var offsetX = -fontSize + fontSize * 19 / 16;
 					var offsetY = fontSize / 2;
-					g.DrawString(moveTypeString[moveType], font, Brushes.Red, drawX + offsetX, drawY + offsetY);
+					g.DrawString(moveTypeString[moveType], font, (moveType <= 4 ? Brushes.Red : Brushes.Blue), drawX + offsetX, drawY + offsetY);
 				}
 			}
 			g.Dispose();
@@ -682,8 +683,6 @@ namespace Shioi {
 			}
 			// Judge move type
 			public int GetMoveType(int Move) {
-				// If this position isn't Stone.None, you can't judge type;
-				if(Board[Move] != Stone.None) return -1;
 				var MoveXY = ConvertMove1to2(Move);
 				int count4_1 = 0, count4_2 = 0, count3 = 0; //達四、四および三の合計
 				var rightOffsetX = new List<int> {  1,  1,  1,  0 };
@@ -711,12 +710,12 @@ namespace Shioi {
 					// Quintuplex(Go-ren)
 					if(myStone == Stone.Black) {
 						var patternString = SubStr(leftPattern, -1, 5) + myStoneString + SubStr(rightPattern, 0, 5);
-						if(System.Text.RegularExpressions.Regex.IsMatch(patternString, "[^1]1{5}[^1]")) {
+						if(Regex.IsMatch(patternString, "[^1]1{5}[^1]")) {
 							return 0;
 						}
 					} else {
 						var patternString = SubStr(leftPattern, -1, 4) + myStoneString + SubStr(rightPattern, 0, 4);
-						if(System.Text.RegularExpressions.Regex.IsMatch(patternString, "2{5}")) {
+						if(Regex.IsMatch(patternString, "2{5}")) {
 							return 0;
 						}
 					}
@@ -724,7 +723,7 @@ namespace Shioi {
 					// Cho-ren of black is Prohibited move(Kinsyu).
 					if(myStone == Stone.Black) {
 						var patternString = SubStr(leftPattern, -1, 5) + myStoneString + SubStr(rightPattern, 0, 5);
-						if(System.Text.RegularExpressions.Regex.IsMatch(patternString, "1{6}")) {
+						if(Regex.IsMatch(patternString, "1{6}")) {
 							return 4;
 						}
 					}
@@ -734,25 +733,25 @@ namespace Shioi {
 					// 3. BBBO|B|OBBB "Souryu-no-ShiShi"
 					if(myStone == Stone.Black) {
 						var patternString = SubStr(leftPattern, -1, 5) + "X" + SubStr(rightPattern, 0, 5);
-						if(System.Text.RegularExpressions.Regex.IsMatch(patternString, "[^1]10X1101[^1]")
-						|| System.Text.RegularExpressions.Regex.IsMatch(patternString, "[^1]101X101[^1]")
-						|| System.Text.RegularExpressions.Regex.IsMatch(patternString, "[^1]1011X01[^1]")
-						|| System.Text.RegularExpressions.Regex.IsMatch(patternString, "[^1]110X1011[^1]")
-						|| System.Text.RegularExpressions.Regex.IsMatch(patternString, "[^1]1101X011[^1]")
-						|| System.Text.RegularExpressions.Regex.IsMatch(patternString, "[^1]1110X0111[^1]")) {
+						if(Regex.IsMatch(patternString, "[^1]10X1101[^1]")
+						|| Regex.IsMatch(patternString, "[^1]101X101[^1]")
+						|| Regex.IsMatch(patternString, "[^1]1011X01[^1]")
+						|| Regex.IsMatch(patternString, "[^1]110X1011[^1]")
+						|| Regex.IsMatch(patternString, "[^1]1101X011[^1]")
+						|| Regex.IsMatch(patternString, "[^1]1110X0111[^1]")) {
 							return 4;
 						}
 					}
 					// Strong Quadruplex(Shi-ren)
 					if(myStone == Stone.Black) {
 						var patternString = SubStr(leftPattern, -1, 5) + myStoneString + SubStr(rightPattern, 0, 5);
-						if(System.Text.RegularExpressions.Regex.IsMatch(patternString, "[^1]01{4}0[^1]")) {
+						if(Regex.IsMatch(patternString, "[^1]01{4}0[^1]")) {
 							++count4_1;
 							continue;
 						}
 					} else {
 						var patternString = SubStr(leftPattern, -1, 4) + myStoneString + SubStr(rightPattern, 0, 4);
-						if(System.Text.RegularExpressions.Regex.IsMatch(patternString, "02{4}0")) {
+						if(Regex.IsMatch(patternString, "02{4}0")) {
 							++count4_1;
 							continue;
 						}
@@ -769,7 +768,7 @@ namespace Shioi {
 						var patternString = SubStr(leftPattern, -1, 5) + myStoneString + SubStr(rightPattern, 0, 5);
 						bool count4_2_flg = false;
 						for(int p = 0; p < KatsushiPattern.Count; ++p) {
-							if(System.Text.RegularExpressions.Regex.IsMatch(patternString, "[^1]" + KatsushiPattern[p] + "[^1]")) {
+							if(Regex.IsMatch(patternString, "[^1]" + KatsushiPattern[p] + "[^1]")) {
 								count4_2_flg = true;
 								break;
 							}
@@ -782,7 +781,7 @@ namespace Shioi {
 						var patternString = SubStr(leftPattern, -1, 4) + myStoneString + SubStr(rightPattern, 0, 4);
 						bool count4_2_flg = false;
 						for(int p = 0; p < KatsushiPattern.Count; ++p) {
-							if(System.Text.RegularExpressions.Regex.IsMatch(patternString, KatsushiPattern[p])) {
+							if(Regex.IsMatch(patternString, KatsushiPattern[p])) {
 								count4_2_flg = true;
 								break;
 							}
@@ -800,10 +799,48 @@ namespace Shioi {
 						"00" + myStoneString + "{3}0"
 					};
 					if(myStone == Stone.Black) {
-						var patternString = SubStr(leftPattern, -1, 5) + myStoneString + SubStr(rightPattern, 0, 5);
+						var leftPattern2 = SubStr(leftPattern, -1, 5);
+						var rightPattern2 = SubStr(rightPattern, 0, 5);
+						var patternString = leftPattern2 + myStoneString + rightPattern2;
 						bool count3_flg = false;
 						for(int p = 0; p < KatsusanPattern.Count; ++p) {
-							if(System.Text.RegularExpressions.Regex.IsMatch(patternString, "[^1]" + KatsusanPattern[p] + "[^1]")) {
+							if(Regex.IsMatch(patternString, "[^1]" + KatsusanPattern[p] + "[^1]")) {
+								// If you can't make Quadruplex to move, this pattern isn't Triplex.
+								// If you were to check this trap, you would mistake to judge Prohibited move "San-San".
+								// (This check is called "Ina-San-San".)
+								/* 011100 0111X0 [^1]0$ + ^11X0[^1] , [^1]01$ + ^1X0[^1] , [^1]011$ + ^X0[^1]
+								 * 011010 011X10 [^1]0$ + ^1X10[^1] , [^1]01$ + ^X10[^1] , [^1]011X$ + ^0[^1]
+								 * 010110 01X110 [^1]0$ + ^X110[^1] , [^1]01X$ + ^10[^1] , [^1]01X1$ + ^0[^1]
+								 * 001110 0X1110 [^1]0X$ + ^110[^1] , [^1]0X1$ + ^10[^1] , [^1]0X11$ + ^0[^1]
+								 */
+								var offset = 0;
+								if(Regex.IsMatch(leftPattern2, "[^1]0011$") && Regex.IsMatch(rightPattern2, "^0[^1]")){
+									offset = -3;
+								}else if((Regex.IsMatch(leftPattern2, "[^1]0101$") && Regex.IsMatch(rightPattern2, "^0[^1]"))
+								|| (Regex.IsMatch(leftPattern2, "[^1]001$") && Regex.IsMatch(rightPattern2, "^10[^1]"))) {
+									offset = -2;
+								}else if((Regex.IsMatch(leftPattern2, "[^1]0110$") && Regex.IsMatch(rightPattern2, "^0[^1]"))
+								|| (Regex.IsMatch(leftPattern2, "[^1]010$") && Regex.IsMatch(rightPattern2, "^10[^1]"))
+								|| (Regex.IsMatch(leftPattern2, "[^1]00$") && Regex.IsMatch(rightPattern2, "^110[^1]"))) {
+									offset = -1;
+								} else if((Regex.IsMatch(leftPattern2, "[^1]011$") && Regex.IsMatch(rightPattern2, "^00[^1]"))
+								 || (Regex.IsMatch(leftPattern2, "[^1]01$") && Regex.IsMatch(rightPattern2, "^010[^1]"))
+								 || (Regex.IsMatch(leftPattern2, "[^1]0$") && Regex.IsMatch(rightPattern2, "^0110[^1]"))) {
+									offset = 1;
+								} else if((Regex.IsMatch(leftPattern2, "[^1]01$") && Regex.IsMatch(rightPattern2, "^100[^1]"))
+								 || (Regex.IsMatch(leftPattern2, "[^1]0$") && Regex.IsMatch(rightPattern2, "^1010[^1]"))) {
+									offset = 2;
+								}else if(Regex.IsMatch(leftPattern2, "[^1]0$") && Regex.IsMatch(rightPattern2, "^1100[^1]")) {
+									offset = 3;
+								}
+								// Judge of pattern "Ina-San-San"
+								if(offset != 0) {
+									int x2 = MoveXY[0] + offset * rightOffsetX[k], y2 = MoveXY[1] + offset * rightOffsetY[k];
+									Board[Move] = myStone;
+									var typeX = GetMoveType(ConvertMove2to1(x2, y2));
+									Board[Move] = Stone.None;
+									if(typeX == 4) continue;
+								}
 								count3_flg = true;
 								break;
 							}
@@ -816,7 +853,7 @@ namespace Shioi {
 						var patternString = SubStr(leftPattern, -1, 4) + myStoneString + SubStr(rightPattern, 0, 4);
 						bool count3_flg = false;
 						for(int p = 0; p < KatsusanPattern.Count; ++p) {
-							if(System.Text.RegularExpressions.Regex.IsMatch(patternString, KatsusanPattern[p])) {
+							if(Regex.IsMatch(patternString, KatsusanPattern[p])) {
 								count3_flg = true;
 								break;
 							}
@@ -833,6 +870,7 @@ namespace Shioi {
 				if(count3 >= 2 && myStone == Stone.Black) return 4;
 
 				// Other Judge
+				if(count4_1 + count4_2 == 1 && count3 == 1) return 5;
 				if(count4_1 > 0) return 1;
 				if(count4_2 > 0) return 2;
 				if(count3 > 0) return 3;
