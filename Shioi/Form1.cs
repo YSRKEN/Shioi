@@ -230,7 +230,7 @@ namespace Shioi {
 				}
 			}
 			// Draw other object
-			string[] moveTypeString = { "５", "□", "４", "３", "禁" , "43" };
+			string[] moveTypeString = { "５", "□", "４", "３", "禁" , "43" , "33", "44"};
 			for(int y = 0; y < BoardSize; ++y) {
 				for(int x = 0; x < BoardSize; ++x) {
 					if(FormRenju.Point(x, y) != Stone.None) continue;
@@ -865,9 +865,9 @@ namespace Shioi {
 					}
 				}
 				// If you make some Quadruplex of black, it's Prohibited move(Kinsyu) "Shi-Shi".
-				if(count4_1 + count4_2 >= 2 && myStone == Stone.Black) return 4;
+				if(count4_1 + count4_2 >= 2) return (myStone == Stone.Black ? 4 : 7);
 				// If you make some Triplex of black, it's Prohibited move(Kinsyu) "San-San".
-				if(count3 >= 2 && myStone == Stone.Black) return 4;
+				if(count3 >= 2) return (myStone == Stone.Black ? 4 : 6);
 
 				// Other Judge
 				if(count4_1 + count4_2 == 1 && count3 == 1) return 5;
