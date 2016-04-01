@@ -341,32 +341,38 @@ namespace Shioi {
 				case ".kif":
 					{
 						var getLine = fileData.Replace("\r\n", "\n").Split('\n');
-						var step = 0;   //現在読んでいる行
+						var step = 0;   //Now reading line
 						Stone setStone = Stone.Black;
 						foreach(var str in getLine) {
 							if(step == 0) {
-								/* 手番情報で、書式は「* /t=X」。
+								/* Format : "* /t=X"
+								 * X is number of turn player.
+								 * But, this software ignore this line's information.
+								 * 書式：「* /t=X」
 								 * tの値は「次にどちらの手番か」ということだが、
 								 * 本ソフトの実装では便宜上着手数によって
 								 * 自動で手番が決まるため無視する
 								 */
 							}else if(step <= BoardSize) {
-								/* 盤面情報で、「.」「1」「2」が「空白」「黒石」「白石」に対応。
+								/* Format : [\.12]{15}
+								 * ".", "1", "2" = Blank, Black, White stone
+								 * 盤面情報で、「.」「1」「2」が「空白」「黒石」「白石」に対応。
 								 * 対局途中から打つためのものだが、指し手を徹頭徹尾再現するのは
 								 * 不可能なので、スパイラルサーチによって擬似的に再現する
 								 */
-								// まず普通に読み込む
+								// Read text
 								for(int i = 0; i < BoardSize; ++i) {
 									var stoneData = str.Substring(i, 1);
 									if(stoneData == "1") {
-										// 黒石
+										// Black stone
 										Board[ConvertMove2to1(i, step - 1)] = Stone.Black;
 									}else if(stoneData == "2") {
-										// 白石
+										// White stone
 										Board[ConvertMove2to1(i, step - 1)] = Stone.White;
 									}
 								}
 								if(step == BoardSize) {
+									// Moves are reproduced by spiral search.
 									// 読み終わったら、手順をスパイラルサーチによって再現する
 									int xPos = 7, yPos = 7, moves = 1;
 									var blackPos = new List<int>();
@@ -375,7 +381,7 @@ namespace Shioi {
 									if(Point(xPos, yPos) == Stone.White) whitePos.Add(ConvertMove2to1(xPos, yPos));
 									var exitFlg = false;
 									while(true) {
-										// 下
+										// Down
 										for(int i = 0; i < moves; ++i) {
 											++yPos;
 											if(yPos >= BoardSize) {exitFlg = true; break;}
@@ -383,7 +389,7 @@ namespace Shioi {
 											if(Point(xPos, yPos) == Stone.White) whitePos.Add(ConvertMove2to1(xPos, yPos));
 										}
 										if(exitFlg) break;
-										// 左
+										// Left
 										for(int i = 0; i < moves; ++i) {
 											--xPos;
 											if(xPos < 0) { exitFlg = true; break; }
@@ -392,7 +398,7 @@ namespace Shioi {
 										}
 										if(exitFlg) break;
 										++moves;
-										// 上
+										// Up
 										for(int i = 0; i < moves; ++i) {
 											--yPos;
 											if(yPos < 0) {exitFlg = true; break;}
@@ -400,7 +406,7 @@ namespace Shioi {
 											if(Point(xPos, yPos) == Stone.White) whitePos.Add(ConvertMove2to1(xPos, yPos));
 										}
 										if(exitFlg) break;
-										// 右
+										// Right
 										for(int i = 0; i < moves; ++i) {
 											++xPos;
 											if(xPos >= BoardSize) {exitFlg = true; break;}
@@ -438,12 +444,12 @@ namespace Shioi {
 				case ".nrf": 
 					{
 						var getLine = fileData.Replace("\r\n", "\n").Split('\n');
-						var step = 0;   //現在読んでいる行
+						var step = 0;   //Now reading line
 						Stone setStone = Stone.Black;
 						const string PositionString = "123456789abcdef";
 						foreach(var str in getLine) {
 							if(step == 0) {
-								/* タイトル */
+								/* title */
 							} else if(str.Length >= 2) {
 								var moveX = PositionString.IndexOf(str.Substring(0, 1));
 								var moveY = PositionString.IndexOf(str.Substring(1, 1));
@@ -533,12 +539,11 @@ namespace Shioi {
 				sw.Write(fileData);
 				sw.Close();
 			}
-			// 盤面を文字列に変換する
 			// Convert board into string
+			// 盤面を文字列に変換する
 			public string ToStringBoard() {
-				// 星の座標
+				// Star's position
 				List<int> StarPosition = new List<int> { ConvertMove2to1(3, 3), ConvertMove2to1(11, 3), ConvertMove2to1(11, 11), ConvertMove2to1(3, 11), ConvertMove2to1(7, 7) };
-				// 出力用文字列
 				var output = "";
 				for(int y = 0; y < BoardSize; ++y) {
 					for(int x = 0; x < BoardSize; ++x) {
@@ -684,7 +689,7 @@ namespace Shioi {
 			// Judge move type
 			public int GetMoveType(int Move) {
 				var MoveXY = ConvertMove1to2(Move);
-				int count4_1 = 0, count4_2 = 0, count3 = 0; //達四、四および三の合計
+				int count4_1 = 0, count4_2 = 0, count3 = 0; //Sum of Shi-ren, Katsu-shi and Katsu-san
 				var rightOffsetX = new List<int> {  1,  1,  1,  0 };
 				var rightOffsetY = new List<int> { -1,  0,  1,  1 };
 				var leftOffsetX  = new List<int> { -1, -1, -1,  0 };
@@ -727,10 +732,12 @@ namespace Shioi {
 							return 4;
 						}
 					}
-					// If you make some Quadruplex of black, it's Prohibited move(Kinsyu) "Shi-Shi".
-					// 1. BO|BBB|OB   "Ryoutou-no-ShiShi"
-					// 2. BBO|BB|OBB  "Chouda-no-ShiShi"
-					// 3. BBBO|B|OBBB "Souryu-no-ShiShi"
+					/* If you make some Quadruplex of black, it's Prohibited move(Kinsyu) "Shi-Shi".
+					 * 1. BO|BBB|OB   "Ryoutou-no-ShiShi"
+					 * 2. BBO|BB|OBB  "Chouda-no-ShiShi"
+					 * 3. BBBO|B|OBBB "Souryu-no-ShiShi"
+					 * 一直線上に出来る四々で、両頭の四々・長蛇の四々・双龍の四々
+					 */
 					if(myStone == Stone.Black) {
 						var patternString = SubStr(leftPattern, -1, 5) + "X" + SubStr(rightPattern, 0, 5);
 						if(Regex.IsMatch(patternString, "[^1]10X1101[^1]")
@@ -805,13 +812,16 @@ namespace Shioi {
 						bool count3_flg = false;
 						for(int p = 0; p < KatsusanPattern.Count; ++p) {
 							if(Regex.IsMatch(patternString, "[^1]" + KatsusanPattern[p] + "[^1]")) {
-								// If you can't make Quadruplex to move, this pattern isn't Triplex.
-								// If you were to check this trap, you would mistake to judge Prohibited move "San-San".
-								// (This check is called "Ina-San-San".)
-								/* 011100 0111X0 [^1]0$ + ^11X0[^1] , [^1]01$ + ^1X0[^1] , [^1]011$ + ^X0[^1]
+								/* If you can't make Quadruplex to move, this pattern isn't Triplex.
+								 * If you were to check this trap, you would mistake to judge Prohibited move "San-San".
+								 * (This check is called "Ina-San-San".)
+								 * 011100 0111X0 [^1]0$ + ^11X0[^1] , [^1]01$ + ^1X0[^1] , [^1]011$ + ^X0[^1]
 								 * 011010 011X10 [^1]0$ + ^1X10[^1] , [^1]01$ + ^X10[^1] , [^1]011X$ + ^0[^1]
 								 * 010110 01X110 [^1]0$ + ^X110[^1] , [^1]01X$ + ^10[^1] , [^1]01X1$ + ^0[^1]
 								 * 001110 0X1110 [^1]0X$ + ^110[^1] , [^1]0X1$ + ^10[^1] , [^1]0X11$ + ^0[^1]
+								 * 達四にできない三は三ではない。これは、打ちたい場所が禁点である場合も同様である。
+								 * したがって、三を判定する際は、禁点絡みかどうかをチェックする必要がある。
+								 * そのため、一旦今の場所に黒石を仮置きし、その上でその三が禁点を含まないかをチェックする。
 								 */
 								var offset = 0;
 								if(Regex.IsMatch(leftPattern2, "[^1]0011$") && Regex.IsMatch(rightPattern2, "^0[^1]")){
