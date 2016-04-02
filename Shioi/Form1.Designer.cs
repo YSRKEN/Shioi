@@ -57,6 +57,7 @@
 			this.StartComputingButton = new System.Windows.Forms.Button();
 			this.StopComputingButton = new System.Windows.Forms.Button();
 			this.ShowMoveNumberComboBox = new System.Windows.Forms.ComboBox();
+			this.CopyBoardandTurnTextAToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
 			this.MenuStrip.SuspendLayout();
 			this.StatusStrip.SuspendLayout();
 			((System.ComponentModel.ISupportInitialize)(this.PictureBox)).BeginInit();
@@ -129,7 +130,8 @@
             this.CopyMoveToolStripMenuItem,
             this.PasteMoveToolStripMenuItem,
             this.CopyBoardTextoolStripMenuItem,
-            this.CopyBoardPictureToolStripMenuItem});
+            this.CopyBoardPictureToolStripMenuItem,
+            this.CopyBoardandTurnTextAToolStripMenuItem});
 			this.EditToolStripMenuItem.Name = "EditToolStripMenuItem";
 			this.EditToolStripMenuItem.Size = new System.Drawing.Size(53, 20);
 			this.EditToolStripMenuItem.Text = "Edit(&E)";
@@ -367,13 +369,30 @@
             "6",
             "7",
             "8",
-            "9"});
+            "9",
+            "10",
+            "11",
+            "12",
+            "13",
+            "14",
+            "15",
+            "16",
+            "17",
+            "18",
+            "19"});
 			this.ShowMoveNumberComboBox.Location = new System.Drawing.Point(288, 31);
 			this.ShowMoveNumberComboBox.Name = "ShowMoveNumberComboBox";
 			this.ShowMoveNumberComboBox.Size = new System.Drawing.Size(60, 24);
 			this.ShowMoveNumberComboBox.TabIndex = 9;
 			this.ShowMoveNumberComboBox.Text = "-1";
 			this.ShowMoveNumberComboBox.SelectedIndexChanged += new System.EventHandler(this.ShowMoveNumberComboBox_SelectedIndexChanged);
+			// 
+			// CopyBoardandTurnTextAToolStripMenuItem
+			// 
+			this.CopyBoardandTurnTextAToolStripMenuItem.Name = "CopyBoardandTurnTextAToolStripMenuItem";
+			this.CopyBoardandTurnTextAToolStripMenuItem.Size = new System.Drawing.Size(264, 22);
+			this.CopyBoardandTurnTextAToolStripMenuItem.Text = "Copy Board-and-Turn-Text(&A)";
+			this.CopyBoardandTurnTextAToolStripMenuItem.Click += new System.EventHandler(this.CopyBoardandTurnTextAToolStripMenuItem_Click);
 			// 
 			// MainForm
 			// 
@@ -444,6 +463,7 @@
 		private System.Windows.Forms.ToolStripMenuItem CopyBoardPictureToolStripMenuItem;
 		private System.Windows.Forms.ToolStripStatusLabel StepStatusLabel;
 		private System.Windows.Forms.ComboBox ShowMoveNumberComboBox;
+		private System.Windows.Forms.ToolStripMenuItem CopyBoardandTurnTextAToolStripMenuItem;
 	}
 }
 

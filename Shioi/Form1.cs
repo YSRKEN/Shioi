@@ -19,7 +19,6 @@ namespace Shioi {
 		const int BoardSize = 15;
 		const string PositionStringX = "abcdefghijklmno";
 		const string PositionStringY = "123456789ABCDEF";
-		List<string> BoardStringArray = new List<string>{ "-", "*", "O"};
 		public enum Stone {
 			None,
 			Black,
@@ -78,6 +77,9 @@ namespace Shioi {
 			var bmp = new Bitmap(PictureBox.Image);
 			Clipboard.SetImage(bmp);
 		}
+		private void CopyBoardandTurnTextAToolStripMenuItem_Click(object sender, EventArgs e) {
+			Clipboard.SetDataObject(FormRenju.GetArgumentString(), true);
+		}
 
 		private void ForwardToolStripMenuItem_Click(object sender, EventArgs e) {
 			FormRenju.Next();
@@ -113,19 +115,11 @@ namespace Shioi {
 		}
 
 		private void StartComputingToolStripMenuItem_Click(object sender, EventArgs e) {
-			// make argument's string
-			string boardText = "";
-			for(int y = 0; y < BoardSize; ++y) {
-				for(int x = 0; x < BoardSize; ++x) {
-					boardText += BoardStringArray[(int)FormRenju.Point(x, y)];
-				}
-			}
-			string turnText = BoardStringArray[(int)FormRenju.TurnPlayer()];
 			var psInfo = new ProcessStartInfo();
 			psInfo.FileName = System.Windows.Forms.Application.StartupPath + @"\I401.exe";
 			psInfo.CreateNoWindow = true;
 			psInfo.UseShellExecute = false;
-			psInfo.Arguments = boardText + " " + turnText;
+			psInfo.Arguments = FormRenju.GetArgumentString();
 			psInfo.RedirectStandardOutput = true;
 			psInfo.RedirectStandardError = true;
 			Process p = Process.Start(psInfo);
@@ -796,6 +790,17 @@ namespace Shioi {
 						|| Regex.IsMatch(patternString, "[^1]1110X0111[^1]")) {
 							return 4;
 						}
+					}else {
+						var patternString = SubStr(leftPattern, -1, 5) + "X" + SubStr(rightPattern, 0, 5);
+						if(Regex.IsMatch(patternString, "20X2202")
+						|| Regex.IsMatch(patternString, "202X202")
+						|| Regex.IsMatch(patternString, "2022X02")
+						|| Regex.IsMatch(patternString, "220X2022")
+						|| Regex.IsMatch(patternString, "2202X022")
+						|| Regex.IsMatch(patternString, "2220X0222")) {
+							count4_2 += 2;
+							continue;
+						}
 					}
 					// Strong Quadruplex(Shi-ren)
 					if(myStone == Stone.Black) {
@@ -950,6 +955,18 @@ namespace Shioi {
 			}
 			public string GetStepText() {
 				return "Step : " + (MovePointer + 1).ToString() + " / " + Move.Count.ToString();
+			}
+			// make string for I401.exe
+			public string GetArgumentString() {
+				var BoardStringArray = new List<string> { "-", "*", "O" };
+				string boardText = "";
+				for(int y = 0; y < BoardSize; ++y) {
+					for(int x = 0; x < BoardSize; ++x) {
+						boardText += BoardStringArray[(int)Point(x, y)];
+					}
+				}
+				string turnText = BoardStringArray[(int)TurnPlayer()];
+				return boardText + " " + turnText;
 			}
 			// SubStr
 			public string SubStr(string str, int i, int n) {
