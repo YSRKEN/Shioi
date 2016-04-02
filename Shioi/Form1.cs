@@ -149,6 +149,9 @@ namespace Shioi {
 		private void StopComputingButton_Click(object sender, EventArgs e) {
 			StopComputingToolStripMenuItem_Click(sender, e);
 		}
+		private void ShowMoveNumberComboBox_SelectedIndexChanged(object sender, EventArgs e) {
+			DrawBoard();
+		}
 
 		private void AboutAToolStripMenuItem_Click(object sender, EventArgs e) {
 			var assem = Assembly.GetExecutingAssembly();
@@ -225,6 +228,7 @@ namespace Shioi {
 			// Draw stones
 			var StoneR = blockSize / 2;
 			var font2 = new Font("MS Gothic", fontSize - 2, FontStyle.Bold);
+			var showNumbers = ShowMoveNumberComboBox.SelectedIndex - 1;
 			for(int p = 0; p <= FormRenju.MovePointer; ++p) {
 				// Calc parameter
 				var MoveXY = Renju.ConvertMove1to2(FormRenju.Move[p]);
@@ -240,13 +244,33 @@ namespace Shioi {
 				case Stone.Black:
 					// Black stone
 					g.FillEllipse(Brushes.Black, drawX, drawY, StoneR * 2, StoneR * 2);
-					g.DrawString((p + 1).ToString(), font2, Brushes.White, drawX + offsetX, drawY + offsetY);
+					if(showNumbers < 0) {
+						g.DrawString((p + 1).ToString(), font2, Brushes.White, drawX + offsetX, drawY + offsetY);
+					}else {
+						if(FormRenju.MovePointer - p < showNumbers) {
+							var showNumber = p + showNumbers - FormRenju.MovePointer;
+							var pLength2 = showNumber.ToString().Length;
+							var pLengthOffset2 = pLength2 * (fontSize - 2) / 2;
+							var offsetX2 = -pLengthOffset2 + offsetX1[pLength2];
+							g.DrawString(showNumber.ToString(), font2, Brushes.White, drawX + offsetX2, drawY + offsetY);
+						}
+					}
 					break;
 				case Stone.White:
 					// White stone
 					g.FillEllipse(Brushes.White, drawX, drawY, StoneR * 2, StoneR * 2);
 					g.DrawEllipse(Pens.Black, drawX, drawY, StoneR * 2, StoneR * 2);
-					g.DrawString((p + 1).ToString(), font2, Brushes.Black, drawX + offsetX, drawY + offsetY);
+					if(showNumbers < 0) {
+						g.DrawString((p + 1).ToString(), font2, Brushes.Black, drawX + offsetX, drawY + offsetY);
+					} else {
+						if(FormRenju.MovePointer - p < showNumbers) {
+							var showNumber = p + showNumbers - FormRenju.MovePointer;
+							var pLength2 = showNumber.ToString().Length;
+							var pLengthOffset2 = pLength2 * (fontSize - 2) / 2;
+							var offsetX2 = -pLengthOffset2 + offsetX1[pLength2];
+							g.DrawString(showNumber.ToString(), font2, Brushes.Black, drawX + offsetX2, drawY + offsetY);
+						}
+					}
 					break;
 				case Stone.None:
 					// Other object

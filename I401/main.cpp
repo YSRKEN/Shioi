@@ -16,11 +16,25 @@ std::mt19937 mt(rd());
 
 const size_t kBoardSize = 15;
 const string kStoneString = "-*O";
+const int kScoreInf = 100;
 
 enum Stone : uint8_t {
 	Blank,
 	Black,
 	White
+};
+
+class Point {
+	int x_, y_;
+public:
+	Point(const int x, const int y) {
+		x_ = x;
+		y_ = y;
+	}
+	Point(const size_t p){
+		x_ = p / kBoardSize;
+		y_ = p % kBoardSize;
+	}
 };
 
 class Board {
@@ -62,8 +76,14 @@ public:
 	}
 	int NextMove() {
 		vector<size_t> next_move;
+		int max_score = -kScoreInf - 1;
 		for (size_t p = 0; p < kBoardSize * kBoardSize; ++p) {
 			if (!IsValidMove(p, turn_)) continue;
+			int score = CalcScore(p, turn_);
+			if (max_score < score) {
+				max_score = score;
+				next_move.clear();
+			}
 			next_move.push_back(p);
 		}
 		return (next_move.size() == 0 ? -1 : next_move[std::uniform_int_distribution<size_t>{0, next_move.size() - 1}(mt)]);
@@ -71,6 +91,22 @@ public:
 	bool IsValidMove(const size_t position, const Stone turn) const noexcept {
 		if (board_[position] != Stone::Blank) return false;
 		return true;
+	}
+	int CalcScore(const size_t position, const Stone turn) noexcept {
+		// Get right and left pattern
+		Point pos_now(position);
+		size_t sum_4_strong = 0, sum_4_normal = 0, sum_3 = 0;
+		array<Point, 4> pos_offsets{ Point{1, 0}, Point{1, 1}, Point{0, 1}, Point{-1, 1} };
+		for (auto &it_offset : pos_offsets) {
+			vector<Stone> right_pattern, left_pattern;
+			right_pattern.reserve(kBoardSize);
+			left_pattern.reserve(kBoardSize);
+
+		}
+
+		// If you can move to win, score is INF.
+
+		return 0;
 	}
 };
 

@@ -56,6 +56,7 @@
 			this.LastMoveButton = new System.Windows.Forms.Button();
 			this.StartComputingButton = new System.Windows.Forms.Button();
 			this.StopComputingButton = new System.Windows.Forms.Button();
+			this.ShowMoveNumberComboBox = new System.Windows.Forms.ComboBox();
 			this.MenuStrip.SuspendLayout();
 			this.StatusStrip.SuspendLayout();
 			((System.ComponentModel.ISupportInitialize)(this.PictureBox)).BeginInit();
@@ -89,33 +90,36 @@
 			// NewToolStripMenuItem
 			// 
 			this.NewToolStripMenuItem.Name = "NewToolStripMenuItem";
-			this.NewToolStripMenuItem.Size = new System.Drawing.Size(129, 22);
+			this.NewToolStripMenuItem.ShortcutKeys = ((System.Windows.Forms.Keys)((System.Windows.Forms.Keys.Control | System.Windows.Forms.Keys.N)));
+			this.NewToolStripMenuItem.Size = new System.Drawing.Size(171, 22);
 			this.NewToolStripMenuItem.Text = "New(&N)";
 			this.NewToolStripMenuItem.Click += new System.EventHandler(this.NewToolStripMenuItem_Click);
 			// 
 			// OpenToolStripMenuItem
 			// 
+			this.OpenToolStripMenuItem.ForeColor = System.Drawing.SystemColors.ControlText;
 			this.OpenToolStripMenuItem.Name = "OpenToolStripMenuItem";
-			this.OpenToolStripMenuItem.Size = new System.Drawing.Size(129, 22);
+			this.OpenToolStripMenuItem.ShortcutKeys = ((System.Windows.Forms.Keys)((System.Windows.Forms.Keys.Control | System.Windows.Forms.Keys.O)));
+			this.OpenToolStripMenuItem.Size = new System.Drawing.Size(171, 22);
 			this.OpenToolStripMenuItem.Text = "Open(&O)...";
 			this.OpenToolStripMenuItem.Click += new System.EventHandler(this.OpenToolStripMenuItem_Click);
 			// 
 			// SaveToolStripMenuItem
 			// 
 			this.SaveToolStripMenuItem.Name = "SaveToolStripMenuItem";
-			this.SaveToolStripMenuItem.Size = new System.Drawing.Size(129, 22);
+			this.SaveToolStripMenuItem.Size = new System.Drawing.Size(171, 22);
 			this.SaveToolStripMenuItem.Text = "Save(&A)...";
 			this.SaveToolStripMenuItem.Click += new System.EventHandler(this.SaveToolStripMenuItem_Click);
 			// 
 			// toolStripSeparator1
 			// 
 			this.toolStripSeparator1.Name = "toolStripSeparator1";
-			this.toolStripSeparator1.Size = new System.Drawing.Size(126, 6);
+			this.toolStripSeparator1.Size = new System.Drawing.Size(168, 6);
 			// 
 			// ExitToolStripMenuItem
 			// 
 			this.ExitToolStripMenuItem.Name = "ExitToolStripMenuItem";
-			this.ExitToolStripMenuItem.Size = new System.Drawing.Size(129, 22);
+			this.ExitToolStripMenuItem.Size = new System.Drawing.Size(171, 22);
 			this.ExitToolStripMenuItem.Text = "Exit(&X)";
 			this.ExitToolStripMenuItem.Click += new System.EventHandler(this.ExitToolStripMenuItem_Click);
 			// 
@@ -133,28 +137,31 @@
 			// CopyMoveToolStripMenuItem
 			// 
 			this.CopyMoveToolStripMenuItem.Name = "CopyMoveToolStripMenuItem";
-			this.CopyMoveToolStripMenuItem.Size = new System.Drawing.Size(192, 22);
+			this.CopyMoveToolStripMenuItem.Size = new System.Drawing.Size(264, 22);
 			this.CopyMoveToolStripMenuItem.Text = "Copy Move(&C)";
 			this.CopyMoveToolStripMenuItem.Click += new System.EventHandler(this.CopyMoveToolStripMenuItem_Click);
 			// 
 			// PasteMoveToolStripMenuItem
 			// 
 			this.PasteMoveToolStripMenuItem.Name = "PasteMoveToolStripMenuItem";
-			this.PasteMoveToolStripMenuItem.Size = new System.Drawing.Size(192, 22);
+			this.PasteMoveToolStripMenuItem.Size = new System.Drawing.Size(264, 22);
 			this.PasteMoveToolStripMenuItem.Text = "Paste Move(&P)";
 			this.PasteMoveToolStripMenuItem.Click += new System.EventHandler(this.PasteMoveToolStripMenuItem_Click);
 			// 
 			// CopyBoardTextoolStripMenuItem
 			// 
 			this.CopyBoardTextoolStripMenuItem.Name = "CopyBoardTextoolStripMenuItem";
-			this.CopyBoardTextoolStripMenuItem.Size = new System.Drawing.Size(192, 22);
+			this.CopyBoardTextoolStripMenuItem.ShortcutKeys = ((System.Windows.Forms.Keys)((System.Windows.Forms.Keys.Control | System.Windows.Forms.Keys.C)));
+			this.CopyBoardTextoolStripMenuItem.Size = new System.Drawing.Size(264, 22);
 			this.CopyBoardTextoolStripMenuItem.Text = "Copy Board-Text(&T)";
 			this.CopyBoardTextoolStripMenuItem.Click += new System.EventHandler(this.CopyBoardTextToolStripMenuItem_Click);
 			// 
 			// CopyBoardPictureToolStripMenuItem
 			// 
 			this.CopyBoardPictureToolStripMenuItem.Name = "CopyBoardPictureToolStripMenuItem";
-			this.CopyBoardPictureToolStripMenuItem.Size = new System.Drawing.Size(192, 22);
+			this.CopyBoardPictureToolStripMenuItem.ShortcutKeys = ((System.Windows.Forms.Keys)(((System.Windows.Forms.Keys.Control | System.Windows.Forms.Keys.Shift) 
+            | System.Windows.Forms.Keys.C)));
+			this.CopyBoardPictureToolStripMenuItem.Size = new System.Drawing.Size(264, 22);
 			this.CopyBoardPictureToolStripMenuItem.Text = "Copy Board-Picture(&B)";
 			this.CopyBoardPictureToolStripMenuItem.Click += new System.EventHandler(this.CopyBoardPictureToolStripMenuItem_Click);
 			// 
@@ -175,47 +182,53 @@
 			// ForwardToolStripMenuItem
 			// 
 			this.ForwardToolStripMenuItem.Name = "ForwardToolStripMenuItem";
-			this.ForwardToolStripMenuItem.Size = new System.Drawing.Size(187, 22);
+			this.ForwardToolStripMenuItem.ShortcutKeys = ((System.Windows.Forms.Keys)((System.Windows.Forms.Keys.Alt | System.Windows.Forms.Keys.C)));
+			this.ForwardToolStripMenuItem.Size = new System.Drawing.Size(223, 22);
 			this.ForwardToolStripMenuItem.Text = "-> Forward(&O)";
 			this.ForwardToolStripMenuItem.Click += new System.EventHandler(this.ForwardToolStripMenuItem_Click);
 			// 
 			// BackwardToolStripMenuItem
 			// 
 			this.BackwardToolStripMenuItem.Name = "BackwardToolStripMenuItem";
-			this.BackwardToolStripMenuItem.Size = new System.Drawing.Size(187, 22);
+			this.BackwardToolStripMenuItem.ShortcutKeys = ((System.Windows.Forms.Keys)((System.Windows.Forms.Keys.Alt | System.Windows.Forms.Keys.X)));
+			this.BackwardToolStripMenuItem.Size = new System.Drawing.Size(223, 22);
 			this.BackwardToolStripMenuItem.Text = "<- Backward(&B)";
 			this.BackwardToolStripMenuItem.Click += new System.EventHandler(this.BackwardToolStripMenuItem_Click);
 			// 
 			// FirstMoveToolStripMenuItem
 			// 
 			this.FirstMoveToolStripMenuItem.Name = "FirstMoveToolStripMenuItem";
-			this.FirstMoveToolStripMenuItem.Size = new System.Drawing.Size(187, 22);
+			this.FirstMoveToolStripMenuItem.ShortcutKeys = ((System.Windows.Forms.Keys)((System.Windows.Forms.Keys.Alt | System.Windows.Forms.Keys.Z)));
+			this.FirstMoveToolStripMenuItem.Size = new System.Drawing.Size(223, 22);
 			this.FirstMoveToolStripMenuItem.Text = "|<- First move(&F)";
 			this.FirstMoveToolStripMenuItem.Click += new System.EventHandler(this.FirstMoveToolStripMenuItem_Click);
 			// 
 			// LastMoveToolStripMenuItem
 			// 
 			this.LastMoveToolStripMenuItem.Name = "LastMoveToolStripMenuItem";
-			this.LastMoveToolStripMenuItem.Size = new System.Drawing.Size(187, 22);
+			this.LastMoveToolStripMenuItem.ShortcutKeys = ((System.Windows.Forms.Keys)((System.Windows.Forms.Keys.Alt | System.Windows.Forms.Keys.V)));
+			this.LastMoveToolStripMenuItem.Size = new System.Drawing.Size(223, 22);
 			this.LastMoveToolStripMenuItem.Text = "->| Last move(&L)";
 			this.LastMoveToolStripMenuItem.Click += new System.EventHandler(this.LastMoveToolStripMenuItem_Click);
 			// 
 			// toolStripSeparator2
 			// 
 			this.toolStripSeparator2.Name = "toolStripSeparator2";
-			this.toolStripSeparator2.Size = new System.Drawing.Size(184, 6);
+			this.toolStripSeparator2.Size = new System.Drawing.Size(220, 6);
 			// 
 			// StartComputingToolStripMenuItem
 			// 
 			this.StartComputingToolStripMenuItem.Name = "StartComputingToolStripMenuItem";
-			this.StartComputingToolStripMenuItem.Size = new System.Drawing.Size(187, 22);
+			this.StartComputingToolStripMenuItem.ShortcutKeys = ((System.Windows.Forms.Keys)((System.Windows.Forms.Keys.Alt | System.Windows.Forms.Keys.S)));
+			this.StartComputingToolStripMenuItem.Size = new System.Drawing.Size(223, 22);
 			this.StartComputingToolStripMenuItem.Text = "|> Start computing(&S)";
 			this.StartComputingToolStripMenuItem.Click += new System.EventHandler(this.StartComputingToolStripMenuItem_Click);
 			// 
 			// StopComputingToolStripMenuItem
 			// 
 			this.StopComputingToolStripMenuItem.Name = "StopComputingToolStripMenuItem";
-			this.StopComputingToolStripMenuItem.Size = new System.Drawing.Size(187, 22);
+			this.StopComputingToolStripMenuItem.ShortcutKeys = ((System.Windows.Forms.Keys)((System.Windows.Forms.Keys.Alt | System.Windows.Forms.Keys.D)));
+			this.StopComputingToolStripMenuItem.Size = new System.Drawing.Size(223, 22);
 			this.StopComputingToolStripMenuItem.Text = "|| Stop computing(&T)";
 			this.StopComputingToolStripMenuItem.Click += new System.EventHandler(this.StopComputingToolStripMenuItem_Click);
 			// 
@@ -339,12 +352,36 @@
 			this.StopComputingButton.UseVisualStyleBackColor = true;
 			this.StopComputingButton.Click += new System.EventHandler(this.StopComputingButton_Click);
 			// 
+			// ShowMoveNumberComboBox
+			// 
+			this.ShowMoveNumberComboBox.Font = new System.Drawing.Font("MS UI Gothic", 12F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(128)));
+			this.ShowMoveNumberComboBox.FormattingEnabled = true;
+			this.ShowMoveNumberComboBox.Items.AddRange(new object[] {
+            "-1",
+            "0",
+            "1",
+            "2",
+            "3",
+            "4",
+            "5",
+            "6",
+            "7",
+            "8",
+            "9"});
+			this.ShowMoveNumberComboBox.Location = new System.Drawing.Point(288, 31);
+			this.ShowMoveNumberComboBox.Name = "ShowMoveNumberComboBox";
+			this.ShowMoveNumberComboBox.Size = new System.Drawing.Size(60, 24);
+			this.ShowMoveNumberComboBox.TabIndex = 9;
+			this.ShowMoveNumberComboBox.Text = "-1";
+			this.ShowMoveNumberComboBox.SelectedIndexChanged += new System.EventHandler(this.ShowMoveNumberComboBox_SelectedIndexChanged);
+			// 
 			// MainForm
 			// 
 			this.AllowDrop = true;
 			this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 12F);
 			this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
 			this.ClientSize = new System.Drawing.Size(424, 501);
+			this.Controls.Add(this.ShowMoveNumberComboBox);
 			this.Controls.Add(this.StopComputingButton);
 			this.Controls.Add(this.StartComputingButton);
 			this.Controls.Add(this.LastMoveButton);
@@ -406,6 +443,7 @@
 		private System.Windows.Forms.ToolStripStatusLabel TurnPlayerStatusLabel;
 		private System.Windows.Forms.ToolStripMenuItem CopyBoardPictureToolStripMenuItem;
 		private System.Windows.Forms.ToolStripStatusLabel StepStatusLabel;
+		private System.Windows.Forms.ComboBox ShowMoveNumberComboBox;
 	}
 }
 
