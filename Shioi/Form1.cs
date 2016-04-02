@@ -10,6 +10,7 @@ using System.Text;
 using System.Threading.Tasks;
 using System.Windows.Forms;
 using System.Text.RegularExpressions;
+using System.Diagnostics;
 
 namespace Shioi {
 	public partial class MainForm : Form {
@@ -18,6 +19,7 @@ namespace Shioi {
 		const int BoardSize = 15;
 		const string PositionStringX = "abcdefghijklmno";
 		const string PositionStringY = "123456789ABCDEF";
+		List<string> BoardStringArray = new List<string>{ "-", "*", "O"};
 		public enum Stone {
 			None,
 			Black,
@@ -111,16 +113,41 @@ namespace Shioi {
 		}
 
 		private void StartComputingToolStripMenuItem_Click(object sender, EventArgs e) {
-
+			// make argument's string
+			string boardText = "";
+			for(int y = 0; y < BoardSize; ++y) {
+				for(int x = 0; x < BoardSize; ++x) {
+					boardText += BoardStringArray[(int)FormRenju.Point(x, y)];
+				}
+			}
+			string turnText = BoardStringArray[(int)FormRenju.TurnPlayer()];
+			var psInfo = new ProcessStartInfo();
+			psInfo.FileName = System.Windows.Forms.Application.StartupPath + @"\I401.exe";
+			psInfo.CreateNoWindow = true;
+			psInfo.UseShellExecute = false;
+			psInfo.Arguments = boardText + " " + turnText;
+			psInfo.RedirectStandardOutput = true;
+			psInfo.RedirectStandardError = true;
+			Process p = Process.Start(psInfo);
+			var output = p.StandardOutput.ReadToEnd();
+			var output_error = p.StandardError.ReadToEnd();
+			var nextMove = int.Parse(output);
+			if(nextMove >= 0) {
+				FormRenju.SetMove(nextMove);
+				DrawBoard();
+			}
+			if(output_error != "") {
+				MessageBox.Show(output_error, SoftName);
+			}
 		}
 		private void StopComputingToolStripMenuItem_Click(object sender, EventArgs e) {
 
 		}
 		private void StartComputingButton_Click(object sender, EventArgs e) {
-
+			StartComputingToolStripMenuItem_Click(sender, e);
 		}
 		private void StopComputingButton_Click(object sender, EventArgs e) {
-
+			StopComputingToolStripMenuItem_Click(sender, e);
 		}
 
 		private void AboutAToolStripMenuItem_Click(object sender, EventArgs e) {
@@ -146,10 +173,7 @@ namespace Shioi {
 			if(FormRenju.Point(x, y) != Stone.None)
 				return;
 			var p = Renju.ConvertMove2to1(x, y);
-			FormRenju.Board[p] = FormRenju.TurnPlayer();
-			++FormRenju.MovePointer;
-			FormRenju.Move.RemoveRange(FormRenju.MovePointer, FormRenju.Move.Count - FormRenju.MovePointer);
-			FormRenju.Move.Add(p);
+			FormRenju.SetMove(p);
 			DrawBoard();
 		}
 		private void MainForm_DragDrop(object sender, DragEventArgs e) {
@@ -585,8 +609,8 @@ namespace Shioi {
 				return output;
 			}
 			// Convert move into string
-			private string ToStringMoveMini(int Move) {
-				var moveXY = ConvertMove1to2(Move);
+			private string ToStringMoveMini(int MovePosition) {
+				var moveXY = ConvertMove1to2(MovePosition);
 				return PositionStringX.Substring(moveXY[0], 1) + PositionStringY.Substring(moveXY[1], 1);
 			}
 			public string ToStringMove() {
@@ -624,8 +648,8 @@ namespace Shioi {
 			static public int ConvertMove2to1(int MoveX, int MoveY) {
 				return MoveY * BoardSize + MoveX;
 			}
-			static public int[] ConvertMove1to2(int Move) {
-				return new int[]{ Move % BoardSize, Move / BoardSize };
+			static public int[] ConvertMove1to2(int MovePosition) {
+				return new int[]{ MovePosition % BoardSize, MovePosition / BoardSize };
 			}
 			// Turn player information
 			public Stone TurnPlayer() {
@@ -653,9 +677,9 @@ namespace Shioi {
 				--MovePointer;
 			}
 			// Get line string
-			public string GetLineString(int Move) {
+			public string GetLineString(int MovePosition) {
 				var lineString = "#";
-				var MoveXY = ConvertMove1to2(Move);
+				var MoveXY = ConvertMove1to2(MovePosition);
 				const string StoneString = "012" ;
 				// Row
 				for(int k = Math.Max(MoveXY[0] - 5, 0); k <= Math.Min(MoveXY[0] + 5, BoardSize - 1); ++k) {
@@ -687,8 +711,8 @@ namespace Shioi {
 				return lineString;
 			}
 			// Judge move type
-			public int GetMoveType(int Move) {
-				var MoveXY = ConvertMove1to2(Move);
+			public int GetMoveType(int MovePosition) {
+				var MoveXY = ConvertMove1to2(MovePosition);
 				int count4_1 = 0, count4_2 = 0, count3 = 0; //Sum of Shi-ren, Katsu-shi and Katsu-san
 				var rightOffsetX = new List<int> {  1,  1,  1,  0 };
 				var rightOffsetY = new List<int> { -1,  0,  1,  1 };
@@ -846,9 +870,9 @@ namespace Shioi {
 								// Judge of pattern "Ina-San-San"
 								if(offset != 0) {
 									int x2 = MoveXY[0] + offset * rightOffsetX[k], y2 = MoveXY[1] + offset * rightOffsetY[k];
-									Board[Move] = myStone;
+									Board[MovePosition] = myStone;
 									var typeX = GetMoveType(ConvertMove2to1(x2, y2));
-									Board[Move] = Stone.None;
+									Board[MovePosition] = Stone.None;
 									if(typeX == 4) continue;
 								}
 								count3_flg = true;
@@ -885,6 +909,13 @@ namespace Shioi {
 				if(count4_2 > 0) return 2;
 				if(count3 > 0) return 3;
 				return -1;
+			}
+			// Set Stone
+			public void SetMove(int MovePosition) {
+				Board[MovePosition] = TurnPlayer();
+				++MovePointer;
+				Move.RemoveRange(MovePointer, Move.Count - MovePointer);
+				Move.Add(MovePosition);
 			}
 			// make string for status-bar
 			public string GetLastMoveText() {
