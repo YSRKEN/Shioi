@@ -37,6 +37,48 @@ bool MatchArray(const array<Stone, kBoardSize> &pattern, const vector<Stone> &ma
 	return true;
 }
 
+bool HasGoren(const array<Stone, kBoardSize> &pattern, const Stone turn) {
+	size_t len = 0;
+	for (auto &it : pattern) {
+		if (it == turn) {
+			++len;
+		}
+		else {
+			if (len == 5) return true;
+			len = 0;
+		}
+	}
+	return (len == 5);
+}
+
+bool HasGoren2(const array<Stone, kBoardSize> &pattern, const Stone turn) {
+	size_t len = 0;
+	for (auto &it : pattern) {
+		if (it == turn) {
+			++len;
+		}
+		else {
+			if (len >= 5) return true;
+			len = 0;
+		}
+	}
+	return (len >= 5);
+}
+
+bool HasChoren(const array<Stone, kBoardSize> &pattern, const Stone turn) {
+	size_t len = 0;
+	for (auto &it : pattern) {
+		if (it == turn) {
+			++len;
+		}
+		else {
+			if (len >= 6) return true;
+			len = 0;
+		}
+	}
+	return (len >= 6);
+}
+
 string PositionToString(const size_t p) {
 	const static string kPositionString = "abcdefghijklmno";
 	return kPositionString.substr(p % kBoardSize, 1) + std::to_string(p / kBoardSize + 1);
@@ -120,10 +162,12 @@ public:
 		return output;
 	}
 	int NextMove() {
+		if (IsDraw()) return -1;
+		if (IsGameSet(Stone::Black) != 0 || IsGameSet(Stone::White) != 0) return -1;
 		vector<size_t> next_move;
 		int max_score = -kScoreInf - 1;
 		for (size_t p = 0; p < kBoardSize * kBoardSize; ++p) {
-			if (!IsValidMove(p, turn_)) continue;
+			if (board_[p] != Stone::None) continue;
 			int score = CalcScore(p, turn_);
 			/*if (score != 0) {
 				cout << PositionToString(p) << " " << score << endl;
@@ -138,13 +182,124 @@ public:
 		}
 		return (next_move.size() == 0 ? -1 : next_move[std::uniform_int_distribution<size_t>{0, next_move.size() - 1}(mt)]);
 	}
-	bool IsValidMove(const size_t position, const Stone turn) const noexcept {
-		if (board_[position] != Stone::None) return false;
+	bool IsDraw() const{
+		// If there aren't many stones on board, you don't check draw's judge.
+		size_t stone_count = 0;
+		for (size_t p = 0; p < kBoardSize * kBoardSize; ++p) {
+			if (board_[p] != Stone::None) ++stone_count;
+		}
+		if (stone_count < (kBoardSize - 2) * (kBoardSize * 2)) return false;
+		// Fill board -> find "Ren" that's length longer than 5
+		for (auto turn : { Stone::Black, Stone::White }) {
+			Board temp = *this;
+			for (size_t p = 0; p < kBoardSize * kBoardSize; ++p) {
+				if (temp.board_[p] == Stone::None) temp.board_[p] = turn;
+			}
+			if (!temp.IsNogame(turn)) return false;
+		}
 		return true;
+	}
+	bool IsNogame(const Stone turn) {
+		array<Point, 4> pos_offsets{ Point{ 1, 0 }, Point{ 1, 1 }, Point{ 0, 1 }, Point{ -1, 1 } };
+		// Direction kinds
+		for (size_t i = 0; i < 4; ++i) {
+			Point &it_offset = pos_offsets[i];
+			size_t loops;
+			if (i == 0 || i == 2) loops = kBoardSize; else loops = kBoardSize * 2 - 1;
+			for (size_t j = 0; j < loops; ++j) {
+				// Get pattern
+				array<Stone, kBoardSize> pattern;
+				std::fill(pattern.begin(), pattern.end(), Stone::None);
+				Point first_pos;
+				switch (i) {
+				case 0:
+					first_pos = Point(0, j);
+					break;
+				case 1:
+					if (j < kBoardSize) {
+						first_pos = Point(kBoardSize - j - 1, 0);
+					}
+					else {
+						first_pos = Point(0, j - kBoardSize + 1);
+					}
+					break;
+				case 2:
+					first_pos = Point(j, 0);
+					break;
+				case 3:
+					if (j < kBoardSize) {
+						first_pos = Point(j, 0);
+					}
+					else {
+						first_pos = Point(kBoardSize - 1, j - kBoardSize + 1);
+					}
+					break;
+				}
+				size_t k; Point pos;
+				for (k = 0, pos = first_pos; pos.IsInBoard(); ++k, pos += it_offset) {
+					pattern[k] = board_[pos.GetPos()];
+				}
+				if (HasGoren2(pattern, turn)) return false;
+			}
+		}
+		return true;
+	}
+	int IsGameSet(const Stone turn) const noexcept{
+		array<Point, 4> pos_offsets{ Point{ 1, 0 }, Point{ 1, 1 }, Point{ 0, 1 }, Point{ -1, 1 } };
+		// Direction kinds
+		for (size_t i = 0; i < 4; ++i){
+			Point &it_offset = pos_offsets[i];
+			size_t loops;
+			if (i == 0 || i == 2) loops = kBoardSize; else loops = kBoardSize * 2 - 1;
+			for (size_t j = 0; j < loops; ++j) {
+				// Get pattern
+				array<Stone, kBoardSize> pattern;
+				std::fill(pattern.begin(), pattern.end(), Stone::None);
+				Point first_pos;
+				switch(i){
+				case 0:
+					first_pos = Point(0, j);
+					break;
+				case 1:
+					if (j < kBoardSize) {
+						first_pos = Point(kBoardSize - j - 1, 0);
+					}else{
+						first_pos = Point(0, j - kBoardSize + 1);
+					}
+					break;
+				case 2:
+					first_pos = Point(j, 0);
+					break;
+				case 3:
+					if (j < kBoardSize) {
+						first_pos = Point(j, 0);
+					}
+					else {
+						first_pos = Point(kBoardSize - 1, j - kBoardSize + 1);
+					}
+					break;
+				}
+				size_t k; Point pos;
+				for (k = 0, pos = first_pos; pos.IsInBoard(); ++k, pos += it_offset) {
+					pattern[k] = board_[pos.GetPos()];
+				}
+				if (turn == Stone::Black) {
+					if (HasGoren(pattern, turn)) return kScoreInf;
+					if (HasChoren(pattern, turn)) return -kScoreInf;
+				}else{
+					if (HasGoren(pattern, turn)) return kScoreInf;
+					if (HasChoren(pattern, turn)) return kScoreInf;
+				}
+			}
+		}
+		return 0;
 	}
 	int CalcScore(const size_t position, const Stone turn) noexcept {
 		// If this board is game end, return status
-		
+		auto game_set_check = IsGameSet(turn);
+		if (game_set_check != 0) return game_set_check;
+		game_set_check = IsGameSet((turn == Stone::Black ? Stone::White : Stone::Black));
+		if (game_set_check != 0) return -game_set_check;
 		// Calc Score
 		Point pos_move(position);
 		size_t sum_4_strong = 0, sum_4_normal = 0, sum_3 = 0;
