@@ -230,51 +230,44 @@ public:
 				if (MatchArray(left_pattern, { Stone::Black, Stone::Black, Stone::Black, Stone::None, Stone::UnBlack }) && MatchArray(right_pattern, { Stone::UnBlack })) { ++sum_4_normal; continue; }
 
 				// Strong Triplex(Katsu-san)
-				/*
-				Ñ°Ñ¶Ñ¶Ñ¶Ñ¶Ñ¶Ñ¶Ñ¶Ñ¶Ñ¶Ñ¶Ñ¶Ñ¶Ñ¶Ñ¢
-				Ñ•Ñ©Ñ©Ñ©Ñ©Ñ©Ñ©Ñ©Ñ©Ñ©Ñ©Ñ©Ñ©Ñ©Ñß
-				Ñ•Ñ©Ñ©Ñ©Ñ©Ñ©Ñ©Ñ©Ñ©Ñ©Ñ©Ñ©Ñ©Ñ©Ñß
-				Ñ•Ñ©Ñ©Ñ¥Ñ©Ñ©Ñ©Ñ©Ñ©Ñ©Ñ©Ñ¥Ñ©Ñ©Ñß
-				Ñ•Ñ©Ñ©Ñ©Ñ©ÅúÑ©Ñ©Ñ©Ñ©Ñ©Ñ©Ñ©Ñ©Ñß
-				Ñ•Ñ©Ñ©Ñ©Ñ©ÅõÅúÅúÅõÅõÑ©Ñ©Ñ©Ñ©Ñß
-				Ñ•Ñ©Ñ©Ñ©Ñ©Ñ©ÅúÑ©ÅúÑ©Ñ©Ñ©Ñ©Ñ©Ñß
-				Ñ•Ñ©Ñ©Ñ©Ñ©ÅõÅõÅúÑ©ÅõÑ©Ñ©Ñ©Ñ©Ñß
-				Ñ•Ñ©Ñ©Ñ©Ñ©Ñ©ÅúÑ©ÅúÑ©Ñ©Ñ©Ñ©Ñ©Ñß
-				Ñ•Ñ©Ñ©Ñ©Ñ©ÅõÑ©Ñ©Ñ©ÅõÑ©Ñ©Ñ©Ñ©Ñß
-				Ñ•Ñ©Ñ©Ñ©Ñ©Ñ©Ñ©Ñ©Ñ©Ñ©Ñ©Ñ©Ñ©Ñ©Ñß
-				Ñ•Ñ©Ñ©Ñ¥Ñ©Ñ©Ñ©Ñ©Ñ©Ñ©Ñ©Ñ¥Ñ©Ñ©Ñß
-				Ñ•Ñ©Ñ©Ñ©Ñ©Ñ©Ñ©Ñ©Ñ©Ñ©Ñ©Ñ©Ñ©Ñ©Ñß
-				Ñ•Ñ©Ñ©Ñ©Ñ©Ñ©Ñ©Ñ©Ñ©Ñ©Ñ©Ñ©Ñ©Ñ©Ñß
-				Ñ§Ñ®Ñ®Ñ®Ñ®Ñ®Ñ®Ñ®Ñ®Ñ®Ñ®Ñ®Ñ®Ñ®Ñ£
-				*/
-				int offset = 0;
+				int offset1 = 0, offset2 = 0;
 				while (true) {
 					//011100
-					if (MatchArray(right_pattern, { Stone::None, Stone::None, Stone::UnBlack }) && MatchArray(left_pattern, { Stone::Black, Stone::Black, Stone::None, Stone::UnBlack })) { offset = 1; break; }
-					if (MatchArray(right_pattern, { Stone::Black, Stone::None, Stone::None, Stone::UnBlack }) && MatchArray(left_pattern, { Stone::Black, Stone::None, Stone::UnBlack })) { offset = 2; break; }
-					if (MatchArray(right_pattern, { Stone::Black, Stone::Black, Stone::None, Stone::None, Stone::UnBlack }) && MatchArray(left_pattern, { Stone::None, Stone::UnBlack })) { offset = 3; break; }
+					if (MatchArray(right_pattern, { Stone::None, Stone::None, Stone::UnBlack }) && MatchArray(left_pattern, { Stone::Black, Stone::Black, Stone::None, Stone::UnBlack })) { offset1 = 1; offset2 = -3; break; }
+					if (MatchArray(right_pattern, { Stone::Black, Stone::None, Stone::None, Stone::UnBlack }) && MatchArray(left_pattern, { Stone::Black, Stone::None, Stone::UnBlack })) { offset1 = 2; offset2 = -2; break; }
+					if (MatchArray(right_pattern, { Stone::Black, Stone::Black, Stone::None, Stone::None, Stone::UnBlack }) && MatchArray(left_pattern, { Stone::None, Stone::UnBlack })) { offset1 = 3; offset2 = -1; break; }
 					//011010
-					if (MatchArray(right_pattern, { Stone::None, Stone::UnBlack }) && MatchArray(left_pattern, { Stone::None, Stone::Black, Stone::Black, Stone::None, Stone::UnBlack })) { offset = -1; break; }
-					if (MatchArray(right_pattern, { Stone::None, Stone::Black, Stone::None, Stone::UnBlack }) && MatchArray(left_pattern, { Stone::Black, Stone::None, Stone::UnBlack })) { offset = 1; break; }
-					if (MatchArray(right_pattern, { Stone::Black, Stone::None, Stone::Black, Stone::None, Stone::UnBlack }) && MatchArray(left_pattern, { Stone::None, Stone::UnBlack })) { offset = 2; break; }
+					if (MatchArray(right_pattern, { Stone::None, Stone::UnBlack }) && MatchArray(left_pattern, { Stone::None, Stone::Black, Stone::Black, Stone::None, Stone::UnBlack })) { offset1 = -1; break; }
+					if (MatchArray(right_pattern, { Stone::None, Stone::Black, Stone::None, Stone::UnBlack }) && MatchArray(left_pattern, { Stone::Black, Stone::None, Stone::UnBlack })) { offset1 = 1; break; }
+					if (MatchArray(right_pattern, { Stone::Black, Stone::None, Stone::Black, Stone::None, Stone::UnBlack }) && MatchArray(left_pattern, { Stone::None, Stone::UnBlack })) { offset1 = 2; break; }
 					//010110
-					if (MatchArray(left_pattern, { Stone::None, Stone::UnBlack }) && MatchArray(right_pattern, { Stone::None, Stone::Black, Stone::Black, Stone::None, Stone::UnBlack })) { offset = 1; break; }
-					if (MatchArray(left_pattern, { Stone::None, Stone::Black, Stone::None, Stone::UnBlack }) && MatchArray(right_pattern, { Stone::Black, Stone::None, Stone::UnBlack })) { offset = -1; break; }
-					if (MatchArray(left_pattern, { Stone::Black, Stone::None, Stone::Black, Stone::None, Stone::UnBlack }) && MatchArray(right_pattern, { Stone::None, Stone::UnBlack })) { offset = -2; break; }
+					if (MatchArray(left_pattern, { Stone::None, Stone::UnBlack }) && MatchArray(right_pattern, { Stone::None, Stone::Black, Stone::Black, Stone::None, Stone::UnBlack })) { offset1 = 1; break; }
+					if (MatchArray(left_pattern, { Stone::None, Stone::Black, Stone::None, Stone::UnBlack }) && MatchArray(right_pattern, { Stone::Black, Stone::None, Stone::UnBlack })) { offset1 = -1; break; }
+					if (MatchArray(left_pattern, { Stone::Black, Stone::None, Stone::Black, Stone::None, Stone::UnBlack }) && MatchArray(right_pattern, { Stone::None, Stone::UnBlack })) { offset1 = -2; break; }
 					//001110
-					if (MatchArray(left_pattern, { Stone::None, Stone::None, Stone::UnBlack }) && MatchArray(right_pattern, { Stone::Black, Stone::Black, Stone::None, Stone::UnBlack })) { offset = -1; break; }
-					if (MatchArray(left_pattern, { Stone::Black, Stone::None, Stone::None, Stone::UnBlack }) && MatchArray(right_pattern, { Stone::Black, Stone::None, Stone::UnBlack })) { offset = -2; break; }
-					if (MatchArray(left_pattern, { Stone::Black, Stone::Black, Stone::None, Stone::None, Stone::UnBlack }) && MatchArray(right_pattern, { Stone::None, Stone::UnBlack })) { offset = -3; break; }
+					if (MatchArray(left_pattern, { Stone::None, Stone::None, Stone::UnBlack }) && MatchArray(right_pattern, { Stone::Black, Stone::Black, Stone::None, Stone::UnBlack })) { offset1 = -1; offset2 = 3; break; }
+					if (MatchArray(left_pattern, { Stone::Black, Stone::None, Stone::None, Stone::UnBlack }) && MatchArray(right_pattern, { Stone::Black, Stone::None, Stone::UnBlack })) { offset1 = -2; offset2 = 2; break; }
+					if (MatchArray(left_pattern, { Stone::Black, Stone::Black, Stone::None, Stone::None, Stone::UnBlack }) && MatchArray(right_pattern, { Stone::None, Stone::UnBlack })) { offset1 = -3; offset2 = 1; break; }
 					break;
 				}
-				if (offset != 0) {
-					auto pos_move2 = pos_move + it_offset * offset;
+				if (offset2 != 0) {
+					auto pos_move2 = pos_move + it_offset * offset2;
 					board_[position] = turn;
 					auto score = CalcScore(pos_move2.GetPos(), turn);
 					board_[position] = Stone::None;
 					if (score != kScoreProhibit) {
 						++sum_3;
 					}
+				}
+				if (offset1 != 0) {
+					auto pos_move2 = pos_move + it_offset * offset1;
+					board_[position] = turn;
+					auto score = CalcScore(pos_move2.GetPos(), turn);
+					board_[position] = Stone::None;
+					if (score != kScoreProhibit) {
+						++sum_3;
+					}
+					continue;
 				}
 			}else {
 				// Quintuplex(Go-ren)

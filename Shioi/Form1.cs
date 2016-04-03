@@ -876,36 +876,47 @@ namespace Shioi {
 								 * したがって、三を判定する際は、禁点絡みかどうかをチェックする必要がある。
 								 * そのため、一旦今の場所に黒石を仮置きし、その上でその三が禁点を含まないかをチェックする。
 								 */
-								var offset = 0;
-								if(Regex.IsMatch(leftPattern2, "[^1]0011$") && Regex.IsMatch(rightPattern2, "^0[^1]")){
-									offset = -3;
-								}else if((Regex.IsMatch(leftPattern2, "[^1]0101$") && Regex.IsMatch(rightPattern2, "^0[^1]"))
-								|| (Regex.IsMatch(leftPattern2, "[^1]001$") && Regex.IsMatch(rightPattern2, "^10[^1]"))) {
-									offset = -2;
-								}else if((Regex.IsMatch(leftPattern2, "[^1]0110$") && Regex.IsMatch(rightPattern2, "^0[^1]"))
-								|| (Regex.IsMatch(leftPattern2, "[^1]010$") && Regex.IsMatch(rightPattern2, "^10[^1]"))
-								|| (Regex.IsMatch(leftPattern2, "[^1]00$") && Regex.IsMatch(rightPattern2, "^110[^1]"))) {
-									offset = -1;
-								} else if((Regex.IsMatch(leftPattern2, "[^1]011$") && Regex.IsMatch(rightPattern2, "^00[^1]"))
-								 || (Regex.IsMatch(leftPattern2, "[^1]01$") && Regex.IsMatch(rightPattern2, "^010[^1]"))
-								 || (Regex.IsMatch(leftPattern2, "[^1]0$") && Regex.IsMatch(rightPattern2, "^0110[^1]"))) {
-									offset = 1;
-								} else if((Regex.IsMatch(leftPattern2, "[^1]01$") && Regex.IsMatch(rightPattern2, "^100[^1]"))
-								 || (Regex.IsMatch(leftPattern2, "[^1]0$") && Regex.IsMatch(rightPattern2, "^1010[^1]"))) {
-									offset = 2;
-								}else if(Regex.IsMatch(leftPattern2, "[^1]0$") && Regex.IsMatch(rightPattern2, "^1100[^1]")) {
-									offset = 3;
+								int offset1 = 0, offset2 = 0;
+								while(true) {
+									//011100
+									if(Regex.IsMatch(leftPattern2, "[^1]0$") && Regex.IsMatch(rightPattern2, "^1100[^1]")) {offset1 = 3; offset2 = -1; break;}
+									if(Regex.IsMatch(leftPattern2, "[^1]01$") && Regex.IsMatch(rightPattern2, "^100[^1]")) {offset1 = 2; offset2 = -2; break;}
+									if(Regex.IsMatch(leftPattern2, "[^1]011$") && Regex.IsMatch(rightPattern2, "^00[^1]")) {offset1 = 1; offset2 = -3; break;}
+									//011010
+									if(Regex.IsMatch(leftPattern2, "[^1]0$") && Regex.IsMatch(rightPattern2, "^1010[^1]")) {offset1 = 2; break;}
+									if(Regex.IsMatch(leftPattern2, "[^1]01$") && Regex.IsMatch(rightPattern2, "^010[^1]")) {offset1 = 1; break;}
+									if(Regex.IsMatch(leftPattern2, "[^1]0110$") && Regex.IsMatch(rightPattern2, "^0[^1]")) {offset1 = -1; break;}
+									//010110
+									if(Regex.IsMatch(leftPattern2, "[^1]0$") && Regex.IsMatch(rightPattern2, "^0110[^1]")) {offset1 = 1; break;}
+									if(Regex.IsMatch(leftPattern2, "[^1]010$") && Regex.IsMatch(rightPattern2, "^10[^1]")) {offset1 = -1; break;}
+									if(Regex.IsMatch(leftPattern2, "[^1]0101$") && Regex.IsMatch(rightPattern2, "^0[^1]")) {offset1 = -2; break;}
+									//001110
+									if(Regex.IsMatch(leftPattern2, "[^1]00$") && Regex.IsMatch(rightPattern2, "^110[^1]")) {offset1 = -1; offset2 = 3; break;}
+									if(Regex.IsMatch(leftPattern2, "[^1]001$") && Regex.IsMatch(rightPattern2, "^10[^1]")) {offset1 = -2; offset2 = 2; break; }
+									if(Regex.IsMatch(leftPattern2, "[^1]0011$") && Regex.IsMatch(rightPattern2, "^0[^1]")) {offset1 = -3; offset2 = 1; break; }
+									break;
 								}
 								// Judge of pattern "Ina-San-San"
-								if(offset != 0) {
-									int x2 = MoveXY[0] + offset * rightOffsetX[k], y2 = MoveXY[1] + offset * rightOffsetY[k];
+								if(offset2 != 0) {
+									int x2 = MoveXY[0] + offset2 * rightOffsetX[k], y2 = MoveXY[1] + offset2 * rightOffsetY[k];
 									Board[MovePosition] = myStone;
 									var typeX = GetMoveType(ConvertMove2to1(x2, y2));
 									Board[MovePosition] = Stone.None;
-									if(typeX == 4) continue;
+									if(typeX != 4) {
+										count3_flg = true;
+										break;
+									}
 								}
-								count3_flg = true;
-								break;
+								if(offset1 != 0) {
+									int x2 = MoveXY[0] + offset1 * rightOffsetX[k], y2 = MoveXY[1] + offset1 * rightOffsetY[k];
+									Board[MovePosition] = myStone;
+									var typeX = GetMoveType(ConvertMove2to1(x2, y2));
+									Board[MovePosition] = Stone.None;
+									if(typeX != 4) {
+										count3_flg = true;
+										break;
+									}
+								}
 							}
 						}
 						if(count3_flg) {
