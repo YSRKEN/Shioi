@@ -122,9 +122,15 @@ namespace Shioi {
 			psInfo.Arguments = FormRenju.GetArgumentString();
 			psInfo.RedirectStandardOutput = true;
 			psInfo.RedirectStandardError = true;
+			this.Text = SoftName + " - Thinking - ";
+			var sw = new System.Diagnostics.Stopwatch();
+			sw.Start();
 			Process p = Process.Start(psInfo);
 			var output = p.StandardOutput.ReadToEnd();
 			var output_error = p.StandardError.ReadToEnd();
+			sw.Stop();
+			this.Text = SoftName;
+			ElapsedTimeStatusLabel.Text = "Time : " + sw.ElapsedMilliseconds.ToString() + "[ms]";
 			var nextMove = int.Parse(output);
 			if(nextMove >= 0) {
 				FormRenju.SetMove(nextMove);

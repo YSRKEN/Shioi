@@ -35,6 +35,7 @@
 			this.PasteMoveToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
 			this.CopyBoardTextoolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
 			this.CopyBoardPictureToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+			this.CopyBoardandTurnTextAToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
 			this.GameToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
 			this.ForwardToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
 			this.BackwardToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
@@ -57,7 +58,7 @@
 			this.StartComputingButton = new System.Windows.Forms.Button();
 			this.StopComputingButton = new System.Windows.Forms.Button();
 			this.ShowMoveNumberComboBox = new System.Windows.Forms.ComboBox();
-			this.CopyBoardandTurnTextAToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+			this.ElapsedTimeStatusLabel = new System.Windows.Forms.ToolStripStatusLabel();
 			this.MenuStrip.SuspendLayout();
 			this.StatusStrip.SuspendLayout();
 			((System.ComponentModel.ISupportInitialize)(this.PictureBox)).BeginInit();
@@ -167,6 +168,13 @@
 			this.CopyBoardPictureToolStripMenuItem.Text = "Copy Board-Picture(&B)";
 			this.CopyBoardPictureToolStripMenuItem.Click += new System.EventHandler(this.CopyBoardPictureToolStripMenuItem_Click);
 			// 
+			// CopyBoardandTurnTextAToolStripMenuItem
+			// 
+			this.CopyBoardandTurnTextAToolStripMenuItem.Name = "CopyBoardandTurnTextAToolStripMenuItem";
+			this.CopyBoardandTurnTextAToolStripMenuItem.Size = new System.Drawing.Size(264, 22);
+			this.CopyBoardandTurnTextAToolStripMenuItem.Text = "Copy Board-and-Turn-Text(&A)";
+			this.CopyBoardandTurnTextAToolStripMenuItem.Click += new System.EventHandler(this.CopyBoardandTurnTextAToolStripMenuItem_Click);
+			// 
 			// GameToolStripMenuItem
 			// 
 			this.GameToolStripMenuItem.DropDownItems.AddRange(new System.Windows.Forms.ToolStripItem[] {
@@ -254,7 +262,8 @@
 			this.StatusStrip.Items.AddRange(new System.Windows.Forms.ToolStripItem[] {
             this.LastMoveStatusLabel,
             this.TurnPlayerStatusLabel,
-            this.StepStatusLabel});
+            this.StepStatusLabel,
+            this.ElapsedTimeStatusLabel});
 			this.StatusStrip.Location = new System.Drawing.Point(0, 479);
 			this.StatusStrip.Name = "StatusStrip";
 			this.StatusStrip.Size = new System.Drawing.Size(424, 22);
@@ -387,12 +396,10 @@
 			this.ShowMoveNumberComboBox.Text = "-1";
 			this.ShowMoveNumberComboBox.SelectedIndexChanged += new System.EventHandler(this.ShowMoveNumberComboBox_SelectedIndexChanged);
 			// 
-			// CopyBoardandTurnTextAToolStripMenuItem
+			// ElapsedTimeStatusLabel
 			// 
-			this.CopyBoardandTurnTextAToolStripMenuItem.Name = "CopyBoardandTurnTextAToolStripMenuItem";
-			this.CopyBoardandTurnTextAToolStripMenuItem.Size = new System.Drawing.Size(264, 22);
-			this.CopyBoardandTurnTextAToolStripMenuItem.Text = "Copy Board-and-Turn-Text(&A)";
-			this.CopyBoardandTurnTextAToolStripMenuItem.Click += new System.EventHandler(this.CopyBoardandTurnTextAToolStripMenuItem_Click);
+			this.ElapsedTimeStatusLabel.Name = "ElapsedTimeStatusLabel";
+			this.ElapsedTimeStatusLabel.Size = new System.Drawing.Size(0, 17);
 			// 
 			// MainForm
 			// 
@@ -464,6 +471,7 @@
 		private System.Windows.Forms.ToolStripStatusLabel StepStatusLabel;
 		private System.Windows.Forms.ComboBox ShowMoveNumberComboBox;
 		private System.Windows.Forms.ToolStripMenuItem CopyBoardandTurnTextAToolStripMenuItem;
+		private System.Windows.Forms.ToolStripStatusLabel ElapsedTimeStatusLabel;
 	}
 }
 

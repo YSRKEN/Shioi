@@ -1,4 +1,6 @@
+#include<algorithm>
 #include<array>
+#include<cmath>
 #include<cstdint>
 #include<iostream>
 #include<random>
@@ -84,6 +86,10 @@ string PositionToString(const size_t p) {
 	return kPositionString.substr(p % kBoardSize, 1) + std::to_string(p / kBoardSize + 1);
 }
 
+Stone ReverseTurn(const Stone turn) {
+	return (turn == Stone::Black ? Stone::White : Stone::Black);
+}
+
 class Point {
 	int x_, y_;
 public:
@@ -102,6 +108,10 @@ public:
 	}
 	size_t GetPos() const noexcept {
 		return x_ + y_ * kBoardSize;
+	}
+	size_t TenGenDist() const noexcept{
+		int kTengen = kBoardSize / 2;
+		return kTengen - std::max(abs(x_ - kTengen), abs(y_ - kTengen));
 	}
 	Point operator +(const Point &offset) const{
 		return Point(x_ + offset.x_, y_ + offset.y_);
@@ -148,6 +158,13 @@ public:
 		}
 		turn_ = static_cast<Stone>(turn_type);
 	}
+	size_t CountStone() const noexcept {
+		size_t sum = 0;
+		for (size_t p = 0; p < kBoardSize * kBoardSize; ++p) {
+			if (board_[p] != Stone::None) ++sum;
+		}
+		return sum;
+	}
 	string PutBoard() const {
 		string output;
 		output += kStoneString[turn_];
@@ -161,14 +178,23 @@ public:
 		}
 		return output;
 	}
-	int NextMove() {
+	int NextMove(const size_t depth) {
 		if (IsDraw()) return -1;
 		if (IsGameSet(Stone::Black) != 0 || IsGameSet(Stone::White) != 0) return -1;
+		//First move most be Ten-Gen(h8).
+		if (CountStone() == 0) return (kBoardSize * 7 + 7);
+		//Second move most be "Kansetsu"(i7) or "Chokusetsu"(i7).
+		if (CountStone() == 1 && board_[kBoardSize * 7 + 7] == Stone::Black) {
+			size_t type = std::uniform_int_distribution<size_t>{ 0, 1 }(mt);
+			return (type == 0 ? (kBoardSize * 6 + 7) : (kBoardSize * 6 + 8));
+		}
 		vector<size_t> next_move;
 		int max_score = -kScoreInf - 1;
 		for (size_t p = 0; p < kBoardSize * kBoardSize; ++p) {
-			if (board_[p] != Stone::None) continue;
-			int score = CalcScore(p, turn_);
+			if (!IsValidMove(p, turn_)) continue;
+			board_[p] = turn_;
+			int score = -NegaMax(ReverseTurn(turn_), depth, -kScoreInf-1, kScoreInf+1);
+			board_[p] = Stone::None;
 			/*if (score != 0) {
 				cout << PositionToString(p) << " " << score << endl;
 			}*/
@@ -184,11 +210,7 @@ public:
 	}
 	bool IsDraw() const{
 		// If there aren't many stones on board, you don't check draw's judge.
-		size_t stone_count = 0;
-		for (size_t p = 0; p < kBoardSize * kBoardSize; ++p) {
-			if (board_[p] != Stone::None) ++stone_count;
-		}
-		if (stone_count < (kBoardSize - 2) * (kBoardSize * 2)) return false;
+		if (CountStone() < (kBoardSize - 2) * (kBoardSize * 2)) return false;
 		// Fill board -> find "Ren" that's length longer than 5
 		for (auto turn : { Stone::Black, Stone::White }) {
 			Board temp = *this;
@@ -244,6 +266,12 @@ public:
 		}
 		return true;
 	}
+	bool IsValidMove(const size_t position, const Stone turn) {
+		if (board_[position] != Stone::None) return false;
+		int score = CalcScore(position, turn);
+		if (score == kScoreProhibit) return false;
+		return true;
+	}
 	int IsGameSet(const Stone turn) const noexcept{
 		array<Point, 4> pos_offsets{ Point{ 1, 0 }, Point{ 1, 1 }, Point{ 0, 1 }, Point{ -1, 1 } };
 		// Direction kinds
@@ -296,9 +324,10 @@ public:
 	}
 	int CalcScore(const size_t position, const Stone turn) noexcept {
 		// If this board is game end, return status
+		if (IsDraw()) return 0;
 		auto game_set_check = IsGameSet(turn);
 		if (game_set_check != 0) return game_set_check;
-		game_set_check = IsGameSet((turn == Stone::Black ? Stone::White : Stone::Black));
+		game_set_check = IsGameSet(ReverseTurn(turn));
 		if (game_set_check != 0) return -game_set_check;
 		// Calc Score
 		Point pos_move(position);
@@ -506,7 +535,32 @@ public:
 		if (sum_4_strong == 1) return 90;
 		if (sum_4_normal == 1) return 50;
 		if (sum_3 == 1) return 10;
-		return 0;
+		return pos_move.TenGenDist();
+	}
+	int NegaMax(const Stone turn, const size_t depth, int alpha, int beta) noexcept{
+		// If this board is game end, return status
+		if (IsDraw()) return 0;
+		auto game_set_check = IsGameSet(turn);
+		if (game_set_check != 0) return game_set_check;
+		game_set_check = IsGameSet(ReverseTurn(turn));
+		if (game_set_check != 0) return -game_set_check;
+		// foreach moves
+		for (size_t p = 0; p < kBoardSize * kBoardSize; ++p) {
+			if (!IsValidMove(p, turn)) continue;
+			int alpha_;
+			if (depth == 0) {
+				// If depth is limit, return score
+				alpha_ = CalcScore(p, turn);
+			}else{
+				// Other case, NegaMax again
+				board_[p] = turn;
+				alpha_ = -NegaMax(ReverseTurn(turn), depth - 1, -beta, -alpha);
+				board_[p] = Stone::None;
+			}
+			alpha = std::max(alpha, alpha_);
+			if (alpha >= beta) return alpha;
+		}
+		return alpha;
 	}
 };
 
@@ -521,7 +575,7 @@ int main(int argc, char *argv[]) {
 	}
 	try {
 		Board board(argv[1], argv[2]);
-		cout << board.NextMove() << endl;
+		cout << board.NextMove(1) << endl;
 	}
 	catch (const std::exception& er) {
 		std::cerr << er.what() << endl;
