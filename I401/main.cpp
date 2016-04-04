@@ -38,7 +38,6 @@ bool MatchArray(const array<Stone, kBoardSize> &pattern, const vector<Stone> &ma
 	}
 	return true;
 }
-
 bool HasGoren(const array<Stone, kBoardSize> &pattern, const Stone turn) {
 	size_t len = 0;
 	for (auto &it : pattern) {
@@ -52,7 +51,6 @@ bool HasGoren(const array<Stone, kBoardSize> &pattern, const Stone turn) {
 	}
 	return (len == 5);
 }
-
 bool HasGoren2(const array<Stone, kBoardSize> &pattern, const Stone turn) {
 	size_t len = 0;
 	for (auto &it : pattern) {
@@ -66,7 +64,6 @@ bool HasGoren2(const array<Stone, kBoardSize> &pattern, const Stone turn) {
 	}
 	return (len >= 5);
 }
-
 bool HasChoren(const array<Stone, kBoardSize> &pattern, const Stone turn) {
 	size_t len = 0;
 	for (auto &it : pattern) {
@@ -80,25 +77,26 @@ bool HasChoren(const array<Stone, kBoardSize> &pattern, const Stone turn) {
 	}
 	return (len >= 6);
 }
-
 string PositionToString(const size_t p) {
 	const static string kPositionString = "abcdefghijklmno";
 	return kPositionString.substr(p % kBoardSize, 1) + std::to_string(p / kBoardSize + 1);
 }
-
 Stone ReverseTurn(const Stone turn) {
 	return (turn == Stone::Black ? Stone::White : Stone::Black);
+}
+size_t RandInt(const size_t n) {
+	return std::uniform_int_distribution<size_t>{0, n - 1}(mt);
 }
 
 class Point {
 	int x_, y_;
 public:
-	Point(){}
+	Point() {}
 	Point(const int x, const int y) {
 		x_ = x;
 		y_ = y;
 	}
-	Point(const size_t p){
+	Point(const size_t p) {
 		x_ = p % kBoardSize;
 		y_ = p / kBoardSize;
 	}
@@ -109,11 +107,11 @@ public:
 	size_t GetPos() const noexcept {
 		return x_ + y_ * kBoardSize;
 	}
-	size_t TenGenDist() const noexcept{
+	size_t TenGenDist() const noexcept {
 		int kTengen = kBoardSize / 2;
 		return kTengen - std::max(abs(x_ - kTengen), abs(y_ - kTengen));
 	}
-	Point operator +(const Point &offset) const{
+	Point operator +(const Point &offset) const {
 		return Point(x_ + offset.x_, y_ + offset.y_);
 	}
 	Point operator -(const Point &offset) const {
@@ -122,12 +120,12 @@ public:
 	Point operator *(const int n) const {
 		return Point(x_ * n, y_ * n);
 	}
-	Point& operator +=(const Point &offset) noexcept{
+	Point& operator +=(const Point &offset) noexcept {
 		x_ += offset.x_;
 		y_ += offset.y_;
 		return *this;
 	}
-	Point& operator -=(const Point &offset) noexcept{
+	Point& operator -=(const Point &offset) noexcept {
 		x_ -= offset.x_;
 		y_ -= offset.y_;
 		return *this;
@@ -179,36 +177,48 @@ public:
 		return output;
 	}
 	int NextMove(const size_t depth) {
-		if (IsDraw()) return -1;
-		if (IsGameSet(Stone::Black) != 0 || IsGameSet(Stone::White) != 0) return -1;
+		if (IsDraw() || IsGameSet()) return -1;
 		//First move most be Ten-Gen(h8).
 		if (CountStone() == 0) return (kBoardSize * 7 + 7);
 		//Second move most be "Kansetsu"(i7) or "Chokusetsu"(i7).
 		if (CountStone() == 1 && board_[kBoardSize * 7 + 7] == Stone::Black) {
-			size_t type = std::uniform_int_distribution<size_t>{ 0, 1 }(mt);
-			return (type == 0 ? (kBoardSize * 6 + 7) : (kBoardSize * 6 + 8));
+			return (RandInt(2) == 0 ? (kBoardSize * 6 + 7) : (kBoardSize * 6 + 8));
 		}
+		// Calc NextMove's score
 		vector<size_t> next_move;
 		int max_score = -kScoreInf - 1;
 		for (size_t p = 0; p < kBoardSize * kBoardSize; ++p) {
-			if (!IsValidMove(p, turn_)) continue;
-			board_[p] = turn_;
-			int score = -NegaMax(ReverseTurn(turn_), depth, -kScoreInf-1, kScoreInf+1);
-			board_[p] = Stone::None;
-			/*if (score != 0) {
+			// Validation of this move
+			if (board_[p] != Stone::None) continue;
+			int score = CalcScore(p, turn_);
+			if (score == kScoreProhibit) continue;
+			// NegaMax Method
+			if (depth != 0) {
+				board_[p] = turn_;
+				score = -NegaMax(ReverseTurn(turn_), depth - 1, -kScoreInf - 1, kScoreInf + 1);
+				board_[p] = Stone::None;
+			}
+			// Refresh best move
+#if _DEBUG
+			if (score >= 10) {
 				cout << PositionToString(p) << " " << score << endl;
-			}*/
+			}
+#endif
 			if (max_score < score) {
 				max_score = score;
 				next_move.clear();
+				if (max_score == kScoreInf) {
+					next_move.push_back(p);
+					break;
+				}
 			}
 			if (max_score == score) {
 				next_move.push_back(p);
 			}
 		}
-		return (next_move.size() == 0 ? -1 : next_move[std::uniform_int_distribution<size_t>{0, next_move.size() - 1}(mt)]);
+		return (next_move.size() == 0 ? -1 : next_move[RandInt(next_move.size())]);
 	}
-	bool IsDraw() const{
+	bool IsDraw() const {
 		// If there aren't many stones on board, you don't check draw's judge.
 		if (CountStone() < (kBoardSize - 2) * (kBoardSize * 2)) return false;
 		// Fill board -> find "Ren" that's length longer than 5
@@ -272,10 +282,15 @@ public:
 		if (score == kScoreProhibit) return false;
 		return true;
 	}
-	int IsGameSet(const Stone turn) const noexcept{
+	bool IsGameSet() {
+		if (IsGameSet(Stone::Black)) return true;
+		if (IsGameSet(Stone::White)) return true;
+		return false;
+	}
+	int IsGameSet(const Stone turn) const noexcept {
 		array<Point, 4> pos_offsets{ Point{ 1, 0 }, Point{ 1, 1 }, Point{ 0, 1 }, Point{ -1, 1 } };
 		// Direction kinds
-		for (size_t i = 0; i < 4; ++i){
+		for (size_t i = 0; i < 4; ++i) {
 			Point &it_offset = pos_offsets[i];
 			size_t loops;
 			if (i == 0 || i == 2) loops = kBoardSize; else loops = kBoardSize * 2 - 1;
@@ -284,14 +299,15 @@ public:
 				array<Stone, kBoardSize> pattern;
 				std::fill(pattern.begin(), pattern.end(), Stone::None);
 				Point first_pos;
-				switch(i){
+				switch (i) {
 				case 0:
 					first_pos = Point(0, j);
 					break;
 				case 1:
 					if (j < kBoardSize) {
 						first_pos = Point(kBoardSize - j - 1, 0);
-					}else{
+					}
+					else {
 						first_pos = Point(0, j - kBoardSize + 1);
 					}
 					break;
@@ -314,7 +330,8 @@ public:
 				if (turn == Stone::Black) {
 					if (HasGoren(pattern, turn)) return kScoreInf;
 					if (HasChoren(pattern, turn)) return -kScoreInf;
-				}else{
+				}
+				else {
 					if (HasGoren(pattern, turn)) return kScoreInf;
 					if (HasChoren(pattern, turn)) return kScoreInf;
 				}
@@ -322,7 +339,7 @@ public:
 		}
 		return 0;
 	}
-	int CalcScore(const size_t position, const Stone turn) noexcept {
+	int CalcScore(const size_t position, const Stone turn)noexcept {
 		// If this board is game end, return status
 		if (IsDraw()) return 0;
 		auto game_set_check = IsGameSet(turn);
@@ -332,7 +349,7 @@ public:
 		// Calc Score
 		Point pos_move(position);
 		size_t sum_4_strong = 0, sum_4_normal = 0, sum_3 = 0;
-		array<Point, 4> pos_offsets{ Point{1, 0}, Point{1, 1}, Point{0, 1}, Point{-1, 1} };
+		array<Point, 4> pos_offsets{ Point{ 1, 0 }, Point{ 1, 1 }, Point{ 0, 1 }, Point{ -1, 1 } };
 		for (auto &it_offset : pos_offsets) {
 			// Get right and left pattern
 			array<Stone, kBoardSize> right_pattern, left_pattern;
@@ -381,10 +398,10 @@ public:
 				if (MatchArray(right_pattern, { Stone::None, Stone::Black, Stone::Black, Stone::Black, Stone::UnBlack }) && MatchArray(left_pattern, { Stone::None, Stone::Black, Stone::Black, Stone::Black, Stone::UnBlack })) return kScoreProhibit;
 
 				// Strong Quadruplex(Shi-ren)
-				if (MatchArray(right_pattern, { Stone::None, Stone::UnBlack }) && MatchArray(left_pattern, { Stone::Black, Stone::Black, Stone::Black, Stone::None, Stone::UnBlack })) {++sum_4_strong; continue;}
-				if (MatchArray(right_pattern, { Stone::Black, Stone::None, Stone::UnBlack }) && MatchArray(left_pattern, { Stone::Black, Stone::Black, Stone::None, Stone::UnBlack })) {++sum_4_strong; continue;}
-				if (MatchArray(right_pattern, { Stone::Black, Stone::Black, Stone::None, Stone::UnBlack }) && MatchArray(left_pattern, { Stone::Black, Stone::None, Stone::UnBlack })) {++sum_4_strong; continue;}
-				if (MatchArray(right_pattern, { Stone::Black, Stone::Black, Stone::Black, Stone::None, Stone::UnBlack }) && MatchArray(left_pattern, { Stone::None, Stone::UnBlack })) {++sum_4_strong; continue;}
+				if (MatchArray(right_pattern, { Stone::None, Stone::UnBlack }) && MatchArray(left_pattern, { Stone::Black, Stone::Black, Stone::Black, Stone::None, Stone::UnBlack })) { ++sum_4_strong; continue; }
+				if (MatchArray(right_pattern, { Stone::Black, Stone::None, Stone::UnBlack }) && MatchArray(left_pattern, { Stone::Black, Stone::Black, Stone::None, Stone::UnBlack })) { ++sum_4_strong; continue; }
+				if (MatchArray(right_pattern, { Stone::Black, Stone::Black, Stone::None, Stone::UnBlack }) && MatchArray(left_pattern, { Stone::Black, Stone::None, Stone::UnBlack })) { ++sum_4_strong; continue; }
+				if (MatchArray(right_pattern, { Stone::Black, Stone::Black, Stone::Black, Stone::None, Stone::UnBlack }) && MatchArray(left_pattern, { Stone::None, Stone::UnBlack })) { ++sum_4_strong; continue; }
 
 				// Normal Quadruplex(Katsu-shi)
 				//11110
@@ -441,6 +458,7 @@ public:
 					board_[position] = Stone::None;
 					if (score != kScoreProhibit) {
 						++sum_3;
+						continue;
 					}
 				}
 				if (offset1 != 0) {
@@ -450,13 +468,14 @@ public:
 					board_[position] = Stone::None;
 					if (score != kScoreProhibit) {
 						++sum_3;
+						continue;
 					}
-					continue;
 				}
-			}else {
+			}
+			else {
 				// Quintuplex(Go-ren)
 				if (MatchArray(left_pattern, { Stone::White, Stone::White, Stone::White, Stone::White })) return kScoreInf;
-				if (MatchArray(right_pattern, { Stone::White }) && MatchArray(left_pattern, { Stone::White, Stone::White, Stone::White})) return kScoreInf;
+				if (MatchArray(right_pattern, { Stone::White }) && MatchArray(left_pattern, { Stone::White, Stone::White, Stone::White })) return kScoreInf;
 				if (MatchArray(right_pattern, { Stone::White, Stone::White }) && MatchArray(left_pattern, { Stone::White, Stone::White })) return kScoreInf;
 				if (MatchArray(right_pattern, { Stone::White, Stone::White, Stone::White }) && MatchArray(left_pattern, { Stone::White })) return kScoreInf;
 				if (MatchArray(right_pattern, { Stone::White, Stone::White, Stone::White, Stone::White })) return kScoreInf;
@@ -468,20 +487,20 @@ public:
 				* 一直線上に出来る四々で、両頭の四々・長蛇の四々・双龍の四々
 				*/
 				//
-				if (MatchArray(right_pattern, { Stone::White, Stone::White, Stone::None, Stone::White }) && MatchArray(left_pattern, { Stone::None, Stone::White })) {sum_4_normal += 2; continue;}
-				if (MatchArray(right_pattern, { Stone::White, Stone::None, Stone::White }) && MatchArray(left_pattern, { Stone::White, Stone::None, Stone::White })) {sum_4_normal += 2; continue;}
-				if (MatchArray(right_pattern, { Stone::None, Stone::White }) && MatchArray(left_pattern, { Stone::White, Stone::White, Stone::None, Stone::White })) {sum_4_normal += 2; continue;}
+				if (MatchArray(right_pattern, { Stone::White, Stone::White, Stone::None, Stone::White }) && MatchArray(left_pattern, { Stone::None, Stone::White })) { sum_4_normal += 2; continue; }
+				if (MatchArray(right_pattern, { Stone::White, Stone::None, Stone::White }) && MatchArray(left_pattern, { Stone::White, Stone::None, Stone::White })) { sum_4_normal += 2; continue; }
+				if (MatchArray(right_pattern, { Stone::None, Stone::White }) && MatchArray(left_pattern, { Stone::White, Stone::White, Stone::None, Stone::White })) { sum_4_normal += 2; continue; }
 				//
-				if (MatchArray(right_pattern, { Stone::White, Stone::None, Stone::White }) && MatchArray(left_pattern, { Stone::None, Stone::White, Stone::White })) {sum_4_normal += 2; continue;}
-				if (MatchArray(right_pattern, { Stone::None, Stone::White }) && MatchArray(left_pattern, { Stone::White, Stone::None, Stone::White, Stone::White })) {sum_4_normal += 2; continue;}
+				if (MatchArray(right_pattern, { Stone::White, Stone::None, Stone::White }) && MatchArray(left_pattern, { Stone::None, Stone::White, Stone::White })) { sum_4_normal += 2; continue; }
+				if (MatchArray(right_pattern, { Stone::None, Stone::White }) && MatchArray(left_pattern, { Stone::White, Stone::None, Stone::White, Stone::White })) { sum_4_normal += 2; continue; }
 				//
-				if (MatchArray(right_pattern, { Stone::None, Stone::White, Stone::White, Stone::White }) && MatchArray(left_pattern, { Stone::None, Stone::White, Stone::White, Stone::White })) {sum_4_normal += 2; continue;}
+				if (MatchArray(right_pattern, { Stone::None, Stone::White, Stone::White, Stone::White }) && MatchArray(left_pattern, { Stone::None, Stone::White, Stone::White, Stone::White })) { sum_4_normal += 2; continue; }
 
 				// Strong Quadruplex(Shi-ren)
-				if (MatchArray(right_pattern, { Stone::None }) && MatchArray(left_pattern, { Stone::White, Stone::White, Stone::White, Stone::None })) {++sum_4_strong; continue;}
-				if (MatchArray(right_pattern, { Stone::White, Stone::None }) && MatchArray(left_pattern, { Stone::White, Stone::White, Stone::None })) {++sum_4_strong; continue;}
-				if (MatchArray(right_pattern, { Stone::White, Stone::White, Stone::None }) && MatchArray(left_pattern, { Stone::White, Stone::None })) {++sum_4_strong; continue;}
-				if (MatchArray(right_pattern, { Stone::White, Stone::White, Stone::White, Stone::None }) && MatchArray(left_pattern, { Stone::None })) {++sum_4_strong; continue;}
+				if (MatchArray(right_pattern, { Stone::None }) && MatchArray(left_pattern, { Stone::White, Stone::White, Stone::White, Stone::None })) { ++sum_4_strong; continue; }
+				if (MatchArray(right_pattern, { Stone::White, Stone::None }) && MatchArray(left_pattern, { Stone::White, Stone::White, Stone::None })) { ++sum_4_strong; continue; }
+				if (MatchArray(right_pattern, { Stone::White, Stone::White, Stone::None }) && MatchArray(left_pattern, { Stone::White, Stone::None })) { ++sum_4_strong; continue; }
+				if (MatchArray(right_pattern, { Stone::White, Stone::White, Stone::White, Stone::None }) && MatchArray(left_pattern, { Stone::None })) { ++sum_4_strong; continue; }
 
 				// Normal Quadruplex(Katsu-shi)
 				//11110
@@ -544,21 +563,19 @@ public:
 		if (game_set_check != 0) return game_set_check;
 		game_set_check = IsGameSet(ReverseTurn(turn));
 		if (game_set_check != 0) return -game_set_check;
-		// foreach moves
 		for (size_t p = 0; p < kBoardSize * kBoardSize; ++p) {
-			if (!IsValidMove(p, turn)) continue;
-			int alpha_;
-			if (depth == 0) {
-				// If depth is limit, return score
-				alpha_ = CalcScore(p, turn);
-			}else{
-				// Other case, NegaMax again
+			// Validation of this move
+			if (board_[p] != Stone::None) continue;
+			int score = CalcScore(p, turn_);
+			if (score == kScoreProhibit) continue;
+			if (depth != 0) {
 				board_[p] = turn;
-				alpha_ = -NegaMax(ReverseTurn(turn), depth - 1, -beta, -alpha);
+				score = -NegaMax(ReverseTurn(turn), depth - 1, -beta, -alpha);
 				board_[p] = Stone::None;
 			}
-			alpha = std::max(alpha, alpha_);
+			alpha = std::max(alpha, score);
 			if (alpha >= beta) return alpha;
+			if (alpha == kScoreInf) return alpha;
 		}
 		return alpha;
 	}
@@ -566,16 +583,23 @@ public:
 
 int main(int argc, char *argv[]) {
 	// Read arguments
-	if (argc < 3) {
-		cout << "Usage: I401 board_text turn_text" << endl
-			 << endl
-			 << "board_text     : board data of stone or blank" << endl
-			 << "turn_text      : turn data of stone or blank" << endl
-			 << "stone or blank : black(*), white(O), blank(-)" << endl;
+	if (argc < 4) {
+		cout << "Usage: I401 board_text turn_text depth" << endl
+			<< endl
+			<< "board_text     : board data of stone or blank" << endl
+			<< "turn_text      : turn data of stone or blank" << endl
+			<< "depth          : depth of thinking" << endl
+			<< "stone or blank : black(*), white(O), blank(-)" << endl;
 	}
 	try {
 		Board board(argv[1], argv[2]);
-		cout << board.NextMove(1) << endl;
+#if _DEBUG
+		cout << PositionToString(board.NextMove(0)) << endl;
+#else
+		int depth = std::stoi(argv[3]);
+		if (depth < 0) depth = 0;
+		cout << board.NextMove(depth) << endl;
+#endif
 	}
 	catch (const std::exception& er) {
 		std::cerr << er.what() << endl;

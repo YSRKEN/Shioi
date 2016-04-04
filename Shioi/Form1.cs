@@ -120,6 +120,11 @@ namespace Shioi {
 			psInfo.CreateNoWindow = true;
 			psInfo.UseShellExecute = false;
 			psInfo.Arguments = FormRenju.GetArgumentString();
+			if(ComputeDepthComboBox.SelectedIndex != -1) {
+				psInfo.Arguments += " " + ComputeDepthComboBox.SelectedIndex.ToString();
+			} else {
+				psInfo.Arguments += " 0";
+			}
 			psInfo.RedirectStandardOutput = true;
 			psInfo.RedirectStandardError = true;
 			this.Text = SoftName + " - Thinking - ";

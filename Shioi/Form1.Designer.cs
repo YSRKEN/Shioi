@@ -50,6 +50,7 @@
 			this.LastMoveStatusLabel = new System.Windows.Forms.ToolStripStatusLabel();
 			this.TurnPlayerStatusLabel = new System.Windows.Forms.ToolStripStatusLabel();
 			this.StepStatusLabel = new System.Windows.Forms.ToolStripStatusLabel();
+			this.ElapsedTimeStatusLabel = new System.Windows.Forms.ToolStripStatusLabel();
 			this.PictureBox = new System.Windows.Forms.PictureBox();
 			this.BackwardButton = new System.Windows.Forms.Button();
 			this.ForwardButton = new System.Windows.Forms.Button();
@@ -58,7 +59,7 @@
 			this.StartComputingButton = new System.Windows.Forms.Button();
 			this.StopComputingButton = new System.Windows.Forms.Button();
 			this.ShowMoveNumberComboBox = new System.Windows.Forms.ComboBox();
-			this.ElapsedTimeStatusLabel = new System.Windows.Forms.ToolStripStatusLabel();
+			this.ComputeDepthComboBox = new System.Windows.Forms.ToolStripComboBox();
 			this.MenuStrip.SuspendLayout();
 			this.StatusStrip.SuspendLayout();
 			((System.ComponentModel.ISupportInitialize)(this.PictureBox)).BeginInit();
@@ -184,7 +185,8 @@
             this.LastMoveToolStripMenuItem,
             this.toolStripSeparator2,
             this.StartComputingToolStripMenuItem,
-            this.StopComputingToolStripMenuItem});
+            this.StopComputingToolStripMenuItem,
+            this.ComputeDepthComboBox});
 			this.GameToolStripMenuItem.Name = "GameToolStripMenuItem";
 			this.GameToolStripMenuItem.Size = new System.Drawing.Size(65, 20);
 			this.GameToolStripMenuItem.Text = "Game(&G)";
@@ -287,6 +289,11 @@
 			this.StepStatusLabel.Name = "StepStatusLabel";
 			this.StepStatusLabel.Size = new System.Drawing.Size(36, 17);
 			this.StepStatusLabel.Text = "Step :";
+			// 
+			// ElapsedTimeStatusLabel
+			// 
+			this.ElapsedTimeStatusLabel.Name = "ElapsedTimeStatusLabel";
+			this.ElapsedTimeStatusLabel.Size = new System.Drawing.Size(0, 17);
 			// 
 			// PictureBox
 			// 
@@ -396,10 +403,15 @@
 			this.ShowMoveNumberComboBox.Text = "-1";
 			this.ShowMoveNumberComboBox.SelectedIndexChanged += new System.EventHandler(this.ShowMoveNumberComboBox_SelectedIndexChanged);
 			// 
-			// ElapsedTimeStatusLabel
+			// ComputeDepthComboBox
 			// 
-			this.ElapsedTimeStatusLabel.Name = "ElapsedTimeStatusLabel";
-			this.ElapsedTimeStatusLabel.Size = new System.Drawing.Size(0, 17);
+			this.ComputeDepthComboBox.Items.AddRange(new object[] {
+            "depth : 0",
+            "depth : 1",
+            "depth : 2"});
+			this.ComputeDepthComboBox.Name = "ComputeDepthComboBox";
+			this.ComputeDepthComboBox.Size = new System.Drawing.Size(121, 23);
+			this.ComputeDepthComboBox.Text = "depth : 0";
 			// 
 			// MainForm
 			// 
@@ -472,6 +484,7 @@
 		private System.Windows.Forms.ComboBox ShowMoveNumberComboBox;
 		private System.Windows.Forms.ToolStripMenuItem CopyBoardandTurnTextAToolStripMenuItem;
 		private System.Windows.Forms.ToolStripStatusLabel ElapsedTimeStatusLabel;
+		private System.Windows.Forms.ToolStripComboBox ComputeDepthComboBox;
 	}
 }
 
