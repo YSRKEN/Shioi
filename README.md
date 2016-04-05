@@ -6,9 +6,14 @@ Shioi is renju player and solver by C++ and C#.
 ## How to use
 - [File] "Clear board", "Open file", "Save file", "Close software"
 - [Edit] Notification : The format of move's text is used by "Date Gomoku".
-- [Game] You can seek moves of the game.
+- [Game] You can seek moves of the game and computing next move.
 - [Help] About of this Software
 - You can drag and drop file. Then, this software open this file.
+- Value of the combo-box which is on board is number of move's mark.  
+If this value is "-1", then all stones are marked.  
+Otherwise, there are only this value's stones which is marked.
+- You can change thinking depth by combo-box in menu [Game].  
+But if depth is "2", thinking time is too long!
 
 ## File Format
 ### *.ban
@@ -39,6 +44,7 @@ http://www.vector.co.jp/soft/win95/game/se169850.html
 ## Version History
 |Version|Information|
 |-------|-----------|
+|0.4.0|Add support of computing next move|
 |0.3.0|Add support of Renju's rule(include of "Ina-San-San")|
 |0.2.0|drag and drop support, \*.kif and \*.nrf support, some bug fix|
 |0.1.0|first release|
@@ -51,9 +57,15 @@ Shioiは、C++とC#によって書かれた連珠ソフトです。しおいっ�
 ## 使い方
 - 「File」……上から、「盤面初期化」・「ファイルを開く」・「ファイル保存」・「終了」です。
 - 「Edit」……上から、「手順を伊達五目形式でコピー」「手順を伊達五目形式で貼り付け」「盤面をテキストでコピー」「盤面を画像でコピー」です。
-- 「Game」……上から、「一手進める」「一手戻る」「最初に戻す」「最後まで飛ぶ」になります。
+- 「Game」……上から、「一手進める」「一手戻る」「最初に戻す」「最後まで飛ぶ」「次の手を読む」になります。
 - 「Help」……ソフトウェアについての情報が確認できます。
 - 棋譜ファイルをドラッグ＆ドロップして読み込めます。
+- 盤面のすぐ上にあるコンボボックスは、手番を表す数字が表示される、盤面の石の数を指します。  
+「-1」の場合、初手から全ての番号を表示します。  
+それ以外の場合は、その数字の値だけ、直前の手における番号を表示します。
+- メニューの「Game」から選べるコンボボックスにて、次の手を読む際の読みの深さを選びます。  
+「depth : 0」だと1手読み、「depth : 2」だと3手読みとなります。  
+ただし、3手読みは非常に遅いので気をつけてください。
 
 ## ファイル形式
 ### *.ban
@@ -86,6 +98,7 @@ http://www.vector.co.jp/soft/win95/game/se169850.html
 ## 更新履歴
 |Version|Information|
 |-------|-----------|
+|0.4.0|次の手を読む機能を追加(3手読みまで)|
 |0.3.0|盤面における、各種追い手および禁手表示を実装(否三々対応済)|
 |0.2.0|ドラッグ＆ドロップに対応、\*.kifと\*.nrfに対応、幾つかのバグ修正|
 |0.1.0|最初のリリース|
