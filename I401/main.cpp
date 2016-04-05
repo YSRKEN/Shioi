@@ -5,13 +5,17 @@
 #include<iostream>
 #include<random>
 #include<string>
+#include<tuple>
 #include<vector>
 
 using std::array;
 using std::cout;
 using std::endl;
 using std::string;
+using std::tuple;
 using std::vector;
+
+typedef tuple<size_t, int> Score;
 
 std::random_device rd;
 std::mt19937 mt(rd());
@@ -108,7 +112,7 @@ public:
 		return x_ + y_ * kBoardSize;
 	}
 	size_t TenGenDist() const noexcept {
-		int kTengen = kBoardSize / 2;
+		const int kTengen = kBoardSize / 2;
 		return kTengen - std::max(abs(x_ - kTengen), abs(y_ - kTengen));
 	}
 	Point operator +(const Point &offset) const {
@@ -185,38 +189,58 @@ public:
 			return (RandInt(2) == 0 ? (kBoardSize * 6 + 7) : (kBoardSize * 6 + 8));
 		}
 		// Calc NextMove's score
-		vector<size_t> next_move;
-		int max_score = -kScoreInf - 1;
-		for (size_t p = 0; p < kBoardSize * kBoardSize; ++p) {
-			// Validation of this move
-			if (board_[p] != Stone::None) continue;
-			int score = CalcScore(p, turn_);
-			if (score == kScoreProhibit) continue;
-			// NegaMax Method
-			if (depth != 0) {
-				board_[p] = turn_;
-				score = -NegaMax(ReverseTurn(turn_), depth - 1, -kScoreInf - 1, kScoreInf + 1);
-				board_[p] = Stone::None;
-			}
-			// Refresh best move
-#if _DEBUG
-			if (score >= 10) {
-				cout << PositionToString(p) << " " << score << endl;
-			}
-#endif
-			if (max_score < score) {
-				max_score = score;
-				next_move.clear();
-				if (max_score == kScoreInf) {
+		if (depth == 0) {
+			vector<size_t> next_move;
+			int max_score = -kScoreInf - 1;
+			for (size_t p = 0; p < kBoardSize * kBoardSize; ++p) {
+				// Validation of this move
+				if (board_[p] != Stone::None) continue;
+				int score = CalcScore(p, turn_);
+				if (score == kScoreProhibit) continue;
+				if (score == kScoreInf) return p;
+				// Refresh best move
+				if (max_score < score) {
+					max_score = score;
+					next_move.clear();
+				}
+				if (max_score == score) {
 					next_move.push_back(p);
-					break;
 				}
 			}
-			if (max_score == score) {
-				next_move.push_back(p);
-			}
+			return (next_move.size() == 0 ? -1 : next_move[RandInt(next_move.size())]);
 		}
-		return (next_move.size() == 0 ? -1 : next_move[RandInt(next_move.size())]);
+		else {
+			vector<Score> pre_score;
+			for (size_t p = 0; p < kBoardSize * kBoardSize; ++p) {
+				// Validation of this move
+				if (board_[p] != Stone::None) continue;
+				int score = CalcScore(p, turn_);
+				if (score == kScoreProhibit) continue;
+				if (score == kScoreInf) return p;
+				pre_score.push_back(Score(p, score));
+			}
+			std::sort(pre_score.begin(), pre_score.end(), [](const Score &a, const Score &b) {return std::get<1>(a) > std::get<1>(b); });
+			for (auto &it : pre_score) {
+				board_[std::get<0>(it)] = turn_;
+				std::get<1>(it) = -NegaMax(ReverseTurn(turn_), depth - 1, -kScoreInf - 1, kScoreInf + 1);
+				board_[std::get<0>(it)] = Stone::None;
+//				cout << PositionToString(std::get<0>(it)) << " " << std::get<1>(it) << endl;
+				if (std::get<1>(it) == kScoreInf) return std::get<0>(it);
+			}
+			vector<size_t> next_move;
+			int max_score = -kScoreInf - 1;
+			for (auto &it : pre_score) {
+				// Refresh best move
+				if (max_score < std::get<1>(it)) {
+					max_score = std::get<1>(it);
+					next_move.clear();
+				}
+				if (max_score == std::get<1>(it)) {
+					next_move.push_back(std::get<0>(it));
+				}
+			}
+			return (next_move.size() == 0 ? -1 : next_move[RandInt(next_move.size())]);
+		}
 	}
 	bool IsDraw() const {
 		// If there aren't many stones on board, you don't check draw's judge.
@@ -563,21 +587,52 @@ public:
 		if (game_set_check != 0) return game_set_check;
 		game_set_check = IsGameSet(ReverseTurn(turn));
 		if (game_set_check != 0) return -game_set_check;
-		for (size_t p = 0; p < kBoardSize * kBoardSize; ++p) {
-			// Validation of this move
-			if (board_[p] != Stone::None) continue;
-			int score = CalcScore(p, turn_);
-			if (score == kScoreProhibit) continue;
-			if (depth != 0) {
-				board_[p] = turn;
-				score = -NegaMax(ReverseTurn(turn), depth - 1, -beta, -alpha);
-				board_[p] = Stone::None;
+		// Calc NextMove's score
+		if (depth == 0) {
+			int max_score = alpha;
+			for (size_t p = 0; p < kBoardSize * kBoardSize; ++p) {
+				// Validation of this move
+				if (board_[p] != Stone::None) continue;
+				int score = CalcScore(p, turn);
+				if (score == kScoreProhibit) continue;
+				if (score == kScoreInf) return kScoreInf;
+				// Refresh best move
+				if (max_score < score) {
+					max_score = score;
+					if (max_score >= beta) return max_score;
+				}
 			}
-			alpha = std::max(alpha, score);
-			if (alpha >= beta) return alpha;
-			if (alpha == kScoreInf) return alpha;
+			return max_score;
 		}
-		return alpha;
+		else {
+			vector<Score> pre_score;
+			for (size_t p = 0; p < kBoardSize * kBoardSize; ++p) {
+				// Validation of this move
+				if (board_[p] != Stone::None) continue;
+				int score = CalcScore(p, turn);
+				if (score == kScoreProhibit) continue;
+				if (score == kScoreInf) return kScoreInf;
+				pre_score.push_back(Score(p, score));
+			}
+			std::sort(pre_score.begin(), pre_score.end(), [](const Score &a, const Score &b) {return std::get<1>(a) > std::get<1>(b); });
+			for (auto &it : pre_score) {
+				board_[std::get<0>(it)] = turn;
+				std::get<1>(it) = -NegaMax(ReverseTurn(turn), depth - 1, -beta, -alpha);
+				board_[std::get<0>(it)] = Stone::None;
+				if (std::get<1>(it) == kScoreInf) return kScoreInf;
+				alpha = std::max(alpha, std::get<1>(it));
+				if (alpha >= beta) return alpha;
+			}
+			int max_score = alpha;
+			for (auto &it : pre_score) {
+				// Refresh best move
+				if (max_score < std::get<1>(it)) {
+					max_score = std::get<1>(it);
+					if (max_score >= beta) return max_score;
+				}
+			}
+			return max_score;
+		}
 	}
 };
 
@@ -593,13 +648,10 @@ int main(int argc, char *argv[]) {
 	}
 	try {
 		Board board(argv[1], argv[2]);
-#if _DEBUG
-		cout << PositionToString(board.NextMove(0)) << endl;
-#else
 		int depth = std::stoi(argv[3]);
 		if (depth < 0) depth = 0;
+//		cout << PositionToString(board.NextMove(depth)) << endl;
 		cout << board.NextMove(depth) << endl;
-#endif
 	}
 	catch (const std::exception& er) {
 		std::cerr << er.what() << endl;
