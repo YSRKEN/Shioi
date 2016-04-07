@@ -313,54 +313,69 @@ public:
 	}
 	int IsGameSet(const Stone turn) const noexcept {
 		array<Point, 4> pos_offsets{ Point{ 1, 0 }, Point{ 1, 1 }, Point{ 0, 1 }, Point{ -1, 1 } };
-		// Direction kinds
+		// Search Go-ren and check Cho-ren
+		bool choren_flg = false;
 		for (size_t i = 0; i < 4; ++i) {
 			Point &it_offset = pos_offsets[i];
 			size_t loops;
 			if (i == 0 || i == 2) loops = kBoardSize; else loops = kBoardSize * 2 - 1;
 			for (size_t j = 0; j < loops; ++j) {
 				// Get pattern
-				array<Stone, kBoardSize> pattern;
-				std::fill(pattern.begin(), pattern.end(), Stone::None);
-				Point first_pos;
+				size_t max_iterate; Point first_pos;
 				switch (i) {
 				case 0:
+					max_iterate = kBoardSize;
 					first_pos = Point(0, j);
 					break;
 				case 1:
 					if (j < kBoardSize) {
+						max_iterate = j + 1;
 						first_pos = Point(kBoardSize - j - 1, 0);
 					}
 					else {
+						max_iterate = kBoardSize * 2 - j - 1;
 						first_pos = Point(0, j - kBoardSize + 1);
 					}
 					break;
 				case 2:
+					max_iterate = kBoardSize;
 					first_pos = Point(j, 0);
 					break;
 				case 3:
 					if (j < kBoardSize) {
+						max_iterate = j + 1;
 						first_pos = Point(j, 0);
 					}
 					else {
+						max_iterate = kBoardSize * 2 - j - 1;
 						first_pos = Point(kBoardSize - 1, j - kBoardSize + 1);
 					}
 					break;
 				}
-				size_t k; Point pos;
-				for (k = 0, pos = first_pos; pos.IsInBoard(); ++k, pos += it_offset) {
-					pattern[k] = board_[pos.GetPos()];
+				size_t k, len = 0; Point pos;
+				for (k = 0, pos = first_pos; k < max_iterate; ++k, pos += it_offset) {
+					if (board_[pos.GetPos()] == turn) {
+						++len;
+					}else{
+						if (len == 5) {
+							return kScoreInf;
+						}else if(len >= 6){
+							if (turn == Stone::White) return kScoreInf;
+							choren_flg = true;
+						}
+						len = 0;
+					}
 				}
-				if (turn == Stone::Black) {
-					if (HasGoren(pattern, turn)) return kScoreInf;
-					if (HasChoren(pattern, turn)) return -kScoreInf;
+				if (len == 5) {
+					return kScoreInf;
 				}
-				else {
-					if (HasGoren(pattern, turn)) return kScoreInf;
-					if (HasChoren(pattern, turn)) return kScoreInf;
+				else if (len >= 6) {
+					if (turn == Stone::White) return kScoreInf;
+					choren_flg = true;
 				}
 			}
 		}
+		if (turn == Stone::Black && choren_flg) return -kScoreInf;
 		return 0;
 	}
 	int CalcScore(const size_t position, const Stone turn)noexcept {
