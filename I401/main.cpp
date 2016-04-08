@@ -7,6 +7,7 @@
 #include<string>
 #include<tuple>
 #include<vector>
+#include <unordered_map>
 
 using std::array;
 using std::cout;
@@ -14,6 +15,7 @@ using std::endl;
 using std::string;
 using std::tuple;
 using std::vector;
+using std::unordered_map;
 
 typedef tuple<size_t, int> Score;
 
@@ -25,12 +27,18 @@ const string kStoneString = "-*O";
 const int kScoreInf = 100;
 const int kScoreProhibit = -kScoreInf + 1;
 
+//size_t count = 0;
+
+unordered_map<uint64_t, int> g_hash;
+
 enum Stone : uint8_t {
 	None,
 	Black,
 	White,
 	UnBlack
 };
+
+typedef array<Stone, kBoardSize * kBoardSize> StoneBoard;
 
 bool HasGoren2(const array<Stone, kBoardSize> &pattern, const Stone turn) {
 	size_t len = 0;
@@ -116,7 +124,7 @@ public:
 };
 
 class Board {
-	array<Stone, kBoardSize * kBoardSize> board_;
+	StoneBoard board_;
 	Stone turn_;
 public:
 	Board(const char board_text[], const char turn_text[]) {
@@ -190,14 +198,25 @@ public:
 			vector<size_t> next_move;
 			int max_score = -kScoreInf - 1;
 			auto range = GetRange();
+			//If you can win, you must win.
 			for (size_t y = range[1]; y <= range[3]; ++y) {
 				for (size_t x = range[0]; x <= range[2]; ++x) {
 					size_t p = x + y * kBoardSize;
-					// Validation of this move
 					if (board_[p] != Stone::None) continue;
 					int score = CalcScore(p, turn_);
-					if (score == kScoreProhibit) continue;
 					if (score == kScoreInf) return p;
+				}
+			}
+			//If there is any Katsu-Shi, you must stop it.
+			auto rev_turn = ReverseTurn(turn_);
+			for (size_t y = range[1]; y <= range[3]; ++y) {
+				for (size_t x = range[0]; x <= range[2]; ++x) {
+					size_t p = x + y * kBoardSize;
+					if (board_[p] != Stone::None) continue;
+					auto win_flg = IsGameWinner(p, rev_turn);
+					if (!win_flg) continue;
+					int score = CalcScore(p, turn_);
+					if (score == kScoreProhibit) continue;
 					// Refresh best move
 					if (max_score < score) {
 						max_score = score;
@@ -208,21 +227,66 @@ public:
 					}
 				}
 			}
+			if (next_move.size() == 0) {
+				for (size_t y = range[1]; y <= range[3]; ++y) {
+					for (size_t x = range[0]; x <= range[2]; ++x) {
+						size_t p = x + y * kBoardSize;
+						// Validation of this move
+						if (board_[p] != Stone::None) continue;
+						int score = CalcScore(p, turn_);
+						if (score == kScoreProhibit) continue;
+						if(score != -kScoreInf) score += Point(p).TenGenDist();
+						// Refresh best move
+						if (max_score < score) {
+							max_score = score;
+							next_move.clear();
+						}
+						if (max_score == score) {
+							next_move.push_back(p);
+						}
+					}
+				}
+			}
 			if (max_score == -kScoreInf) return -2;
 			return (next_move.size() == 0 ? -1 : next_move[RandInt(next_move.size())]);
 		}
 		else {
 			vector<Score> pre_score;
 			auto range = GetRange();
+			//If you can win, you must win.
 			for (size_t y = range[1]; y <= range[3]; ++y) {
 				for (size_t x = range[0]; x <= range[2]; ++x) {
 					size_t p = x + y * kBoardSize;
-					// Validation of this move
 					if (board_[p] != Stone::None) continue;
 					int score = CalcScore(p, turn_);
-					if (score == kScoreProhibit) continue;
 					if (score == kScoreInf) return p;
+				}
+			}
+			//If there is any Katsu-Shi, you must stop it.
+			auto rev_turn = ReverseTurn(turn_);
+			for (size_t y = range[1]; y <= range[3]; ++y) {
+				for (size_t x = range[0]; x <= range[2]; ++x) {
+					size_t p = x + y * kBoardSize;
+					if (board_[p] != Stone::None) continue;
+					board_[p] = rev_turn;
+					auto win_flg = IsGameWinner(p, rev_turn);
+					board_[p] = Stone::None;
+					if (!win_flg) continue;
+					int score = CalcScore(p, turn_);
+					if (score == kScoreProhibit) continue;
 					pre_score.push_back(Score(p, score));
+				}
+			}
+			if (pre_score.size() == 0) {
+				// Pre-Search
+				for (size_t y = range[1]; y <= range[3]; ++y) {
+					for (size_t x = range[0]; x <= range[2]; ++x) {
+						size_t p = x + y * kBoardSize;
+						if (board_[p] != Stone::None) continue;
+						int score = CalcScore(p, turn_);
+						if (score == kScoreProhibit) continue;
+						pre_score.push_back(Score(p, score));
+					}
 				}
 			}
 			std::sort(pre_score.begin(), pre_score.end(), [](const Score &a, const Score &b) {return std::get<1>(a) > std::get<1>(b); });
@@ -236,6 +300,7 @@ public:
 			int max_score = -kScoreInf - 1;
 			if (debug_flg) std::sort(pre_score.begin(), pre_score.end(), [](const Score &a, const Score &b) {return std::get<1>(a) > std::get<1>(b); });
 			for (auto &it : pre_score) {
+				if (std::get<1>(it) != -kScoreInf) std::get<1>(it) += Point(std::get<0>(it)).TenGenDist();
 				if (debug_flg) std::cerr << PositionToString(std::get<0>(it)) << ", " << std::get<1>(it) << endl;
 				// Refresh best move
 				if (max_score < std::get<1>(it)) {
@@ -380,7 +445,65 @@ public:
 		if (turn == Stone::Black && choren_flg) return -kScoreInf;
 		return 0;
 	}
+	bool IsGameWinner(const size_t position, const Stone turn) const noexcept {
+		Point pos_move(position);
+		//Check Go-ren and Cho-ren
+		array<Point, 4> pos_offsets{ Point{ 1, 0 }, Point{ 1, 1 }, Point{ 0, 1 }, Point{ -1, 1 } };
+		for (auto &it_offset : pos_offsets) {
+			// Get right and left pattern
+			array<Stone, 5> right_pattern, left_pattern;
+			std::fill(right_pattern.begin(), right_pattern.end(), Stone::None);
+			std::fill(left_pattern.begin(), left_pattern.end(), Stone::None);
+			Point pos;
+			size_t i;
+			for (i = 0, pos = pos_move + it_offset; i < 5 && pos.IsInBoard(); ++i, pos += it_offset) {
+				right_pattern[i] = board_[pos.GetPos()];
+			}
+			for (i = 0, pos = pos_move - it_offset; i < 5 && pos.IsInBoard(); ++i, pos -= it_offset) {
+				left_pattern[i] = board_[pos.GetPos()];
+			}
+			// Pattern matching
+			if (turn == Stone::Black) {
+				size_t right_pattern_1 = (right_pattern[0] != Stone::White ? right_pattern[0] : Stone::None);
+				size_t right_pattern_2 = Ternary(right_pattern[0], (right_pattern[1] != Stone::White ? right_pattern[1] : Stone::None));
+				size_t right_pattern_3 = Ternary(right_pattern[0], right_pattern[1], (right_pattern[2] != Stone::White ? right_pattern[2] : Stone::None));
+				size_t right_pattern_4 = Ternary(right_pattern[0], right_pattern[1], right_pattern[2], (right_pattern[3] != Stone::White ? right_pattern[3] : Stone::None));
+				size_t right_pattern_5 = Ternary(right_pattern[0], right_pattern[1], right_pattern[2], right_pattern[3], (right_pattern[4] != Stone::White ? right_pattern[4] : Stone::None));
+				size_t left_pattern_1 = (left_pattern[0] != Stone::White ? left_pattern[0] : Stone::None);
+				size_t left_pattern_2 = Ternary(left_pattern[0], (left_pattern[1] != Stone::White ? left_pattern[1] : Stone::None));
+				size_t left_pattern_3 = Ternary(left_pattern[0], left_pattern[1], (left_pattern[2] != Stone::White ? left_pattern[2] : Stone::None));
+				size_t left_pattern_4 = Ternary(left_pattern[0], left_pattern[1], left_pattern[2], (left_pattern[3] != Stone::White ? left_pattern[3] : Stone::None));
+				size_t left_pattern_5 = Ternary(left_pattern[0], left_pattern[1], left_pattern[2], left_pattern[3], (left_pattern[4] != Stone::White ? left_pattern[4] : Stone::None));
+				// Quintuplex(Go-ren)
+				if (right_pattern_1 == Stone::Black && left_pattern_5 == Ternary(Stone::Black, Stone::Black, Stone::Black, Stone::Black, Stone::None)) return true;
+				if (right_pattern_2 == Ternary(Stone::Black, Stone::None) && left_pattern_4 == Ternary(Stone::Black, Stone::Black, Stone::Black, Stone::None)) return true;
+				if (right_pattern_3 == Ternary(Stone::Black, Stone::Black, Stone::None) && left_pattern_3 == Ternary(Stone::Black, Stone::Black, Stone::None)) return true;
+				if (left_pattern_2 == Ternary(Stone::Black, Stone::None) && right_pattern_4 == Ternary(Stone::Black, Stone::Black, Stone::Black, Stone::None)) return true;
+				if (left_pattern_1 == Stone::Black && right_pattern_5 == Ternary(Stone::Black, Stone::Black, Stone::Black, Stone::Black, Stone::None)) return true;
+			}
+			else {
+				size_t right_pattern_1 = right_pattern[0];
+				size_t right_pattern_2 = Ternary(right_pattern[0], right_pattern[1]);
+				size_t right_pattern_3 = Ternary(right_pattern[0], right_pattern[1], right_pattern[2]);
+				size_t right_pattern_4 = Ternary(right_pattern[0], right_pattern[1], right_pattern[2], right_pattern[3]);
+				size_t right_pattern_5 = Ternary(right_pattern[0], right_pattern[1], right_pattern[2], right_pattern[3], right_pattern[4]);
+				size_t left_pattern_1 = left_pattern[0];
+				size_t left_pattern_2 = Ternary(left_pattern[0], left_pattern[1]);
+				size_t left_pattern_3 = Ternary(left_pattern[0], left_pattern[1], left_pattern[2]);
+				size_t left_pattern_4 = Ternary(left_pattern[0], left_pattern[1], left_pattern[2], left_pattern[3]);
+				size_t left_pattern_5 = Ternary(left_pattern[0], left_pattern[1], left_pattern[2], left_pattern[3], left_pattern[4]);
+				// Quintuplex(Go-ren)
+				if (left_pattern_4 == Ternary(Stone::White, Stone::White, Stone::White, Stone::White)) return true;
+				if (right_pattern_1 == Ternary(Stone::White) && left_pattern_3 == Ternary(Stone::White, Stone::White, Stone::White)) return true;
+				if (right_pattern_2 == Ternary(Stone::White, Stone::White) && left_pattern_2 == Ternary(Stone::White, Stone::White)) return true;
+				if (right_pattern_3 == Ternary(Stone::White, Stone::White, Stone::White) && left_pattern_1 == Ternary(Stone::White)) return true;
+				if (right_pattern_4 == Ternary(Stone::White, Stone::White, Stone::White, Stone::White)) return true;
+			}
+		}
+		return false;
+	}
 	bool IsValidMove(const size_t position, const Stone turn) noexcept{
+		if (turn == Stone::White) return true;
 		Point pos_move(position);
 		size_t sum_4_strong = 0, sum_4_normal = 0, sum_3 = 0;
 		array<Point, 4> pos_offsets{ Point{ 1, 0 }, Point{ 1, 1 }, Point{ 0, 1 }, Point{ -1, 1 } };
@@ -519,9 +642,26 @@ public:
 		if (sum_3 >= 2) return false;
 		return true;
 	}
+	bool HasGorenProb(const Stone turn) {
+		auto range = GetRange();
+		for (size_t y = range[1]; y <= range[3]; ++y) {
+			for (size_t x = range[0]; x <= range[2]; ++x) {
+				size_t p = x + y * kBoardSize;
+				if (board_[p] != Stone::None) continue;
+				if (!IsValidMove(p, turn)) continue;
+				board_[p] = turn;
+				auto game_set_check = IsGameSet(turn);
+				board_[p] = Stone::None;
+				if (game_set_check == kScoreInf) return true;
+			}
+		}
+		return false;
+	}
 	int CalcScore(const size_t position, const Stone turn)noexcept {
+//		++count;
 		// Calc Score
 		Point pos_move(position);
+		//Check Go-ren and Cho-ren, and count Katsu-shi and Katsu-san
 		size_t sum_4_strong = 0, sum_4_normal = 0, sum_3 = 0;
 		array<Point, 4> pos_offsets{ Point{ 1, 0 }, Point{ 1, 1 }, Point{ 0, 1 }, Point{ -1, 1 } };
 		for (auto &it_offset : pos_offsets) {
@@ -742,25 +882,66 @@ public:
 				if (left_pattern_4 == Ternary(Stone::White, Stone::White, Stone::None, Stone::None) && right_pattern_1 == Ternary(Stone::None)) { ++sum_3; continue; }
 			}
 		}
-		if (sum_4_strong + sum_4_normal >= 2) return (turn == Stone::Black ? kScoreProhibit : 80);
-		if (sum_3 >= 2) return (turn == Stone::Black ? kScoreProhibit : 60);
-		if (sum_4_strong + sum_4_normal == 1 && sum_3 == 1) return 70;
-		if (sum_4_strong == 1) return 90;
+		//Prohibited move check
+		if (turn == Stone::Black) {
+			if (sum_4_strong + sum_4_normal >= 2 || sum_3 >= 2) return kScoreProhibit;
+		}
+		//Calc move score
+		if (sum_4_strong + sum_4_normal >= 2) return 95;
+		if (sum_3 >= 2) return 80;
+		if (sum_4_strong + sum_4_normal == 1 && sum_3 == 1) return 90;
+		if (sum_4_strong == 1) return 95;
 		if (sum_4_normal == 1) return 50;
 		if (sum_3 == 1) return 10;
 		return pos_move.TenGenDist();
 	}
+	uint64_t GetHash() {
+		uint64_t hash = 0;
+		for (size_t i = 0; i < 21; ++i) {
+			hash *= 3;
+			hash += board_[i];
+		}
+		for (size_t j = 0; j < 10; ++j) {
+			uint64_t hash2 = 0;
+			for (size_t i = 0; i < 21; ++i) {
+				hash2 *= 3;
+				hash2 += board_[j * 21 + i];
+			}
+			hash = hash ^ hash2;
+		}
+		uint64_t hash3 = 0;
+		for (size_t i = 210; i < 225; ++i) {
+			hash3 *= 3;
+			hash3 += board_[i];
+		}
+		return hash ^ hash3;
+	}
 	int NegaMax(const Stone turn, const size_t depth, int alpha, int beta) noexcept{
+		auto get_hash = GetHash();
+		if (g_hash.find(get_hash) != g_hash.end()) {
+			return g_hash.at(get_hash);
+		}
+//		++count;
 		// If this board is game end, return status
-		if (IsDraw()) return 0;
+		if (IsDraw()) {
+			g_hash[get_hash] = 0;
+			return 0;
+		}
 		auto game_set_check = IsGameSet(turn);
-		if (game_set_check != 0) return game_set_check;
+		if (game_set_check != 0) {
+			g_hash[get_hash] = game_set_check;
+			return game_set_check;
+		}
 		game_set_check = IsGameSet(ReverseTurn(turn));
-		if (game_set_check != 0) return -game_set_check;
+		if (game_set_check != 0) {
+			g_hash[get_hash] = -game_set_check;
+			return -game_set_check;
+		}
 		// Calc NextMove's score
 		if (depth == 0) {
 			int max_score = alpha;
 			auto range = GetRange();
+			/*//If you can win, you must win.
 			for (size_t y = range[1]; y <= range[3]; ++y) {
 				for (size_t x = range[0]; x <= range[2]; ++x) {
 					size_t p = x + y * kBoardSize;
@@ -769,6 +950,18 @@ public:
 					int score = CalcScore(p, turn);
 					if (score == kScoreProhibit) continue;
 					if (score == kScoreInf) return kScoreInf;
+				}
+			}
+			//If there is any Katsu-Shi, you must stop it.
+			auto rev_turn = ReverseTurn(turn);
+			for (size_t y = range[1]; y <= range[3]; ++y) {
+				for (size_t x = range[0]; x <= range[2]; ++x) {
+					size_t p = x + y * kBoardSize;
+					if (board_[p] != Stone::None) continue;
+					auto win_flg = IsGameWinner(p, rev_turn);
+					if (!win_flg) continue;
+					int score = CalcScore(p, turn);
+					if (score == kScoreProhibit) continue;
 					// Refresh best move
 					if (max_score < score) {
 						max_score = score;
@@ -776,39 +969,115 @@ public:
 					}
 				}
 			}
+			if (max_score == alpha) {
+				for (size_t y = range[1]; y <= range[3]; ++y) {
+					for (size_t x = range[0]; x <= range[2]; ++x) {
+						size_t p = x + y * kBoardSize;
+						// Validation of this move
+						if (board_[p] != Stone::None) continue;
+						int score = CalcScore(p, turn);
+						if (score == kScoreProhibit) continue;
+						// Refresh best move
+						if (max_score < score) {
+							max_score = score;
+							if (max_score >= beta) return max_score;
+						}
+					}
+				}
+			}*/
+			for (size_t y = range[1]; y <= range[3]; ++y) {
+				for (size_t x = range[0]; x <= range[2]; ++x) {
+					size_t p = x + y * kBoardSize;
+					// Validation of this move
+					if (board_[p] != Stone::None) continue;
+					int score = CalcScore(p, turn);
+					if (score == kScoreProhibit) continue;
+					if (score == kScoreInf) {
+						g_hash[get_hash] = kScoreInf;
+						return kScoreInf;
+					}
+					// Refresh best move
+					if (max_score < score) {
+						max_score = score;
+						if (max_score >= beta) {
+							g_hash[get_hash] = max_score;
+							return max_score;
+						}
+					}
+				}
+			}
+			g_hash[get_hash] = max_score;
 			return max_score;
 		}
 		else {
 			vector<Score> pre_score;
 			auto range = GetRange();
-				for (size_t y = range[1]; y <= range[3]; ++y) {
-					for (size_t x = range[0]; x <= range[2]; ++x) {
-						size_t p = x + y * kBoardSize;
-					// Validation of this move
+			//If you can win, you must win.
+			for (size_t y = range[1]; y <= range[3]; ++y) {
+				for (size_t x = range[0]; x <= range[2]; ++x) {
+					size_t p = x + y * kBoardSize;
 					if (board_[p] != Stone::None) continue;
 					int score = CalcScore(p, turn);
 					if (score == kScoreProhibit) continue;
-					if (score == kScoreInf) return kScoreInf;
+					if (score == kScoreInf) {
+						g_hash[get_hash] = kScoreInf;
+						return kScoreInf;
+					}
+				}
+			}
+			//If there is any Katsu-Shi, you must stop it.
+			auto rev_turn = ReverseTurn(turn);
+			for (size_t y = range[1]; y <= range[3]; ++y) {
+				for (size_t x = range[0]; x <= range[2]; ++x) {
+					size_t p = x + y * kBoardSize;
+					if (board_[p] != Stone::None) continue;
+					auto win_flg = IsGameWinner(p, rev_turn);
+					if (!win_flg) continue;
+					int score = CalcScore(p, turn);
+					if (score == kScoreProhibit) continue;
 					pre_score.push_back(Score(p, score));
+				}
+			}
+			if (pre_score.size() == 0) {
+				// Pre-Search
+				for (size_t y = range[1]; y <= range[3]; ++y) {
+					for (size_t x = range[0]; x <= range[2]; ++x) {
+						size_t p = x + y * kBoardSize;
+						// Validation of this move
+						if (board_[p] != Stone::None) continue;
+						int score = CalcScore(p, turn);
+						if (score == kScoreProhibit) continue;
+						pre_score.push_back(Score(p, score));
+					}
 				}
 			}
 			std::sort(pre_score.begin(), pre_score.end(), [](const Score &a, const Score &b) {return std::get<1>(a) > std::get<1>(b); });
 			for (auto &it : pre_score) {
 				board_[std::get<0>(it)] = turn;
-				std::get<1>(it) = -NegaMax(ReverseTurn(turn), depth - 1, -beta, -alpha);
+				std::get<1>(it) = -NegaMax(rev_turn, depth - 1, -beta, -alpha);
 				board_[std::get<0>(it)] = Stone::None;
-				if (std::get<1>(it) == kScoreInf) return kScoreInf;
+				if (std::get<1>(it) == kScoreInf) {
+					g_hash[get_hash] = kScoreInf;
+					return kScoreInf;
+				}
 				alpha = std::max(alpha, std::get<1>(it));
-				if (alpha >= beta) return alpha;
+				if (alpha >= beta) {
+					g_hash[get_hash] = alpha;
+					return alpha;
+				}
 			}
 			int max_score = alpha;
 			for (auto &it : pre_score) {
 				// Refresh best move
 				if (max_score < std::get<1>(it)) {
 					max_score = std::get<1>(it);
-					if (max_score >= beta) return max_score;
+					if (max_score >= beta) {
+						g_hash[get_hash] = max_score;
+						return max_score;
+					}
 				}
 			}
+			g_hash[get_hash] = max_score;
 			return max_score;
 		}
 	}
@@ -831,6 +1100,7 @@ int main(int argc, char *argv[]) {
 		if (depth < 0) depth = 0;
 //		cout << PositionToString(board.NextMove(depth)) << endl;
 		cout << board.NextMove(depth, (argc >= 5)) << endl;
+//		cout << count << endl;
 	}
 	catch (const std::exception& er) {
 		std::cerr << er.what() << endl;
