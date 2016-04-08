@@ -180,6 +180,24 @@ public:
 		}
 		return output;
 	}
+	array<size_t, 4> GetRange() const noexcept{
+		array<size_t, 4> range{kBoardSize, kBoardSize, 0, 0};
+		for (size_t y = 0; y < kBoardSize; ++y) {
+			for (size_t x = 0; x < kBoardSize; ++x) {
+				size_t p = x + y * kBoardSize;
+				if (board_[p] == Stone::None) continue;
+				range[0] = std::min(range[0], x);
+				range[1] = std::min(range[1], y);
+				range[2] = std::max(range[2], x);
+				range[3] = std::max(range[3], y);
+			}
+		}
+		if (range[0] <= 2) range[0] = 0; else range[0] -= 2;
+		if (range[1] <= 2) range[1] = 0; else range[1] -= 2;
+		if (range[2] + 2 >= kBoardSize) range[2] = kBoardSize - 1; else range[2] += 2;
+		if (range[3] + 2 >= kBoardSize) range[3] = kBoardSize - 1; else range[3] += 2;
+		return range;
+	}
 	int NextMove(const size_t depth) {
 		if (IsDraw() || IsGameSet()) return -1;
 		//First move most be Ten-Gen(h8).
@@ -192,32 +210,40 @@ public:
 		if (depth == 0) {
 			vector<size_t> next_move;
 			int max_score = -kScoreInf - 1;
-			for (size_t p = 0; p < kBoardSize * kBoardSize; ++p) {
-				// Validation of this move
-				if (board_[p] != Stone::None) continue;
-				int score = CalcScore(p, turn_);
-				if (score == kScoreProhibit) continue;
-				if (score == kScoreInf) return p;
-				// Refresh best move
-				if (max_score < score) {
-					max_score = score;
-					next_move.clear();
-				}
-				if (max_score == score) {
-					next_move.push_back(p);
+			auto range = GetRange();
+			for (size_t y = range[1]; y <= range[3]; ++y) {
+				for (size_t x = range[0]; x <= range[2]; ++x) {
+					size_t p = x + y * kBoardSize;
+					// Validation of this move
+					if (board_[p] != Stone::None) continue;
+					int score = CalcScore(p, turn_);
+					if (score == kScoreProhibit) continue;
+					if (score == kScoreInf) return p;
+					// Refresh best move
+					if (max_score < score) {
+						max_score = score;
+						next_move.clear();
+					}
+					if (max_score == score) {
+						next_move.push_back(p);
+					}
 				}
 			}
 			return (next_move.size() == 0 ? -1 : next_move[RandInt(next_move.size())]);
 		}
 		else {
 			vector<Score> pre_score;
-			for (size_t p = 0; p < kBoardSize * kBoardSize; ++p) {
-				// Validation of this move
-				if (board_[p] != Stone::None) continue;
-				int score = CalcScore(p, turn_);
-				if (score == kScoreProhibit) continue;
-				if (score == kScoreInf) return p;
-				pre_score.push_back(Score(p, score));
+			auto range = GetRange();
+			for (size_t y = range[1]; y <= range[3]; ++y) {
+				for (size_t x = range[0]; x <= range[2]; ++x) {
+					size_t p = x + y * kBoardSize;
+					// Validation of this move
+					if (board_[p] != Stone::None) continue;
+					int score = CalcScore(p, turn_);
+					if (score == kScoreProhibit) continue;
+					if (score == kScoreInf) return p;
+					pre_score.push_back(Score(p, score));
+				}
 			}
 			std::sort(pre_score.begin(), pre_score.end(), [](const Score &a, const Score &b) {return std::get<1>(a) > std::get<1>(b); });
 			for (auto &it : pre_score) {
@@ -312,49 +338,49 @@ public:
 		return false;
 	}
 	int IsGameSet(const Stone turn) const noexcept {
-		array<Point, 4> pos_offsets{ Point{ 1, 0 }, Point{ 1, 1 }, Point{ 0, 1 }, Point{ -1, 1 } };
+		array<size_t, 4> pos_offsets{ Point{ 1, 0 }.GetPos(), Point{ 1, 1 }.GetPos(), Point{ 0, 1 }.GetPos(), Point{ -1, 1 }.GetPos() };
 		// Search Go-ren and check Cho-ren
 		bool choren_flg = false;
 		for (size_t i = 0; i < 4; ++i) {
-			Point &it_offset = pos_offsets[i];
+			size_t &it_offset = pos_offsets[i];
 			size_t loops;
 			if (i == 0 || i == 2) loops = kBoardSize; else loops = kBoardSize * 2 - 1;
 			for (size_t j = 0; j < loops; ++j) {
 				// Get pattern
-				size_t max_iterate; Point first_pos;
+				size_t max_iterate, first_pos;
 				switch (i) {
 				case 0:
 					max_iterate = kBoardSize;
-					first_pos = Point(0, j);
+					first_pos = Point(0, j).GetPos();
 					break;
 				case 1:
 					if (j < kBoardSize) {
 						max_iterate = j + 1;
-						first_pos = Point(kBoardSize - j - 1, 0);
+						first_pos = Point(kBoardSize - j - 1, 0).GetPos();
 					}
 					else {
 						max_iterate = kBoardSize * 2 - j - 1;
-						first_pos = Point(0, j - kBoardSize + 1);
+						first_pos = Point(0, j - kBoardSize + 1).GetPos();
 					}
 					break;
 				case 2:
 					max_iterate = kBoardSize;
-					first_pos = Point(j, 0);
+					first_pos = Point(j, 0).GetPos();
 					break;
 				case 3:
 					if (j < kBoardSize) {
 						max_iterate = j + 1;
-						first_pos = Point(j, 0);
+						first_pos = Point(j, 0).GetPos();
 					}
 					else {
 						max_iterate = kBoardSize * 2 - j - 1;
-						first_pos = Point(kBoardSize - 1, j - kBoardSize + 1);
+						first_pos = Point(kBoardSize - 1, j - kBoardSize + 1).GetPos();
 					}
 					break;
 				}
-				size_t k, len = 0; Point pos;
+				size_t k, len = 0, pos;
 				for (k = 0, pos = first_pos; k < max_iterate; ++k, pos += it_offset) {
-					if (board_[pos.GetPos()] == turn) {
+					if (board_[pos] == turn) {
 						++len;
 					}else{
 						if (len == 5) {
@@ -605,29 +631,37 @@ public:
 		// Calc NextMove's score
 		if (depth == 0) {
 			int max_score = alpha;
-			for (size_t p = 0; p < kBoardSize * kBoardSize; ++p) {
-				// Validation of this move
-				if (board_[p] != Stone::None) continue;
-				int score = CalcScore(p, turn);
-				if (score == kScoreProhibit) continue;
-				if (score == kScoreInf) return kScoreInf;
-				// Refresh best move
-				if (max_score < score) {
-					max_score = score;
-					if (max_score >= beta) return max_score;
+			auto range = GetRange();
+			for (size_t y = range[1]; y <= range[3]; ++y) {
+				for (size_t x = range[0]; x <= range[2]; ++x) {
+					size_t p = x + y * kBoardSize;
+					// Validation of this move
+					if (board_[p] != Stone::None) continue;
+					int score = CalcScore(p, turn);
+					if (score == kScoreProhibit) continue;
+					if (score == kScoreInf) return kScoreInf;
+					// Refresh best move
+					if (max_score < score) {
+						max_score = score;
+						if (max_score >= beta) return max_score;
+					}
 				}
 			}
 			return max_score;
 		}
 		else {
 			vector<Score> pre_score;
-			for (size_t p = 0; p < kBoardSize * kBoardSize; ++p) {
-				// Validation of this move
-				if (board_[p] != Stone::None) continue;
-				int score = CalcScore(p, turn);
-				if (score == kScoreProhibit) continue;
-				if (score == kScoreInf) return kScoreInf;
-				pre_score.push_back(Score(p, score));
+			auto range = GetRange();
+				for (size_t y = range[1]; y <= range[3]; ++y) {
+					for (size_t x = range[0]; x <= range[2]; ++x) {
+						size_t p = x + y * kBoardSize;
+					// Validation of this move
+					if (board_[p] != Stone::None) continue;
+					int score = CalcScore(p, turn);
+					if (score == kScoreProhibit) continue;
+					if (score == kScoreInf) return kScoreInf;
+					pre_score.push_back(Score(p, score));
+				}
 			}
 			std::sort(pre_score.begin(), pre_score.end(), [](const Score &a, const Score &b) {return std::get<1>(a) > std::get<1>(b); });
 			for (auto &it : pre_score) {
