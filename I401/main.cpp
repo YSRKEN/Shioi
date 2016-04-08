@@ -32,29 +32,6 @@ enum Stone : uint8_t {
 	UnBlack
 };
 
-bool MatchArray(const array<Stone, kBoardSize> &pattern, const vector<Stone> &match_pattern) {
-	for (size_t i = 0; i < match_pattern.size(); ++i) {
-		auto &it = match_pattern[i];
-		if (it == Stone::UnBlack) {
-			if (pattern[i] == Stone::Black) return false;
-		}
-		else if (it != pattern[i]) return false;
-	}
-	return true;
-}
-bool HasGoren(const array<Stone, kBoardSize> &pattern, const Stone turn) {
-	size_t len = 0;
-	for (auto &it : pattern) {
-		if (it == turn) {
-			++len;
-		}
-		else {
-			if (len == 5) return true;
-			len = 0;
-		}
-	}
-	return (len == 5);
-}
 bool HasGoren2(const array<Stone, kBoardSize> &pattern, const Stone turn) {
 	size_t len = 0;
 	for (auto &it : pattern) {
@@ -67,19 +44,6 @@ bool HasGoren2(const array<Stone, kBoardSize> &pattern, const Stone turn) {
 		}
 	}
 	return (len >= 5);
-}
-bool HasChoren(const array<Stone, kBoardSize> &pattern, const Stone turn) {
-	size_t len = 0;
-	for (auto &it : pattern) {
-		if (it == turn) {
-			++len;
-		}
-		else {
-			if (len >= 6) return true;
-			len = 0;
-		}
-	}
-	return (len >= 6);
 }
 string PositionToString(const size_t p) {
 	const static string kPositionString = "abcdefghijklmno";
@@ -213,7 +177,7 @@ public:
 		if (range[3] + 2 >= kBoardSize) range[3] = kBoardSize - 1; else range[3] += 2;
 		return range;
 	}
-	int NextMove(const size_t depth) {
+	int NextMove(const size_t depth, bool debug_flg = false) {
 		if (IsDraw() || IsGameSet()) return -1;
 		//First move most be Ten-Gen(h8).
 		if (CountStone() == 0) return (kBoardSize * 7 + 7);
@@ -244,6 +208,7 @@ public:
 					}
 				}
 			}
+			if (max_score == -kScoreInf) return -2;
 			return (next_move.size() == 0 ? -1 : next_move[RandInt(next_move.size())]);
 		}
 		else {
@@ -265,12 +230,13 @@ public:
 				board_[std::get<0>(it)] = turn_;
 				std::get<1>(it) = -NegaMax(ReverseTurn(turn_), depth - 1, -kScoreInf - 1, kScoreInf + 1);
 				board_[std::get<0>(it)] = Stone::None;
-//				cout << PositionToString(std::get<0>(it)) << " " << std::get<1>(it) << endl;
 				if (std::get<1>(it) == kScoreInf) return std::get<0>(it);
 			}
 			vector<size_t> next_move;
 			int max_score = -kScoreInf - 1;
+			if (debug_flg) std::sort(pre_score.begin(), pre_score.end(), [](const Score &a, const Score &b) {return std::get<1>(a) > std::get<1>(b); });
 			for (auto &it : pre_score) {
+				if (debug_flg) std::cerr << PositionToString(std::get<0>(it)) << ", " << std::get<1>(it) << endl;
 				// Refresh best move
 				if (max_score < std::get<1>(it)) {
 					max_score = std::get<1>(it);
@@ -280,6 +246,7 @@ public:
 					next_move.push_back(std::get<0>(it));
 				}
 			}
+			if (max_score == -kScoreInf) return -2;
 			return (next_move.size() == 0 ? -1 : next_move[RandInt(next_move.size())]);
 		}
 	}
@@ -413,15 +380,146 @@ public:
 		if (turn == Stone::Black && choren_flg) return -kScoreInf;
 		return 0;
 	}
-	int CalcScore(const size_t position, const Stone turn, const bool gameset_check_flg = false)noexcept {
-		// If this board is game end, return status
-		if (gameset_check_flg) {
-			if (IsDraw()) return 0;
-			auto game_set_check = IsGameSet(turn);
-			if (game_set_check != 0) return game_set_check;
-			game_set_check = IsGameSet(ReverseTurn(turn));
-			if (game_set_check != 0) return -game_set_check;
+	bool IsValidMove(const size_t position, const Stone turn) noexcept{
+		Point pos_move(position);
+		size_t sum_4_strong = 0, sum_4_normal = 0, sum_3 = 0;
+		array<Point, 4> pos_offsets{ Point{ 1, 0 }, Point{ 1, 1 }, Point{ 0, 1 }, Point{ -1, 1 } };
+		for (auto &it_offset : pos_offsets) {
+			// Get right and left pattern
+			array<Stone, 5> right_pattern, left_pattern;
+			std::fill(right_pattern.begin(), right_pattern.end(), Stone::None);
+			std::fill(left_pattern.begin(), left_pattern.end(), Stone::None);
+			Point pos;
+			size_t i;
+			for (i = 0, pos = pos_move + it_offset; i < 5 && pos.IsInBoard(); ++i, pos += it_offset) {
+				right_pattern[i] = board_[pos.GetPos()];
+			}
+			for (i = 0, pos = pos_move - it_offset; i < 5 && pos.IsInBoard(); ++i, pos -= it_offset) {
+				left_pattern[i] = board_[pos.GetPos()];
+			}
+			// Pattern matching
+			size_t right_pattern_1 = (right_pattern[0] != Stone::White ? right_pattern[0] : Stone::None);
+			size_t right_pattern_2 = Ternary(right_pattern[0], (right_pattern[1] != Stone::White ? right_pattern[1] : Stone::None));
+			size_t right_pattern_3 = Ternary(right_pattern[0], right_pattern[1], (right_pattern[2] != Stone::White ? right_pattern[2] : Stone::None));
+			size_t right_pattern_4 = Ternary(right_pattern[0], right_pattern[1], right_pattern[2], (right_pattern[3] != Stone::White ? right_pattern[3] : Stone::None));
+			size_t right_pattern_5 = Ternary(right_pattern[0], right_pattern[1], right_pattern[2], right_pattern[3], (right_pattern[4] != Stone::White ? right_pattern[4] : Stone::None));
+			size_t left_pattern_1 = (left_pattern[0] != Stone::White ? left_pattern[0] : Stone::None);
+			size_t left_pattern_2 = Ternary(left_pattern[0], (left_pattern[1] != Stone::White ? left_pattern[1] : Stone::None));
+			size_t left_pattern_3 = Ternary(left_pattern[0], left_pattern[1], (left_pattern[2] != Stone::White ? left_pattern[2] : Stone::None));
+			size_t left_pattern_4 = Ternary(left_pattern[0], left_pattern[1], left_pattern[2], (left_pattern[3] != Stone::White ? left_pattern[3] : Stone::None));
+			size_t left_pattern_5 = Ternary(left_pattern[0], left_pattern[1], left_pattern[2], left_pattern[3], (left_pattern[4] != Stone::White ? left_pattern[4] : Stone::None));
+			// Quintuplex(Go-ren)
+			if (right_pattern_1 == Stone::Black && left_pattern_5 == Ternary(Stone::Black, Stone::Black, Stone::Black, Stone::Black, Stone::None)) return true;
+			if (right_pattern_2 == Ternary(Stone::Black, Stone::None) && left_pattern_4 == Ternary(Stone::Black, Stone::Black, Stone::Black, Stone::None)) return true;
+			if (right_pattern_3 == Ternary(Stone::Black, Stone::Black, Stone::None) && left_pattern_3 == Ternary(Stone::Black, Stone::Black, Stone::None)) return true;
+			if (left_pattern_2 == Ternary(Stone::Black, Stone::None) && right_pattern_4 == Ternary(Stone::Black, Stone::Black, Stone::Black, Stone::None)) return true;
+			if (left_pattern_1 == Stone::Black && right_pattern_5 == Ternary(Stone::Black, Stone::Black, Stone::Black, Stone::Black, Stone::None)) return true;
+
+			// Too long multiplex(Cho-ren)
+			// Cho-ren of black is Prohibited move(Kinsyu).
+			if (left_pattern_5 == Ternary(Stone::Black, Stone::Black, Stone::Black, Stone::Black, Stone::Black)) return false;
+			if (right_pattern_1 == Stone::Black && left_pattern_4 == Ternary(Stone::Black, Stone::Black, Stone::Black, Stone::Black)) return false;
+			if (right_pattern_2 == Ternary(Stone::Black, Stone::Black) && left_pattern_3 == Ternary(Stone::Black, Stone::Black, Stone::Black)) return false;
+			if (right_pattern_5 == Ternary(Stone::Black, Stone::Black, Stone::Black, Stone::Black, Stone::Black)) return false;
+			if (left_pattern_1 == Stone::Black && right_pattern_4 == Ternary(Stone::Black, Stone::Black, Stone::Black, Stone::Black)) return false;
+			if (left_pattern_2 == Ternary(Stone::Black, Stone::Black) && right_pattern_3 == Ternary(Stone::Black, Stone::Black, Stone::Black)) return false;
+
+			/* If you make some Quadruplex of black, it's Prohibited move(Kinsyu) "Shi-Shi".
+			* 1. BO|BBB|OB   "Ryoutou-no-ShiShi"
+			* 2. BBO|BB|OBB  "Chouda-no-ShiShi"
+			* 3. BBBO|B|OBBB "Souryu-no-ShiShi"
+			* 一直線上に出来る四々で、両頭の四々・長蛇の四々・双龍の四々
+			*/
+			//BO|BBB|OB
+			if (right_pattern_5 == Ternary(Stone::Black, Stone::Black, Stone::None, Stone::Black, Stone::None) && left_pattern_3 == Ternary(Stone::None, Stone::Black, Stone::None)) return false;
+			if (right_pattern_4 == Ternary(Stone::Black, Stone::None, Stone::Black, Stone::None) && left_pattern_4 == Ternary(Stone::Black, Stone::None, Stone::Black, Stone::None)) return false;
+			if (right_pattern_3 == Ternary(Stone::None, Stone::Black, Stone::None) && left_pattern_5 == Ternary(Stone::Black, Stone::Black, Stone::None, Stone::Black, Stone::None)) return false;
+			//BBO|BB|OBB
+			if (right_pattern_5 == Ternary(Stone::Black, Stone::None, Stone::Black, Stone::Black, Stone::None) && left_pattern_4 == Ternary(Stone::None, Stone::Black, Stone::Black, Stone::None)) return false;
+			if (right_pattern_4 == Ternary(Stone::None, Stone::Black, Stone::Black, Stone::None) && left_pattern_5 == Ternary(Stone::Black, Stone::None, Stone::Black, Stone::Black, Stone::None)) return false;
+			//BBBO|B|OBBB
+			if (right_pattern_5 == Ternary(Stone::None, Stone::Black, Stone::Black, Stone::Black, Stone::None) && left_pattern_5 == Ternary(Stone::None, Stone::Black, Stone::Black, Stone::Black, Stone::None)) return false;
+
+			// Strong Quadruplex(Shi-ren)
+			if (right_pattern_2 == Ternary(Stone::None, Stone::None) && left_pattern_5 == Ternary(Stone::Black, Stone::Black, Stone::Black, Stone::None, Stone::None)) { ++sum_4_strong; continue; }
+			if (right_pattern_3 == Ternary(Stone::Black, Stone::None, Stone::None) && left_pattern_4 == Ternary(Stone::Black, Stone::Black, Stone::None, Stone::None)) { ++sum_4_strong; continue; }
+			if (right_pattern_4 == Ternary(Stone::Black, Stone::Black, Stone::None, Stone::None) && left_pattern_3 == Ternary(Stone::Black, Stone::None, Stone::None)) { ++sum_4_strong; continue; }
+			if (right_pattern_5 == Ternary(Stone::Black, Stone::Black, Stone::Black, Stone::None, Stone::None) && left_pattern_2 == Ternary(Stone::None, Stone::None)) { ++sum_4_strong; continue; }
+
+			// Normal Quadruplex(Katsu-shi)
+			//11110
+			if (right_pattern_2 == Ternary(Stone::None, Stone::None) && left_pattern_4 == Ternary(Stone::Black, Stone::Black, Stone::Black, Stone::None)) { ++sum_4_normal; continue; }
+			if (right_pattern_3 == Ternary(Stone::Black, Stone::None, Stone::None) && left_pattern_3 == Ternary(Stone::Black, Stone::Black, Stone::None)) { ++sum_4_normal; continue; }
+			if (right_pattern_4 == Ternary(Stone::Black, Stone::Black, Stone::None, Stone::None) && left_pattern_2 == Ternary(Stone::Black, Stone::None)) { ++sum_4_normal; continue; }
+			if (right_pattern_5 == Ternary(Stone::Black, Stone::Black, Stone::Black, Stone::None, Stone::None) && left_pattern_1 == Ternary(Stone::None)) { ++sum_4_normal; continue; }
+			//11101
+			if (right_pattern_1 == Ternary(Stone::None) && left_pattern_5 == Ternary(Stone::None, Stone::Black, Stone::Black, Stone::Black, Stone::None)) { ++sum_4_normal; continue; }
+			if (right_pattern_3 == Ternary(Stone::None, Stone::Black, Stone::None) && left_pattern_3 == Ternary(Stone::Black, Stone::Black, Stone::None)) { ++sum_4_normal; continue; }
+			if (right_pattern_4 == Ternary(Stone::Black, Stone::None, Stone::Black, Stone::None) && left_pattern_2 == Ternary(Stone::Black, Stone::None)) { ++sum_4_normal; continue; }
+			if (right_pattern_5 == Ternary(Stone::Black, Stone::Black, Stone::None, Stone::Black, Stone::None) && left_pattern_1 == Ternary(Stone::None)) { ++sum_4_normal; continue; }
+			//11011
+			if (right_pattern_1 == Ternary(Stone::None) && left_pattern_5 == Ternary(Stone::Black, Stone::None, Stone::Black, Stone::Black, Stone::None)) { ++sum_4_normal; continue; }
+			if (right_pattern_2 == Ternary(Stone::Black, Stone::None) && left_pattern_4 == Ternary(Stone::None, Stone::Black, Stone::Black, Stone::None)) { ++sum_4_normal; continue; }
+			if (left_pattern_1 == Ternary(Stone::None) && right_pattern_5 == Ternary(Stone::Black, Stone::None, Stone::Black, Stone::Black, Stone::None)) { ++sum_4_normal; continue; }
+			if (left_pattern_2 == Ternary(Stone::Black, Stone::None) && right_pattern_4 == Ternary(Stone::None, Stone::Black, Stone::Black, Stone::None)) { ++sum_4_normal; continue; }
+			//10111
+			if (left_pattern_1 == Ternary(Stone::None) && right_pattern_5 == Ternary(Stone::None, Stone::Black, Stone::Black, Stone::Black, Stone::None)) { ++sum_4_normal; continue; }
+			if (left_pattern_3 == Ternary(Stone::None, Stone::Black, Stone::None) && right_pattern_3 == Ternary(Stone::Black, Stone::Black, Stone::None)) { ++sum_4_normal; continue; }
+			if (left_pattern_4 == Ternary(Stone::Black, Stone::None, Stone::Black, Stone::None) && right_pattern_2 == Ternary(Stone::Black, Stone::None)) { ++sum_4_normal; continue; }
+			if (left_pattern_5 == Ternary(Stone::Black, Stone::Black, Stone::None, Stone::Black, Stone::None) && right_pattern_1 == Ternary(Stone::None)) { ++sum_4_normal; continue; }
+			//01111
+			if (left_pattern_2 == Ternary(Stone::None, Stone::None) && right_pattern_4 == Ternary(Stone::Black, Stone::Black, Stone::Black, Stone::None)) { ++sum_4_normal; continue; }
+			if (left_pattern_3 == Ternary(Stone::Black, Stone::None, Stone::None) && right_pattern_3 == Ternary(Stone::Black, Stone::Black, Stone::None)) { ++sum_4_normal; continue; }
+			if (left_pattern_4 == Ternary(Stone::Black, Stone::Black, Stone::None, Stone::None) && right_pattern_2 == Ternary(Stone::Black, Stone::None)) { ++sum_4_normal; continue; }
+			if (left_pattern_5 == Ternary(Stone::Black, Stone::Black, Stone::Black, Stone::None, Stone::None) && right_pattern_1 == Ternary(Stone::None)) { ++sum_4_normal; continue; }
+
+			// Strong Triplex(Katsu-san)
+			int offset1 = 0, offset2 = 0;
+			while (true) {
+				//011100
+				if (right_pattern_3 == Ternary(Stone::None, Stone::None, Stone::None) && left_pattern_4 == Ternary(Stone::Black, Stone::Black, Stone::None, Stone::None)) { offset1 = 1; offset2 = -3; break; }
+				if (right_pattern_4 == Ternary(Stone::Black, Stone::None, Stone::None, Stone::None) && left_pattern_3 == Ternary(Stone::Black, Stone::None, Stone::None)) { offset1 = 2; offset2 = -2; break; }
+				if (right_pattern_5 == Ternary(Stone::Black, Stone::Black, Stone::None, Stone::None, Stone::None) && left_pattern_2 == Ternary(Stone::None, Stone::None)) { offset1 = 3; offset2 = -1; break; }
+				//011010
+				if (right_pattern_2 == Ternary(Stone::None, Stone::None) && left_pattern_5 == Ternary(Stone::None, Stone::Black, Stone::Black, Stone::None, Stone::None)) { offset1 = -1; break; }
+				if (right_pattern_4 == Ternary(Stone::None, Stone::Black, Stone::None, Stone::None) && left_pattern_3 == Ternary(Stone::Black, Stone::None, Stone::None)) { offset1 = 1; break; }
+				if (right_pattern_5 == Ternary(Stone::Black, Stone::None, Stone::Black, Stone::None, Stone::None) && left_pattern_2 == Ternary(Stone::None, Stone::None)) { offset1 = 2; break; }
+				//010110
+				if (left_pattern_2 == Ternary(Stone::None, Stone::None) && right_pattern_5 == Ternary(Stone::None, Stone::Black, Stone::Black, Stone::None, Stone::None)) { offset1 = 1; break; }
+				if (left_pattern_4 == Ternary(Stone::None, Stone::Black, Stone::None, Stone::None) && right_pattern_3 == Ternary(Stone::Black, Stone::None, Stone::None)) { offset1 = -1; break; }
+				if (left_pattern_5 == Ternary(Stone::Black, Stone::None, Stone::Black, Stone::None, Stone::None) && right_pattern_2 == Ternary(Stone::None, Stone::None)) { offset1 = -2; break; }
+				//001110
+				if (left_pattern_3 == Ternary(Stone::None, Stone::None, Stone::None) && right_pattern_4 == Ternary(Stone::Black, Stone::Black, Stone::None, Stone::None)) { offset1 = -1; offset2 = 3; break; }
+				if (left_pattern_4 == Ternary(Stone::Black, Stone::None, Stone::None, Stone::None) && right_pattern_3 == Ternary(Stone::Black, Stone::None, Stone::None)) { offset1 = -2; offset2 = 2; break; }
+				if (left_pattern_5 == Ternary(Stone::Black, Stone::Black, Stone::None, Stone::None, Stone::None) && right_pattern_2 == Ternary(Stone::None, Stone::None)) { offset1 = -3; offset2 = 1; break; }
+				break;
+			}
+			if (offset2 != 0) {
+				auto pos_move2 = pos_move + it_offset * offset2;
+				board_[position] = turn;
+				auto flg = IsValidMove(pos_move2.GetPos(), turn);
+				board_[position] = Stone::None;
+				if (flg) {
+					++sum_3;
+					continue;
+				}
+			}
+			if (offset1 != 0) {
+				auto pos_move2 = pos_move + it_offset * offset1;
+				board_[position] = turn;
+				auto flg = IsValidMove(pos_move2.GetPos(), turn);
+				board_[position] = Stone::None;
+				if (flg) {
+					++sum_3;
+					continue;
+				}
+			}
 		}
+		if (sum_4_strong + sum_4_normal >= 2) return false;
+		if (sum_3 >= 2) return false;
+		return true;
+	}
+	int CalcScore(const size_t position, const Stone turn)noexcept {
 		// Calc Score
 		Point pos_move(position);
 		size_t sum_4_strong = 0, sum_4_normal = 0, sum_3 = 0;
@@ -540,9 +638,9 @@ public:
 				if (offset2 != 0) {
 					auto pos_move2 = pos_move + it_offset * offset2;
 					board_[position] = turn;
-					auto score = CalcScore(pos_move2.GetPos(), turn, true);
+					auto flg = IsValidMove(pos_move2.GetPos(), turn);
 					board_[position] = Stone::None;
-					if (score != kScoreProhibit) {
+					if (flg) {
 						++sum_3;
 						continue;
 					}
@@ -550,9 +648,9 @@ public:
 				if (offset1 != 0) {
 					auto pos_move2 = pos_move + it_offset * offset1;
 					board_[position] = turn;
-					auto score = CalcScore(pos_move2.GetPos(), turn, true);
+					auto flg = IsValidMove(pos_move2.GetPos(), turn);
 					board_[position] = Stone::None;
-					if (score != kScoreProhibit) {
+					if (flg) {
 						++sum_3;
 						continue;
 					}
@@ -724,14 +822,15 @@ int main(int argc, char *argv[]) {
 			<< "board_text     : board data of stone or blank" << endl
 			<< "turn_text      : turn data of stone or blank" << endl
 			<< "depth          : depth of thinking" << endl
-			<< "stone or blank : black(*), white(O), blank(-)" << endl;
+			<< "stone or blank : black(*), white(O), blank(-)" << endl
+			<< "return val : [move] >=0 | [can't move] -1 | [give up] -2" << endl;
 	}
 	try {
 		Board board(argv[1], argv[2]);
 		int depth = std::stoi(argv[3]);
 		if (depth < 0) depth = 0;
 //		cout << PositionToString(board.NextMove(depth)) << endl;
-		cout << board.NextMove(depth) << endl;
+		cout << board.NextMove(depth, (argc >= 5)) << endl;
 	}
 	catch (const std::exception& er) {
 		std::cerr << er.what() << endl;

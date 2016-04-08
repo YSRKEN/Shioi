@@ -125,6 +125,9 @@ namespace Shioi {
 			} else {
 				psInfo.Arguments += " 0";
 			}
+			if(DebugModeMenuItem.CheckState == CheckState.Checked) {
+				psInfo.Arguments += " Debug";
+			}
 			psInfo.RedirectStandardOutput = true;
 			psInfo.RedirectStandardError = true;
 			this.Text = SoftName + " - Thinking - ";
@@ -140,6 +143,10 @@ namespace Shioi {
 			if(nextMove >= 0) {
 				FormRenju.SetMove(nextMove);
 				DrawBoard();
+			}else {
+				if(nextMove == -2) {
+					MessageBox.Show("Give Up!", SoftName);
+				}
 			}
 			if(output_error != "") {
 				MessageBox.Show(output_error, SoftName);

@@ -60,6 +60,7 @@
 			this.StartComputingButton = new System.Windows.Forms.Button();
 			this.StopComputingButton = new System.Windows.Forms.Button();
 			this.ShowMoveNumberComboBox = new System.Windows.Forms.ComboBox();
+			this.DebugModeMenuItem = new System.Windows.Forms.ToolStripMenuItem();
 			this.MenuStrip.SuspendLayout();
 			this.StatusStrip.SuspendLayout();
 			((System.ComponentModel.ISupportInitialize)(this.PictureBox)).BeginInit();
@@ -186,7 +187,8 @@
             this.toolStripSeparator2,
             this.StartComputingToolStripMenuItem,
             this.StopComputingToolStripMenuItem,
-            this.ComputeDepthComboBox});
+            this.ComputeDepthComboBox,
+            this.DebugModeMenuItem});
 			this.GameToolStripMenuItem.Name = "GameToolStripMenuItem";
 			this.GameToolStripMenuItem.Size = new System.Drawing.Size(65, 20);
 			this.GameToolStripMenuItem.Text = "Game(&G)";
@@ -415,6 +417,13 @@
 			this.ShowMoveNumberComboBox.Text = "-1";
 			this.ShowMoveNumberComboBox.SelectedIndexChanged += new System.EventHandler(this.ShowMoveNumberComboBox_SelectedIndexChanged);
 			// 
+			// DebugModeMenuItem
+			// 
+			this.DebugModeMenuItem.CheckOnClick = true;
+			this.DebugModeMenuItem.Name = "DebugModeMenuItem";
+			this.DebugModeMenuItem.Size = new System.Drawing.Size(223, 22);
+			this.DebugModeMenuItem.Text = "Debug Message";
+			// 
 			// MainForm
 			// 
 			this.AllowDrop = true;
@@ -487,6 +496,7 @@
 		private System.Windows.Forms.ToolStripMenuItem CopyBoardandTurnTextAToolStripMenuItem;
 		private System.Windows.Forms.ToolStripStatusLabel ElapsedTimeStatusLabel;
 		private System.Windows.Forms.ToolStripComboBox ComputeDepthComboBox;
+		private System.Windows.Forms.ToolStripMenuItem DebugModeMenuItem;
 	}
 }
 
