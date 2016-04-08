@@ -44,6 +44,7 @@
 			this.toolStripSeparator2 = new System.Windows.Forms.ToolStripSeparator();
 			this.StartComputingToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
 			this.StopComputingToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+			this.ComputeDepthComboBox = new System.Windows.Forms.ToolStripComboBox();
 			this.HelpToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
 			this.AboutAToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
 			this.StatusStrip = new System.Windows.Forms.StatusStrip();
@@ -59,7 +60,6 @@
 			this.StartComputingButton = new System.Windows.Forms.Button();
 			this.StopComputingButton = new System.Windows.Forms.Button();
 			this.ShowMoveNumberComboBox = new System.Windows.Forms.ComboBox();
-			this.ComputeDepthComboBox = new System.Windows.Forms.ToolStripComboBox();
 			this.MenuStrip.SuspendLayout();
 			this.StatusStrip.SuspendLayout();
 			((System.ComponentModel.ISupportInitialize)(this.PictureBox)).BeginInit();
@@ -244,6 +244,17 @@
 			this.StopComputingToolStripMenuItem.Text = "|| Stop computing(&T)";
 			this.StopComputingToolStripMenuItem.Click += new System.EventHandler(this.StopComputingToolStripMenuItem_Click);
 			// 
+			// ComputeDepthComboBox
+			// 
+			this.ComputeDepthComboBox.Items.AddRange(new object[] {
+            "depth : 0",
+            "depth : 1",
+            "depth : 2",
+            "depth : 3"});
+			this.ComputeDepthComboBox.Name = "ComputeDepthComboBox";
+			this.ComputeDepthComboBox.Size = new System.Drawing.Size(121, 23);
+			this.ComputeDepthComboBox.Text = "depth : 0";
+			// 
 			// HelpToolStripMenuItem
 			// 
 			this.HelpToolStripMenuItem.DropDownItems.AddRange(new System.Windows.Forms.ToolStripItem[] {
@@ -402,16 +413,6 @@
 			this.ShowMoveNumberComboBox.TabIndex = 9;
 			this.ShowMoveNumberComboBox.Text = "-1";
 			this.ShowMoveNumberComboBox.SelectedIndexChanged += new System.EventHandler(this.ShowMoveNumberComboBox_SelectedIndexChanged);
-			// 
-			// ComputeDepthComboBox
-			// 
-			this.ComputeDepthComboBox.Items.AddRange(new object[] {
-            "depth : 0",
-            "depth : 1",
-            "depth : 2"});
-			this.ComputeDepthComboBox.Name = "ComputeDepthComboBox";
-			this.ComputeDepthComboBox.Size = new System.Drawing.Size(121, 23);
-			this.ComputeDepthComboBox.Text = "depth : 0";
 			// 
 			// MainForm
 			// 
