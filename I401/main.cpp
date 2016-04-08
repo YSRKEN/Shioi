@@ -597,55 +597,55 @@ public:
 				if (right_pattern_4 == Ternary(Stone::None, Stone::White, Stone::White, Stone::White) && left_pattern_4 == Ternary(Stone::None, Stone::White, Stone::White, Stone::White)) { sum_4_normal += 2; continue; }
 
 				// Strong Quadruplex(Shi-ren)
-				if (right_pattern == Ternary(Stone::None) && left_pattern == Ternary(Stone::White, Stone::White, Stone::White, Stone::None)) { ++sum_4_strong; continue; }
-				if (right_pattern == Ternary(Stone::White, Stone::None) && left_pattern == Ternary(Stone::White, Stone::White, Stone::None)) { ++sum_4_strong; continue; }
-				if (right_pattern == Ternary(Stone::White, Stone::White, Stone::None) && left_pattern == Ternary(Stone::White, Stone::None)) { ++sum_4_strong; continue; }
-				if (right_pattern == Ternary(Stone::White, Stone::White, Stone::White, Stone::None) && left_pattern == Ternary(Stone::None)) { ++sum_4_strong; continue; }
+				if (right_pattern_1 == Ternary(Stone::None) && left_pattern_4 == Ternary(Stone::White, Stone::White, Stone::White, Stone::None)) { ++sum_4_strong; continue; }
+				if (right_pattern_2 == Ternary(Stone::White, Stone::None) && left_pattern_3 == Ternary(Stone::White, Stone::White, Stone::None)) { ++sum_4_strong; continue; }
+				if (right_pattern_3 == Ternary(Stone::White, Stone::White, Stone::None) && left_pattern_2 == Ternary(Stone::White, Stone::None)) { ++sum_4_strong; continue; }
+				if (right_pattern_4 == Ternary(Stone::White, Stone::White, Stone::White, Stone::None) && left_pattern_1 == Ternary(Stone::None)) { ++sum_4_strong; continue; }
 
 				// Normal Quadruplex(Katsu-shi)
 				//11110
-				if (right_pattern == Ternary(Stone::None) && left_pattern == Ternary(Stone::White, Stone::White, Stone::White)) { ++sum_4_normal; continue; }
-				if (right_pattern == Ternary(Stone::White, Stone::None) && left_pattern == Ternary(Stone::White, Stone::White)) { ++sum_4_normal; continue; }
-				if (right_pattern == Ternary(Stone::White, Stone::White, Stone::None) && left_pattern == Ternary(Stone::White)) { ++sum_4_normal; continue; }
-				if (right_pattern == Ternary(Stone::White, Stone::White, Stone::White, Stone::None)) { ++sum_4_normal; continue; }
+				if (right_pattern_1 == Ternary(Stone::None) && left_pattern_3 == Ternary(Stone::White, Stone::White, Stone::White)) { ++sum_4_normal; continue; }
+				if (right_pattern_2 == Ternary(Stone::White, Stone::None) && left_pattern_2 == Ternary(Stone::White, Stone::White)) { ++sum_4_normal; continue; }
+				if (right_pattern_3 == Ternary(Stone::White, Stone::White, Stone::None) && left_pattern_1 == Ternary(Stone::White)) { ++sum_4_normal; continue; }
+				if (right_pattern_4 == Ternary(Stone::White, Stone::White, Stone::White, Stone::None)) { ++sum_4_normal; continue; }
 				//11101
-				if (left_pattern == Ternary(Stone::None, Stone::White, Stone::White, Stone::White)) { ++sum_4_normal; continue; }
-				if (right_pattern == Ternary(Stone::None, Stone::White) && left_pattern == Ternary(Stone::White, Stone::White)) { ++sum_4_normal; continue; }
-				if (right_pattern == Ternary(Stone::White, Stone::None, Stone::White) && left_pattern == Ternary(Stone::White)) { ++sum_4_normal; continue; }
-				if (right_pattern == Ternary(Stone::White, Stone::White, Stone::None, Stone::White)) { ++sum_4_normal; continue; }
+				if (left_pattern_4 == Ternary(Stone::None, Stone::White, Stone::White, Stone::White)) { ++sum_4_normal; continue; }
+				if (right_pattern_2 == Ternary(Stone::None, Stone::White) && left_pattern_2 == Ternary(Stone::White, Stone::White)) { ++sum_4_normal; continue; }
+				if (right_pattern_3 == Ternary(Stone::White, Stone::None, Stone::White) && left_pattern_1 == Ternary(Stone::White)) { ++sum_4_normal; continue; }
+				if (right_pattern_4 == Ternary(Stone::White, Stone::White, Stone::None, Stone::White)) { ++sum_4_normal; continue; }
 				//11011
-				if (left_pattern == Ternary(Stone::White, Stone::None, Stone::White, Stone::White)) { ++sum_4_normal; continue; }
-				if (right_pattern == Ternary(Stone::White) && left_pattern == Ternary(Stone::None, Stone::White, Stone::White)) { ++sum_4_normal; continue; }
-				if (right_pattern == Ternary(Stone::White, Stone::None, Stone::White, Stone::White)) { ++sum_4_normal; continue; }
-				if (left_pattern == Ternary(Stone::White) && right_pattern == Ternary(Stone::None, Stone::White, Stone::White)) { ++sum_4_normal; continue; }
+				if (left_pattern_4 == Ternary(Stone::White, Stone::None, Stone::White, Stone::White)) { ++sum_4_normal; continue; }
+				if (right_pattern_1 == Ternary(Stone::White) && left_pattern_3 == Ternary(Stone::None, Stone::White, Stone::White)) { ++sum_4_normal; continue; }
+				if (right_pattern_4 == Ternary(Stone::White, Stone::None, Stone::White, Stone::White)) { ++sum_4_normal; continue; }
+				if (left_pattern_1 == Ternary(Stone::White) && right_pattern_3 == Ternary(Stone::None, Stone::White, Stone::White)) { ++sum_4_normal; continue; }
 				//10111
-				if (right_pattern == Ternary(Stone::None, Stone::White, Stone::White, Stone::White)) { ++sum_4_normal; continue; }
-				if (left_pattern == Ternary(Stone::None, Stone::White) && right_pattern == Ternary(Stone::White, Stone::White)) { ++sum_4_normal; continue; }
-				if (left_pattern == Ternary(Stone::White, Stone::None, Stone::White) && right_pattern == Ternary(Stone::White)) { ++sum_4_normal; continue; }
-				if (left_pattern == Ternary(Stone::White, Stone::White, Stone::None, Stone::White)) { ++sum_4_normal; continue; }
+				if (right_pattern_4 == Ternary(Stone::None, Stone::White, Stone::White, Stone::White)) { ++sum_4_normal; continue; }
+				if (left_pattern_2 == Ternary(Stone::None, Stone::White) && right_pattern_2 == Ternary(Stone::White, Stone::White)) { ++sum_4_normal; continue; }
+				if (left_pattern_3 == Ternary(Stone::White, Stone::None, Stone::White) && right_pattern_1 == Ternary(Stone::White)) { ++sum_4_normal; continue; }
+				if (left_pattern_4 == Ternary(Stone::White, Stone::White, Stone::None, Stone::White)) { ++sum_4_normal; continue; }
 				//01111
-				if (left_pattern == Ternary(Stone::None) && right_pattern == Ternary(Stone::White, Stone::White, Stone::White)) { ++sum_4_normal; continue; }
-				if (left_pattern == Ternary(Stone::White, Stone::None) && right_pattern == Ternary(Stone::White, Stone::White)) { ++sum_4_normal; continue; }
-				if (left_pattern == Ternary(Stone::White, Stone::White, Stone::None) && right_pattern == Ternary(Stone::White)) { ++sum_4_normal; continue; }
-				if (left_pattern == Ternary(Stone::White, Stone::White, Stone::White, Stone::None)) { ++sum_4_normal; continue; }
+				if (left_pattern_1 == Ternary(Stone::None) && right_pattern_3 == Ternary(Stone::White, Stone::White, Stone::White)) { ++sum_4_normal; continue; }
+				if (left_pattern_2 == Ternary(Stone::White, Stone::None) && right_pattern_2 == Ternary(Stone::White, Stone::White)) { ++sum_4_normal; continue; }
+				if (left_pattern_3 == Ternary(Stone::White, Stone::White, Stone::None) && right_pattern_1 == Ternary(Stone::White)) { ++sum_4_normal; continue; }
+				if (left_pattern_4 == Ternary(Stone::White, Stone::White, Stone::White, Stone::None)) { ++sum_4_normal; continue; }
 
 				// Strong Triplex(Katsu-san)
 				//011100
-				if (right_pattern == Ternary(Stone::None, Stone::None) && left_pattern == Ternary(Stone::White, Stone::White, Stone::None)) { ++sum_3; continue; }
-				if (right_pattern == Ternary(Stone::White, Stone::None, Stone::None) && left_pattern == Ternary(Stone::White, Stone::None)) { ++sum_3; continue; }
-				if (right_pattern == Ternary(Stone::White, Stone::White, Stone::None, Stone::None) && left_pattern == Ternary(Stone::None)) { ++sum_3; continue; }
+				if (right_pattern_2 == Ternary(Stone::None, Stone::None) && left_pattern_3 == Ternary(Stone::White, Stone::White, Stone::None)) { ++sum_3; continue; }
+				if (right_pattern_3 == Ternary(Stone::White, Stone::None, Stone::None) && left_pattern_2 == Ternary(Stone::White, Stone::None)) { ++sum_3; continue; }
+				if (right_pattern_4 == Ternary(Stone::White, Stone::White, Stone::None, Stone::None) && left_pattern_1 == Ternary(Stone::None)) { ++sum_3; continue; }
 				//011010
-				if (right_pattern == Ternary(Stone::None) && left_pattern == Ternary(Stone::None, Stone::White, Stone::White, Stone::None)) { ++sum_3; continue; }
-				if (right_pattern == Ternary(Stone::None, Stone::White, Stone::None) && left_pattern == Ternary(Stone::White, Stone::None)) { ++sum_3; continue; }
-				if (right_pattern == Ternary(Stone::White, Stone::None, Stone::White, Stone::None) && left_pattern == Ternary(Stone::None)) { ++sum_3; continue; }
+				if (right_pattern_1 == Ternary(Stone::None) && left_pattern_4 == Ternary(Stone::None, Stone::White, Stone::White, Stone::None)) { ++sum_3; continue; }
+				if (right_pattern_3 == Ternary(Stone::None, Stone::White, Stone::None) && left_pattern_2 == Ternary(Stone::White, Stone::None)) { ++sum_3; continue; }
+				if (right_pattern_4 == Ternary(Stone::White, Stone::None, Stone::White, Stone::None) && left_pattern_1 == Ternary(Stone::None)) { ++sum_3; continue; }
 				//010110
-				if (left_pattern == Ternary(Stone::None) && right_pattern == Ternary(Stone::None, Stone::White, Stone::White, Stone::None)) { ++sum_3; continue; }
-				if (left_pattern == Ternary(Stone::None, Stone::White, Stone::None) && right_pattern == Ternary(Stone::White, Stone::None)) { ++sum_3; continue; }
-				if (left_pattern == Ternary(Stone::White, Stone::None, Stone::White, Stone::None) && right_pattern == Ternary(Stone::None)) { ++sum_3; continue; }
+				if (left_pattern_1 == Ternary(Stone::None) && right_pattern_4 == Ternary(Stone::None, Stone::White, Stone::White, Stone::None)) { ++sum_3; continue; }
+				if (left_pattern_3 == Ternary(Stone::None, Stone::White, Stone::None) && right_pattern_2 == Ternary(Stone::White, Stone::None)) { ++sum_3; continue; }
+				if (left_pattern_4 == Ternary(Stone::White, Stone::None, Stone::White, Stone::None) && right_pattern_1 == Ternary(Stone::None)) { ++sum_3; continue; }
 				//001110
-				if (left_pattern == Ternary(Stone::None, Stone::None) && right_pattern == Ternary(Stone::White, Stone::White, Stone::None)) { ++sum_3; continue; }
-				if (left_pattern == Ternary(Stone::White, Stone::None, Stone::None) && right_pattern == Ternary(Stone::White, Stone::None)) { ++sum_3; continue; }
-				if (left_pattern == Ternary(Stone::White, Stone::White, Stone::None, Stone::None) && right_pattern == Ternary(Stone::None)) { ++sum_3; continue; }
+				if (left_pattern_2 == Ternary(Stone::None, Stone::None) && right_pattern_3 == Ternary(Stone::White, Stone::White, Stone::None)) { ++sum_3; continue; }
+				if (left_pattern_3 == Ternary(Stone::White, Stone::None, Stone::None) && right_pattern_2 == Ternary(Stone::White, Stone::None)) { ++sum_3; continue; }
+				if (left_pattern_4 == Ternary(Stone::White, Stone::White, Stone::None, Stone::None) && right_pattern_1 == Ternary(Stone::None)) { ++sum_3; continue; }
 			}
 		}
 		if (sum_4_strong + sum_4_normal >= 2) return (turn == Stone::Black ? kScoreProhibit : 80);
