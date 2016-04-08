@@ -341,12 +341,6 @@ public:
 		}
 		return true;
 	}
-	bool IsValidMove(const size_t position, const Stone turn) {
-		if (board_[position] != Stone::None) return false;
-		int score = CalcScore(position, turn);
-		if (score == kScoreProhibit) return false;
-		return true;
-	}
 	bool IsGameSet() {
 		if (IsGameSet(Stone::Black)) return true;
 		if (IsGameSet(Stone::White)) return true;
@@ -419,13 +413,15 @@ public:
 		if (turn == Stone::Black && choren_flg) return -kScoreInf;
 		return 0;
 	}
-	int CalcScore(const size_t position, const Stone turn)noexcept {
+	int CalcScore(const size_t position, const Stone turn, const bool gameset_check_flg = false)noexcept {
 		// If this board is game end, return status
-		if (IsDraw()) return 0;
-		auto game_set_check = IsGameSet(turn);
-		if (game_set_check != 0) return game_set_check;
-		game_set_check = IsGameSet(ReverseTurn(turn));
-		if (game_set_check != 0) return -game_set_check;
+		if (gameset_check_flg) {
+			if (IsDraw()) return 0;
+			auto game_set_check = IsGameSet(turn);
+			if (game_set_check != 0) return game_set_check;
+			game_set_check = IsGameSet(ReverseTurn(turn));
+			if (game_set_check != 0) return -game_set_check;
+		}
 		// Calc Score
 		Point pos_move(position);
 		size_t sum_4_strong = 0, sum_4_normal = 0, sum_3 = 0;
@@ -544,7 +540,7 @@ public:
 				if (offset2 != 0) {
 					auto pos_move2 = pos_move + it_offset * offset2;
 					board_[position] = turn;
-					auto score = CalcScore(pos_move2.GetPos(), turn);
+					auto score = CalcScore(pos_move2.GetPos(), turn, true);
 					board_[position] = Stone::None;
 					if (score != kScoreProhibit) {
 						++sum_3;
@@ -554,7 +550,7 @@ public:
 				if (offset1 != 0) {
 					auto pos_move2 = pos_move + it_offset * offset1;
 					board_[position] = turn;
-					auto score = CalcScore(pos_move2.GetPos(), turn);
+					auto score = CalcScore(pos_move2.GetPos(), turn, true);
 					board_[position] = Stone::None;
 					if (score != kScoreProhibit) {
 						++sum_3;

@@ -250,7 +250,8 @@
             "depth : 0",
             "depth : 1",
             "depth : 2",
-            "depth : 3"});
+            "depth : 3",
+            "depth : 4"});
 			this.ComputeDepthComboBox.Name = "ComputeDepthComboBox";
 			this.ComputeDepthComboBox.Size = new System.Drawing.Size(121, 23);
 			this.ComputeDepthComboBox.Text = "depth : 0";

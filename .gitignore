@@ -247,3 +247,4 @@ zip/
 Readme.html
 Shioi.VC.db
 Debug(with GUI)/
+*.diagsession
