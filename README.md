@@ -12,8 +12,8 @@ Shioi is renju player and solver by C++ and C#.
 - Value of the combo-box which is on board is number of move's mark.  
 If this value is "-1", then all stones are marked.  
 Otherwise, there are only this value's stones which is marked.
-- You can change thinking depth by combo-box in menu [Game].  
-But if depth is "2", thinking time is too long!
+- You can change thinking depth by combo-box in menu [Game].
+- If you check "Debug Message", show moves'es score after thinking computer.
 
 ## File Format
 ### *.ban
@@ -44,6 +44,7 @@ http://www.vector.co.jp/soft/win95/game/se169850.html
 ## Version History
 |Version|Information|
 |-------|-----------|
+|0.5.0|Optimize computing speed|
 |0.4.0|Add support of computing next move|
 |0.3.0|Add support of Renju's rule(include of "Ina-San-San")|
 |0.2.0|drag and drop support, \*.kif and \*.nrf support, some bug fix|
@@ -65,7 +66,8 @@ Shioiは、C++とC#によって書かれた連珠ソフトです。しおいっ�
 それ以外の場合は、その数字の値だけ、直前の手における番号を表示します。
 - メニューの「Game」から選べるコンボボックスにて、次の手を読む際の読みの深さを選びます。  
 「depth : 0」だと1手読み、「depth : 2」だと3手読みとなります。  
-ただし、3手読みは非常に遅いので気をつけてください。
+- 「Debug Message」にチェックを入れると、CPUの探索処理実行後の各指し手のスコアが表示されます。
+
 
 ## ファイル形式
 ### *.ban
@@ -98,6 +100,7 @@ http://www.vector.co.jp/soft/win95/game/se169850.html
 ## 更新履歴
 |Version|Information|
 |-------|-----------|
+|0.5.0|コンピューターの思考速度を大幅に向上させた|
 |0.4.0|次の手を読む機能を追加(3手読みまで)|
 |0.3.0|盤面における、各種追い手および禁手表示を実装(否三々対応済)|
 |0.2.0|ドラッグ＆ドロップに対応、\*.kifと\*.nrfに対応、幾つかのバグ修正|
