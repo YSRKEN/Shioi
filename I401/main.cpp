@@ -90,6 +90,34 @@ public:
 		}
 		return sum;
 	}
+	// Get Opening move
+	Result GetOpeningMove(const Stone turn) {
+		size_t count = CountStone();
+		if (count == 0) {
+			return Result(ToPosition(7, 7), true);
+		}
+		else if (count == 1) {
+			if (board_[ToPosition(7, 7)] == Stone::Black) {
+				const static size_t next_move[] = { ToPosition(7, 6), ToPosition(8, 6) };
+				return Result(next_move[RandInt(2)], true);
+			}
+		}
+		else if (count == 2) {
+			if (board_[ToPosition(7, 7)] == Stone::Black) {
+				// Ka-getsu
+				if (board_[ToPosition(7, 6)] == Stone::White) return Result(ToPosition(8, 6), true);
+				if (board_[ToPosition(8, 7)] == Stone::White) return Result(ToPosition(8, 8), true);
+				if (board_[ToPosition(7, 8)] == Stone::White) return Result(ToPosition(6, 8), true);
+				if (board_[ToPosition(6, 7)] == Stone::White) return Result(ToPosition(6, 6), true);
+				// Ho-getsu
+				if (board_[ToPosition(8, 6)] == Stone::White) return Result(ToPosition(8, 8), true);
+				if (board_[ToPosition(8, 8)] == Stone::White) return Result(ToPosition(6, 8), true);
+				if (board_[ToPosition(6, 8)] == Stone::White) return Result(ToPosition(6, 6), true);
+				if (board_[ToPosition(6, 6)] == Stone::White) return Result(ToPosition(8, 6), true);
+			}
+		}
+		return Result(0, false);
+	}
 	// Find Go-ren move
 	Result FindGorenMove(const Stone turn) {
 		// Row(„Ÿ)
@@ -231,30 +259,10 @@ public:
 	// Thinking next move
 	int NextMove(const size_t depth, bool debug_flg = false) {
 		// Opening move
-		size_t count = CountStone();
-		if (count == 0) {
-			return ToPosition(7, 7);
-		}else if(count == 1){
-			if(board_[ToPosition(7, 7)] == Stone::Black){
-				const static size_t next_move[] = { ToPosition(7, 6), ToPosition(8, 6) };
-				return next_move[RandInt(2)];
-			}
-		}else if(count == 2){
-			if (board_[ToPosition(7, 7)] == Stone::Black) {
-				// Ka-getsu
-				if (board_[ToPosition(7, 6)] == Stone::White) return ToPosition(8, 6);
-				if (board_[ToPosition(8, 7)] == Stone::White) return ToPosition(8, 8);
-				if (board_[ToPosition(7, 8)] == Stone::White) return ToPosition(6, 8);
-				if (board_[ToPosition(6, 7)] == Stone::White) return ToPosition(6, 6);
-				// Ho-getsu
-				if (board_[ToPosition(8, 6)] == Stone::White) return ToPosition(8, 8);
-				if (board_[ToPosition(8, 8)] == Stone::White) return ToPosition(6, 8);
-				if (board_[ToPosition(6, 8)] == Stone::White) return ToPosition(6, 6);
-				if (board_[ToPosition(6, 6)] == Stone::White) return ToPosition(8, 6);
-			}
-		}
+		auto result = GetOpeningMove(turn_);
+		if (result.second) return result.first;
 		// If you can make Go-ren, you must do.
-		auto result = FindGorenMove(turn_);
+		result = FindGorenMove(turn_);
 		if (result.second) return result.first;
 		// If enemy can make Go-ren, you must block it.
 		result = FindGorenMove(EnemyTurn(turn_));
