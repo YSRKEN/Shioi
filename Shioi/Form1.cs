@@ -33,6 +33,7 @@ namespace Shioi {
 
 		private void NewToolStripMenuItem_Click(object sender, EventArgs e) {
 			FormRenju = new Renju();
+			DrawBoard();
 		}
 		private void OpenToolStripMenuItem_Click(object sender, EventArgs e) {
 			// Show "open file dialog"
@@ -141,8 +142,10 @@ namespace Shioi {
 			ElapsedTimeStatusLabel.Text = "Time : " + sw.ElapsedMilliseconds.ToString() + "[ms]";
 			var nextMove = int.Parse(output);
 			if(nextMove >= 0) {
-				FormRenju.SetMove(nextMove);
-				DrawBoard();
+				if(DebugModeMenuItem.CheckState != CheckState.Checked) {
+					FormRenju.SetMove(nextMove);
+					DrawBoard();
+				}
 			}else {
 				if(nextMove == -2) {
 					MessageBox.Show("Give Up!", SoftName);
