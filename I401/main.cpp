@@ -98,6 +98,97 @@ class Board {
 			cout << endl;
 		}
 	}
+	// Check GameEnd
+	bool IsGameEnd(const Stone turn) {
+		// Row(„Ÿ)
+		for (size_t i = 0; i < kBoardSize; ++i) {
+			size_t len = 0;
+			for (size_t j = 0; j < kBoardSize; ++j) {
+				size_t p = ToPosition(j, i);
+				if (board_[p] == turn) {
+					++len;
+					if (len == 5) return true;
+				}else{
+					len = 0;
+				}
+			}
+		}
+		// Column(„ )
+		for (size_t i = 0; i < kBoardSize; ++i) {
+			size_t len = 0;
+			for (size_t j = 0; j < kBoardSize; ++j) {
+				size_t p = ToPosition(i, j);
+				if (board_[p] == turn) {
+					++len;
+					if (len == 5) return true;
+				}
+				else {
+					len = 0;
+				}
+			}
+		}
+		// Diagonally right(^)
+		for (size_t i = 4; i < kBoardSize; ++i) {
+			size_t len = 0;
+			for (size_t j = 0; j <= i; ++j) {
+				size_t p = ToPosition(i - j, j);
+				if (board_[p] == turn) {
+					++len;
+					if (len == 5) return true;
+				}
+				else {
+					len = 0;
+				}
+			}
+		}
+		for (size_t i = 1; i < kBoardSize - 4; ++i) {
+			size_t len = 0;
+			for (size_t j = 0; j < kBoardSize - i; ++j) {
+				size_t p = ToPosition(kBoardSize - 1 - j, i + j);
+				if (board_[p] == turn) {
+					++len;
+					if (len == 5) return true;
+				}
+				else {
+					len = 0;
+				}
+			}
+		}
+		// Diagonally left(_)
+		for (size_t i = 0; i < kBoardSize - 4; ++i) {
+			size_t len = 0;
+			for (size_t j = 0; j < kBoardSize - i; ++j) {
+				size_t p = ToPosition(i + j, j);
+				if (board_[p] == turn) {
+					++len;
+					if (len == 5) return true;
+				}
+				else {
+					len = 0;
+				}
+			}
+		}
+		for (size_t i = 1; i < kBoardSize - 4; ++i) {
+			size_t len = 0;
+			for (size_t j = 0; j < kBoardSize - i; ++j) {
+				size_t p = ToPosition(j, i + j);
+				if (board_[p] != Stone::None) continue;
+				if (board_[p] == turn) {
+					++len;
+					if (len == 5) return true;
+				}
+				else {
+					len = 0;
+				}
+			}
+		}
+		return false;
+	}
+	bool IsGameEnd() {
+		if (IsGameEnd(Stone::Black)) return true;
+		if (IsGameEnd(Stone::White)) return true;
+		return false;
+	}
 	// Count stone
 	size_t CountStone() {
 		size_t sum = 0;
@@ -338,7 +429,7 @@ class Board {
 		return pattern;
 	}
 	// Check Cho-ren
-	bool HasChorenB(const Pattern &pattern) {
+	bool IsChorenB(const Pattern &pattern) {
 		if (pattern[Side::Right][4] == PackPattern(Stone::Black, Stone::Black, Stone::Black, Stone::Black, Stone::Black)) return true;
 		if (pattern[Side::Right][3] == PackPattern(Stone::Black, Stone::Black, Stone::Black, Stone::Black)
 			&& pattern[Side::Left][0] == Stone::Black) return true;
@@ -619,7 +710,7 @@ class Board {
 		size_t sum_4_strong = 0, sum_4_normal = 0, sum_3 = 0;
 		for (uint8_t dir = 0; dir < Direction::Directions; ++dir) {
 			auto move_pattern = GetPatternB(p, static_cast<Direction>(dir));
-			if (HasChorenB(move_pattern)) return false;
+			if (IsChorenB(move_pattern)) return false;
 			size_t s4s, s4n, s3;
 			std::tie(s4s, s4n, s3) = CountRenB(move_pattern, p, static_cast<Direction>(dir));
 			sum_4_strong += s4s;
@@ -638,8 +729,6 @@ class Board {
 		vector<Score> position_list;
 		for (size_t p = 0; p < kBoardSize * kBoardSize; ++p) {
 			if (board_[p] != Stone::None) {
-/*				std::cerr << "„©";
-				if (p % kBoardSize == kBoardSize - 1) std::cerr << endl;*/
 				continue;
 			}
 			if (turn_ == Stone::Black) {
@@ -647,7 +736,7 @@ class Board {
 				size_t sum_4_strong = 0, sum_4_normal = 0, sum_3 = 0;
 				for (uint8_t dir = 0; dir < Direction::Directions; ++dir) {
 					auto move_pattern = GetPatternB(p, static_cast<Direction>(dir));
-					if (HasChorenB(move_pattern)) {
+					if (IsChorenB(move_pattern)) {
 						cho_ren_flg = true;
 						break;
 					}
@@ -657,18 +746,8 @@ class Board {
 					sum_4_normal += s4n;
 					sum_3 += s3;
 				}
-				/*if (cho_ren_flg || sum_4_strong + sum_4_normal >= 2 || sum_3 >= 2) {
-					std::cerr << "~";
-				}else if(sum_4_strong + sum_4_normal + sum_3 >= 1){
-					std::cerr << "";
-				}else{
-					std::cerr << "›";
-				}*/
 				if (cho_ren_flg || sum_4_strong + sum_4_normal >= 2 || sum_3 >= 2) continue;
-			}/*else{
-				std::cerr << "›";
 			}
-			if (p % kBoardSize == kBoardSize - 1) std::cerr << endl;*/
 			position_list.push_back(Score(p, 0));
 		}
 		if (position_list.size() > 0) return Result(position_list[RandInt(position_list.size())].first, true);
@@ -717,6 +796,8 @@ public:
 	}
 	// Thinking next move
 	int NextMove(const size_t depth, bool debug_flg = false) {
+		// If the game is end, you don't move.
+		if (IsGameEnd()) return -1;
 		// Opening move
 		auto result = GetOpeningMove(turn_);
 		if (result.second) return result.first;
