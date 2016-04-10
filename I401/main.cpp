@@ -264,8 +264,8 @@ class Board {
 		const size_t right_pattern_length = kIterateTable[position][dir][Side::Right];
 		const size_t  left_pattern_length = kIterateTable[position][dir][Side::Left ];
 		Pattern pattern;
-		auto GetBoardValue = [this](size_t position, Direction dir, int count) -> Stone {return board_[position + kPositionoffset[dir] * count]; };
-		auto GetBoardValue2 = [&GetBoardValue](size_t position, Direction dir, int count) -> Stone {
+		auto GetBoardValue = [this](size_t position, Direction dir, int count) {return board_[position + kPositionoffset[dir] * count]; };
+		auto GetBoardValue2 = [&GetBoardValue](size_t position, Direction dir, int count) {
 			const auto get_value = GetBoardValue(position, dir, count);
 			return (get_value != Stone::White ? get_value : Stone::None);
 		};
