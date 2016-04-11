@@ -26,7 +26,8 @@ const size_t kPositionoffset[] = {1, kBoardSize, kBoardSize - 1, kBoardSize + 1}
 enum Stone : uint8_t {
 	None,
 	Black,
-	White
+	White,
+	Other	//No pattern
 };
 enum Direction : uint8_t {
 	// Row(„Ÿ) R[1, 0] L[-1, 0]
@@ -376,30 +377,30 @@ class Board {
 			const auto get_value = GetBoardValue(position, dir, count);
 			return (get_value != Stone::White ? get_value : Stone::None);
 		};
-		pattern[Side::Right][0] = (right_pattern_length <= 0 ? 0
+		pattern[Side::Right][0] = (right_pattern_length <= 0 ? Stone::Other
 			: GetBoardValue2(position, dir, 1));
-		pattern[Side::Right][1] = (right_pattern_length <= 1 ? 0
+		pattern[Side::Right][1] = (right_pattern_length <= 1 ? Stone::Other
 			: PackPattern(GetBoardValue(position, dir, 1), GetBoardValue2(position, dir, 2)));
-		pattern[Side::Right][2] = (right_pattern_length <= 2 ? 0
+		pattern[Side::Right][2] = (right_pattern_length <= 2 ? Stone::Other
 			: PackPattern(GetBoardValue(position, dir, 1), GetBoardValue(position, dir, 2), GetBoardValue2(position, dir, 3)));
-		pattern[Side::Right][3] = (right_pattern_length <= 3 ? 0
+		pattern[Side::Right][3] = (right_pattern_length <= 3 ? Stone::Other
 			: PackPattern(GetBoardValue(position, dir, 1), GetBoardValue(position, dir, 2),
 				GetBoardValue(position, dir, 3), GetBoardValue2(position, dir, 4)));
-		pattern[Side::Right][4] = (right_pattern_length <= 4 ? 0 :
-			PackPattern(GetBoardValue(position, dir, 1), GetBoardValue(position, dir, 2), GetBoardValue(position, dir, 3),
+		pattern[Side::Right][4] = (right_pattern_length <= 4 ? Stone::Other
+			: PackPattern(GetBoardValue(position, dir, 1), GetBoardValue(position, dir, 2), GetBoardValue(position, dir, 3),
 				GetBoardValue(position, dir, 4), GetBoardValue2(position, dir, 5)));
 
-		pattern[Side::Left][0] = (left_pattern_length <= 0 ? 0
+		pattern[Side::Left][0] = (left_pattern_length <= 0 ? Stone::Other
 			: GetBoardValue2(position, dir, -1));
-		pattern[Side::Left][1] = (left_pattern_length <= 1 ? 0
+		pattern[Side::Left][1] = (left_pattern_length <= 1 ? Stone::Other
 			: PackPattern(GetBoardValue(position, dir, -1), GetBoardValue2(position, dir, -2)));
-		pattern[Side::Left][2] = (left_pattern_length <= 2 ? 0
+		pattern[Side::Left][2] = (left_pattern_length <= 2 ? Stone::Other
 			: PackPattern(GetBoardValue(position, dir, -1), GetBoardValue(position, dir, -2), GetBoardValue2(position, dir, -3)));
-		pattern[Side::Left][3] = (left_pattern_length <= 3 ? 0
+		pattern[Side::Left][3] = (left_pattern_length <= 3 ? Stone::Other
 			: PackPattern(GetBoardValue(position, dir, -1), GetBoardValue(position, dir, -2),
 				GetBoardValue(position, dir, -3), GetBoardValue2(position, dir, -4)));
-		pattern[Side::Left][4] = (left_pattern_length <= 4 ? 0 :
-			PackPattern(GetBoardValue(position, dir, -1), GetBoardValue(position, dir, -2), GetBoardValue(position, dir, -3),
+		pattern[Side::Left][4] = (left_pattern_length <= 4 ? Stone::Other
+			: PackPattern(GetBoardValue(position, dir, -1), GetBoardValue(position, dir, -2), GetBoardValue(position, dir, -3),
 				GetBoardValue(position, dir, -4), GetBoardValue2(position, dir, -5)));
 		return pattern;
 	}
@@ -408,23 +409,23 @@ class Board {
 		const size_t  left_pattern_length = kIterateTable[position][dir][Side::Left];
 		Pattern pattern;
 		auto GetBoardValue = [this](size_t position, Direction dir, int count) -> Stone {return board_[position + kPositionoffset[dir] * count]; };
-		pattern[Side::Right][0] = (right_pattern_length <= 0 ? 0
+		pattern[Side::Right][0] = (right_pattern_length <= 0 ? Stone::Other
 			: GetBoardValue(position, dir, 1));
-		pattern[Side::Right][1] = (right_pattern_length <= 1 ? 0
+		pattern[Side::Right][1] = (right_pattern_length <= 1 ? Stone::Other
 			: PackPattern(GetBoardValue(position, dir, 1), GetBoardValue(position, dir, 2)));
-		pattern[Side::Right][2] = (right_pattern_length <= 2 ? 0
+		pattern[Side::Right][2] = (right_pattern_length <= 2 ? Stone::Other
 			: PackPattern(GetBoardValue(position, dir, 1), GetBoardValue(position, dir, 2), GetBoardValue(position, dir, 3)));
-		pattern[Side::Right][3] = (right_pattern_length <= 3 ? 0
+		pattern[Side::Right][3] = (right_pattern_length <= 3 ? Stone::Other
 			: PackPattern(GetBoardValue(position, dir, 1), GetBoardValue(position, dir, 2),
 				GetBoardValue(position, dir, 3), GetBoardValue(position, dir, 4)));
 
-		pattern[Side::Left][0] = (left_pattern_length <= 0 ? 0
+		pattern[Side::Left][0] = (left_pattern_length <= 0 ? Stone::Other
 			: GetBoardValue(position, dir, -1));
-		pattern[Side::Left][1] = (left_pattern_length <= 1 ? 0
+		pattern[Side::Left][1] = (left_pattern_length <= 1 ? Stone::Other
 			: PackPattern(GetBoardValue(position, dir, -1), GetBoardValue(position, dir, -2)));
-		pattern[Side::Left][2] = (left_pattern_length <= 2 ? 0
+		pattern[Side::Left][2] = (left_pattern_length <= 2 ? Stone::Other
 			: PackPattern(GetBoardValue(position, dir, -1), GetBoardValue(position, dir, -2), GetBoardValue(position, dir, -3)));
-		pattern[Side::Left][3] = (left_pattern_length <= 3 ? 0
+		pattern[Side::Left][3] = (left_pattern_length <= 3 ? Stone::Other
 			: PackPattern(GetBoardValue(position, dir, -1), GetBoardValue(position, dir, -2),
 				GetBoardValue(position, dir, -3), GetBoardValue(position, dir, -4)));
 		return pattern;
@@ -592,17 +593,24 @@ class Board {
 				}
 				break;
 			}
+			auto GetPosition = [&position, &dir](int count) -> int {return position + kPositionoffset[dir] * count; };
 			if (offset2 != 0) {
-				board_[position] = Stone::Black;
-				auto valid_flg = IsValidMove(position + kPositionoffset[dir] * offset2);
-				board_[position] = Stone::None;
-				if(valid_flg) return RenCount(0, 0, 1);
+				int next_pos = GetPosition(offset2);
+				if (next_pos >= 0 && next_pos < kBoardSize * kBoardSize) {
+					board_[position] = Stone::Black;
+					auto valid_flg = IsValidMove(next_pos);
+					board_[position] = Stone::None;
+					if (valid_flg) return RenCount(0, 0, 1);
+				}
 			}
 			if (offset1 != 0) {
-				board_[position] = Stone::Black;
-				auto valid_flg = IsValidMove(position + kPositionoffset[dir] * offset1);
-				board_[position] = Stone::None;
-				if (valid_flg) return RenCount(0, 0, 1);
+				int next_pos = GetPosition(offset1);
+				if (next_pos >= 0 && next_pos < kBoardSize * kBoardSize) {
+					board_[position] = Stone::Black;
+					auto valid_flg = IsValidMove(next_pos);
+					board_[position] = Stone::None;
+					if (valid_flg) return RenCount(0, 0, 1);
+				}
 			}
 		}
 		return RenCount(0, 0, 0);
@@ -749,8 +757,8 @@ class Board {
 		}
 
 		// Count Katsu-Shi
+		auto GetPosition = [&position, &dir](int count) -> int {return position + kPositionoffset[dir] * count; };
 		{
-			auto GetPosition = [&position, &dir](int count) -> int {return position + kPositionoffset[dir] * count; };
 			//11110
 			if (pattern[Side::Right][1] == PackPattern(Stone::None, Stone::None)
 				&& pattern[Side::Left][3] == PackPattern(Stone::Black, Stone::Black, Stone::Black, Stone::None)) {
@@ -1037,16 +1045,22 @@ class Board {
 				break;
 			}
 			if (offset2 != 0) {
-				board_[position] = Stone::Black;
-				auto valid_flg = IsValidMove(position + kPositionoffset[dir] * offset2);
-				board_[position] = Stone::None;
-				if (valid_flg) return RenCount(0, 0, 1);
+				int next_pos = GetPosition(offset2);
+				if (next_pos >= 0 && next_pos < kBoardSize * kBoardSize) {
+					board_[position] = Stone::Black;
+					auto valid_flg = IsValidMove(next_pos);
+					board_[position] = Stone::None;
+					if (valid_flg) return RenCount(0, 0, 1);
+				}
 			}
 			if (offset1 != 0) {
-				board_[position] = Stone::Black;
-				auto valid_flg = IsValidMove(position + kPositionoffset[dir] * offset1);
-				board_[position] = Stone::None;
-				if (valid_flg) return RenCount(0, 0, 1);
+				int next_pos = GetPosition(offset1);
+				if (next_pos >= 0 && next_pos < kBoardSize * kBoardSize) {
+					board_[position] = Stone::Black;
+					auto valid_flg = IsValidMove(next_pos);
+					board_[position] = Stone::None;
+					if (valid_flg) return RenCount(0, 0, 1);
+				}
 			}
 		}
 		return RenCount(0, 0, 0);
@@ -1154,16 +1168,22 @@ class Board {
 		board_[block_position] = enemy_stone;
 		// If you must block enemy's Shi-ren or Katsu-shi, this Shioi's challenge is failed.
 		auto result = FindGorenMove(enemy_stone);
-		if (result.second) return false;
+		if (result.second) {
+			board_[block_position] = Stone::None;
+			return false;
+		}
 		//depth limit
-		if (depth == 0) return false;
+		if (depth == 0) {
+			board_[block_position] = Stone::None;
+			return false;
+		}
 		// Find Next Shi-ren or Katsu-shi
 		for (size_t p = 0; p < kBoardSize * kBoardSize; ++p) {
 			if (board_[p] != Stone::None) continue;
 			if (turn == Stone::Black) {
 				bool cho_ren_flg = false;
 				size_t sum_4_strong = 0, sum_4_normal = 0, sum_3 = 0;
-				size_t block_position;
+				size_t block_position2;
 				for (uint8_t dir = 0; dir < Direction::Directions; ++dir) {
 					auto move_pattern = GetPatternB(p, static_cast<Direction>(dir));
 					if (IsChorenB(move_pattern)) {
@@ -1172,7 +1192,7 @@ class Board {
 					}
 					auto ren_count = CountRenB(move_pattern, p, static_cast<Direction>(dir));
 					size_t s4s, s4n, s3;
-					std::tie(s4s, s4n, s3) = CountRenB2(move_pattern, p, static_cast<Direction>(dir), block_position);
+					std::tie(s4s, s4n, s3) = CountRenB2(move_pattern, p, static_cast<Direction>(dir), block_position2);
 					sum_4_strong += s4s;
 					sum_4_normal += s4n;
 					sum_3 += s3;
@@ -1180,18 +1200,22 @@ class Board {
 				if (cho_ren_flg || sum_4_strong + sum_4_normal >= 2 || sum_3 >= 2) continue;
 				if (sum_4_strong > 0) {
 					//PutBoard();
+					board_[block_position] = Stone::None;
 					return true;
 				}
 				if (sum_4_normal == 1) {
 					board_[p] = Stone::Black;
-					auto score = IsShioiMove(Stone::Black, block_position, depth - 1);
+					auto score = IsShioiMove(Stone::Black, block_position2, depth - 1);
 					board_[p] = Stone::None;
-					if (score) return true;
+					if (score) {
+						board_[block_position] = Stone::None;
+						return true;
+					}
 					continue;
 				}
 			}
 			else {
-				size_t block_position;
+				size_t block_position2;
 				size_t sum_4_strong = 0, sum_4_normal = 0;
 				for (uint8_t dir = 0; dir < Direction::Directions; ++dir) {
 					auto move_pattern = GetPatternW(p, static_cast<Direction>(dir));
@@ -1201,15 +1225,20 @@ class Board {
 					std::tie(s4s, s4n, blk) = CountRenW2(move_pattern, p, static_cast<Direction>(dir));
 					sum_4_strong += s4s;
 					sum_4_normal += s4n;
-					if (s4n) block_position = blk;
+					if (s4n) block_position2 = blk;
 				}
-				if (sum_4_strong > 0) return true;
-				if (sum_4_normal > 1) return true;
+				if (sum_4_strong > 0 || sum_4_normal > 1) {
+					board_[block_position] = Stone::None;
+					return true;
+				}
 				if (sum_4_normal == 1) {
 					board_[p] = Stone::White;
-					auto score = IsShioiMove(Stone::White, block_position, depth - 1);
+					auto score = IsShioiMove(Stone::White, block_position2, depth - 1);
 					board_[p] = Stone::None;
-					if (score) return true;
+					if (score) {
+						board_[block_position] = Stone::None;
+						return true;
+					}
 					continue;
 				}
 			}
