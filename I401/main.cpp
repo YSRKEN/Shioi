@@ -750,110 +750,230 @@ class Board {
 
 		// Count Katsu-Shi
 		{
-			auto GetPosition = [&position, &dir](int count) -> size_t {return position + kPositionoffset[dir] * count; };
+			auto GetPosition = [&position, &dir](int count) -> int {return position + kPositionoffset[dir] * count; };
 			//11110
 			if (pattern[Side::Right][1] == PackPattern(Stone::None, Stone::None)
 				&& pattern[Side::Left][3] == PackPattern(Stone::Black, Stone::Black, Stone::Black, Stone::None)) {
-				block_position = GetPosition(1);
+				int bp = GetPosition(1);
+				if (bp >= 0 && bp < kBoardSize * kBoardSize) {
+					block_position = bp;
+				}
+				else {
+					block_position = kBoardSize * kBoardSize;
+				}
 				return RenCount(0, 1, 0);
 			}
 			if (pattern[Side::Right][2] == PackPattern(Stone::Black, Stone::None, Stone::None)
 				&& pattern[Side::Left][2] == PackPattern(Stone::Black, Stone::Black, Stone::None)) {
-				block_position = GetPosition(2);
+				int bp = GetPosition(2);
+				if (bp >= 0 && bp < kBoardSize * kBoardSize) {
+					block_position = bp;
+				}
+				else {
+					block_position = kBoardSize * kBoardSize;
+				}
 				return RenCount(0, 1, 0);
 			}
 			if (pattern[Side::Right][3] == PackPattern(Stone::Black, Stone::Black, Stone::None, Stone::None)
 				&& pattern[Side::Left][1] == PackPattern(Stone::Black, Stone::None)) {
-				block_position = GetPosition(3);
+				int bp = GetPosition(3);
+				if (bp >= 0 && bp < kBoardSize * kBoardSize) {
+					block_position = bp;
+				}
+				else {
+					block_position = kBoardSize * kBoardSize;
+				}
 				return RenCount(0, 1, 0);
 			}
 			if (pattern[Side::Right][4] == PackPattern(Stone::Black, Stone::Black, Stone::Black, Stone::None, Stone::None)
 				&& pattern[Side::Left][0] == Stone::None) {
-				block_position = GetPosition(4);
+				int bp = GetPosition(4);
+				if (bp >= 0 && bp < kBoardSize * kBoardSize) {
+					block_position = bp;
+				}
+				else {
+					block_position = kBoardSize * kBoardSize;
+				}
 				return RenCount(0, 1, 0);
 			}
 			//11101
 			if (pattern[Side::Right][0] == Stone::None
 				&& pattern[Side::Left][4] == PackPattern(Stone::None, Stone::Black, Stone::Black, Stone::Black, Stone::None)) {
-				block_position = GetPosition(-1);
+				int bp = GetPosition(-1);
+				if (bp >= 0 && bp < kBoardSize * kBoardSize) {
+					block_position = bp;
+				}
+				else {
+					block_position = kBoardSize * kBoardSize;
+				}
 				return RenCount(0, 1, 0);
 			}
 			if (pattern[Side::Right][2] == PackPattern(Stone::None, Stone::Black, Stone::None)
 				&& pattern[Side::Left][2] == PackPattern(Stone::Black, Stone::Black, Stone::None)) {
-				block_position = GetPosition(1);
+				int bp = GetPosition(1);
+				if (bp >= 0 && bp < kBoardSize * kBoardSize) {
+					block_position = bp;
+				}
+				else {
+					block_position = kBoardSize * kBoardSize;
+				}
 				return RenCount(0, 1, 0);
 			}
 			if (pattern[Side::Right][3] == PackPattern(Stone::Black, Stone::None, Stone::Black, Stone::None)
 				&& pattern[Side::Left][1] == PackPattern(Stone::Black, Stone::None)) {
-				block_position = GetPosition(2);
+				int bp = GetPosition(2);
+				if (bp >= 0 && bp < kBoardSize * kBoardSize) {
+					block_position = bp;
+				}
+				else {
+					block_position = kBoardSize * kBoardSize;
+				}
 				return RenCount(0, 1, 0);
 			}
 			if (pattern[Side::Right][4] == PackPattern(Stone::Black, Stone::Black, Stone::None, Stone::Black, Stone::None)
 				&& pattern[Side::Left][0] == Stone::None) {
-				block_position = GetPosition(3);
+				int bp = GetPosition(3);
+				if (bp >= 0 && bp < kBoardSize * kBoardSize) {
+					block_position = bp;
+				}
+				else {
+					block_position = kBoardSize * kBoardSize;
+				}
 				return RenCount(0, 1, 0);
 			}
 			//11011
 			if (pattern[Side::Right][0] == Stone::None
 				&& pattern[Side::Left][4] == PackPattern(Stone::Black, Stone::None, Stone::Black, Stone::Black, Stone::None)) {
-				block_position = GetPosition(-2);
+				int bp = GetPosition(-2);
+				if (bp >= 0 && bp < kBoardSize * kBoardSize) {
+					block_position = bp;
+				}
+				else {
+					block_position = kBoardSize * kBoardSize;
+				}
 				return RenCount(0, 1, 0);
 			}
 			if (pattern[Side::Right][1] == PackPattern(Stone::Black, Stone::None)
 				&& pattern[Side::Left][3] == PackPattern(Stone::None, Stone::Black, Stone::Black, Stone::None)) {
-				block_position = GetPosition(-1);
+				int bp = GetPosition(-1);
+				if (bp >= 0 && bp < kBoardSize * kBoardSize) {
+					block_position = bp;
+				}
+				else {
+					block_position = kBoardSize * kBoardSize;
+				}
 				return RenCount(0, 1, 0);
 			}
 			if (pattern[Side::Left][0] == Stone::None
 				&& pattern[Side::Right][4] == PackPattern(Stone::Black, Stone::None, Stone::Black, Stone::Black, Stone::None)) {
-				block_position = GetPosition(2);
+				int bp = GetPosition(2);
+				if (bp >= 0 && bp < kBoardSize * kBoardSize) {
+					block_position = bp;
+				}
+				else {
+					block_position = kBoardSize * kBoardSize;
+				}
 				return RenCount(0, 1, 0);
 			}
 			if (pattern[Side::Left][1] == PackPattern(Stone::Black, Stone::None)
 				&& pattern[Side::Right][3] == PackPattern(Stone::None, Stone::Black, Stone::Black, Stone::None)) {
-				block_position = GetPosition(1);
+				int bp = GetPosition(1);
+				if (bp >= 0 && bp < kBoardSize * kBoardSize) {
+					block_position = bp;
+				}
+				else {
+					block_position = kBoardSize * kBoardSize;
+				}
 				return RenCount(0, 1, 0);
 			}
 			//10111
 			if (pattern[Side::Left][0] == Stone::None
 				&& pattern[Side::Right][4] == PackPattern(Stone::None, Stone::Black, Stone::Black, Stone::Black, Stone::None)) {
-				block_position = GetPosition(1);
+				int bp = GetPosition(1);
+				if (bp >= 0 && bp < kBoardSize * kBoardSize) {
+					block_position = bp;
+				}
+				else {
+					block_position = kBoardSize * kBoardSize;
+				}
 				return RenCount(0, 1, 0);
 			}
 			if (pattern[Side::Left][2] == PackPattern(Stone::None, Stone::Black, Stone::None)
 				&& pattern[Side::Right][2] == PackPattern(Stone::Black, Stone::Black, Stone::None)) {
-				block_position = GetPosition(-1);
+				int bp = GetPosition(-1);
+				if (bp >= 0 && bp < kBoardSize * kBoardSize) {
+					block_position = bp;
+				}
+				else {
+					block_position = kBoardSize * kBoardSize;
+				}
 				return RenCount(0, 1, 0);
 			}
 			if (pattern[Side::Left][3] == PackPattern(Stone::Black, Stone::None, Stone::Black, Stone::None)
 				&& pattern[Side::Right][1] == PackPattern(Stone::Black, Stone::None)) {
-				block_position = GetPosition(-2);
+				int bp = GetPosition(-2);
+				if (bp >= 0 && bp < kBoardSize * kBoardSize) {
+					block_position = bp;
+				}
+				else {
+					block_position = kBoardSize * kBoardSize;
+				}
 				return RenCount(0, 1, 0);
 			}
 			if (pattern[Side::Left][4] == PackPattern(Stone::Black, Stone::Black, Stone::None, Stone::Black, Stone::None)
 				&& pattern[Side::Right][0] == Stone::None) {
-				block_position = GetPosition(-3);
+				int bp = GetPosition(-3);
+				if (bp >= 0 && bp < kBoardSize * kBoardSize) {
+					block_position = bp;
+				}
+				else {
+					block_position = kBoardSize * kBoardSize;
+				}
 				return RenCount(0, 1, 0);
 			}
 			//01111
 			if (pattern[Side::Left][1] == PackPattern(Stone::None, Stone::None)
 				&& pattern[Side::Right][3] == PackPattern(Stone::Black, Stone::Black, Stone::Black, Stone::None)) {
-				block_position = GetPosition(-4);
+				int bp = GetPosition(-1);
+				if (bp >= 0 && bp < kBoardSize * kBoardSize) {
+					block_position = bp;
+				}
+				else {
+					block_position = kBoardSize * kBoardSize;
+				}
 				return RenCount(0, 1, 0);
 			}
 			if (pattern[Side::Left][2] == PackPattern(Stone::Black, Stone::None, Stone::None)
 				&& pattern[Side::Right][2] == PackPattern(Stone::Black, Stone::Black, Stone::None)) {
-				block_position = GetPosition(-3);
+				int bp = GetPosition(-2);
+				if (bp >= 0 && bp < kBoardSize * kBoardSize) {
+					block_position = bp;
+				}
+				else {
+					block_position = kBoardSize * kBoardSize;
+				}
 				return RenCount(0, 1, 0);
 			}
 			if (pattern[Side::Left][3] == PackPattern(Stone::Black, Stone::Black, Stone::None, Stone::None)
 				&& pattern[Side::Right][1] == PackPattern(Stone::Black, Stone::None)) {
-				block_position = GetPosition(-2);
+				int bp = GetPosition(-3);
+				if (bp >= 0 && bp < kBoardSize * kBoardSize) {
+					block_position = bp;
+				}
+				else {
+					block_position = kBoardSize * kBoardSize;
+				}
 				return RenCount(0, 1, 0);
 			}
 			if (pattern[Side::Left][4] == PackPattern(Stone::Black, Stone::Black, Stone::Black, Stone::None, Stone::None)
 				&& pattern[Side::Right][0] == Stone::None) {
-				block_position = GetPosition(-1);
+				int bp = GetPosition(-4);
+				if (bp >= 0 && bp < kBoardSize * kBoardSize) {
+					block_position = bp;
+				}
+				else {
+					block_position = kBoardSize * kBoardSize;
+				}
 				return RenCount(0, 1, 0);
 			}
 		}
@@ -1022,9 +1142,19 @@ class Board {
 	// Find Shi-Oi tsume
 	bool IsShioiMove(const Stone turn, const size_t block_position, const size_t depth) {
 		// Block Katsu-Shi
+		if (block_position >= kBoardSize * kBoardSize) {
+			//PutBoard();
+			return true;
+		}
 		auto enemy_stone = EnemyTurn(turn);
-		if (enemy_stone == Stone::Black && !IsValidMove(block_position)) return true;
+		if (enemy_stone == Stone::Black && !IsValidMove(block_position)) {
+			//PutBoard();
+			return true;
+		}
 		board_[block_position] = enemy_stone;
+		// If you must block enemy's Shi-ren or Katsu-shi, this Shioi's challenge is failed.
+		auto result = FindGorenMove(enemy_stone);
+		if (result.second) return false;
 		//depth limit
 		if (depth == 0) return false;
 		// Find Next Shi-ren or Katsu-shi
@@ -1048,7 +1178,10 @@ class Board {
 					sum_3 += s3;
 				}
 				if (cho_ren_flg || sum_4_strong + sum_4_normal >= 2 || sum_3 >= 2) continue;
-				if (sum_4_strong > 0) return true;
+				if (sum_4_strong > 0) {
+					//PutBoard();
+					return true;
+				}
 				if (sum_4_normal == 1) {
 					board_[p] = Stone::Black;
 					auto score = IsShioiMove(Stone::Black, block_position, depth - 1);
@@ -1098,19 +1231,20 @@ class Board {
 						cho_ren_flg = true;
 						break;
 					}
-					auto ren_count = CountRenB(move_pattern, p, static_cast<Direction>(dir));
 					size_t s4s, s4n, s3;
 					std::tie(s4s, s4n, s3) = CountRenB2(move_pattern, p, static_cast<Direction>(dir), block_position);
 					sum_4_strong += s4s;
 					sum_4_normal += s4n;
 					sum_3 += s3;
 				}
+				/*if (sum_4_strong + sum_4_normal > 0) {
+					cout << PositionToString(p) << " " << sum_4_strong << " " << sum_4_normal << endl;
+				}*/
 				if (cho_ren_flg || sum_4_strong + sum_4_normal >= 2 || sum_3 >= 2) continue;
 				if (sum_4_strong > 0) return Result(p, true);
 				if (sum_4_normal == 1) {
-					cout << PositionToString(p) << endl;
 					board_[p] = Stone::Black;
-					auto score = IsShioiMove(Stone::Black, block_position, 5);
+					auto score = IsShioiMove(Stone::Black, block_position, 10);
 					board_[p] = Stone::None;
 					if(score) return Result(p, true);
 					continue;
@@ -1132,7 +1266,7 @@ class Board {
 				if (sum_4_normal > 1) return Result(p, true);
 				if (sum_4_normal == 1) {
 					board_[p] = Stone::White;
-					auto score = IsShioiMove(Stone::White, block_position, 5);
+					auto score = IsShioiMove(Stone::White, block_position, 10);
 					board_[p] = Stone::None;
 					if (score) return Result(p, true);
 					continue;
@@ -1211,7 +1345,7 @@ public:
 	}
 	// Thinking next move
 	int NextMove(const size_t depth, bool debug_flg = false) {
-		PutBoard();
+		//PutBoard();
 		// If the game is end, you don't move.
 		if (IsGameEnd()) return -1;
 		// Opening move
@@ -1227,7 +1361,7 @@ public:
 		result = FindShioiMove(EnemyTurn(turn_));
 		if (result.second) return result.first;
 		// Random move(test code)
-		cout << "Random" << endl;
+		std::cerr << "Random" << endl;
 		result = FindRandomMove(EnemyTurn(turn_));
 		if (result.second) return result.first;
 		return -1;
@@ -1259,3 +1393,10 @@ int main(int argc, char *argv[]) {
 	}
 	return 0;
 }
+
+/* 既出の不具合：
+ここで黒の左斜め五連を認識できず、次の手を指してしまう
+------------------*O---O----------O-***----------**OO*O-------OOOO*-*---------*O****O--------O***OO--------*O-*O*----------OOO*O*-------------*-O-------------------------------------------------------------------------------- O
+ここで黒が達四を認識できない
+------------------O----O----------*O***-----------*OO*O---------OO*-*----------O****O-------O****OO---------O-*O*-----------OO-O*---------------O-------------------------------------------------------------------------------- *
+*/

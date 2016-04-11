@@ -145,6 +145,8 @@ namespace Shioi {
 				if(DebugModeMenuItem.CheckState != CheckState.Checked) {
 					FormRenju.SetMove(nextMove);
 					DrawBoard();
+				}else {
+					MessageBox.Show(Renju.ToStringMoveMini(nextMove), SoftName);
 				}
 			}else {
 				if(nextMove == -2) {
@@ -648,7 +650,7 @@ namespace Shioi {
 				return output;
 			}
 			// Convert move into string
-			private string ToStringMoveMini(int MovePosition) {
+			static public string ToStringMoveMini(int MovePosition) {
 				var moveXY = ConvertMove1to2(MovePosition);
 				return PositionStringX.Substring(moveXY[0], 1) + PositionStringY.Substring(moveXY[1], 1);
 			}
