@@ -45,6 +45,7 @@
 			this.StartComputingToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
 			this.StopComputingToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
 			this.ComputeDepthComboBox = new System.Windows.Forms.ToolStripComboBox();
+			this.DebugModeMenuItem = new System.Windows.Forms.ToolStripMenuItem();
 			this.HelpToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
 			this.AboutAToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
 			this.StatusStrip = new System.Windows.Forms.StatusStrip();
@@ -60,7 +61,6 @@
 			this.StartComputingButton = new System.Windows.Forms.Button();
 			this.StopComputingButton = new System.Windows.Forms.Button();
 			this.ShowMoveNumberComboBox = new System.Windows.Forms.ComboBox();
-			this.DebugModeMenuItem = new System.Windows.Forms.ToolStripMenuItem();
 			this.MenuStrip.SuspendLayout();
 			this.StatusStrip.SuspendLayout();
 			((System.ComponentModel.ISupportInitialize)(this.PictureBox)).BeginInit();
@@ -259,6 +259,13 @@
 			this.ComputeDepthComboBox.Size = new System.Drawing.Size(121, 23);
 			this.ComputeDepthComboBox.Text = "depth : 0";
 			// 
+			// DebugModeMenuItem
+			// 
+			this.DebugModeMenuItem.CheckOnClick = true;
+			this.DebugModeMenuItem.Name = "DebugModeMenuItem";
+			this.DebugModeMenuItem.Size = new System.Drawing.Size(223, 22);
+			this.DebugModeMenuItem.Text = "Debug Message";
+			// 
 			// HelpToolStripMenuItem
 			// 
 			this.HelpToolStripMenuItem.DropDownItems.AddRange(new System.Windows.Forms.ToolStripItem[] {
@@ -410,20 +417,53 @@
             "16",
             "17",
             "18",
-            "19"});
+            "19",
+            "20",
+            "21",
+            "22",
+            "23",
+            "24",
+            "25",
+            "26",
+            "27",
+            "28",
+            "29",
+            "30",
+            "31",
+            "32",
+            "33",
+            "34",
+            "35",
+            "36",
+            "37",
+            "38",
+            "39",
+            "40",
+            "41",
+            "42",
+            "43",
+            "44",
+            "45",
+            "46",
+            "47",
+            "48",
+            "49",
+            "50",
+            "51",
+            "52",
+            "53",
+            "54",
+            "55",
+            "56",
+            "57",
+            "58",
+            "59"});
 			this.ShowMoveNumberComboBox.Location = new System.Drawing.Point(288, 31);
 			this.ShowMoveNumberComboBox.Name = "ShowMoveNumberComboBox";
 			this.ShowMoveNumberComboBox.Size = new System.Drawing.Size(60, 24);
 			this.ShowMoveNumberComboBox.TabIndex = 9;
 			this.ShowMoveNumberComboBox.Text = "-1";
 			this.ShowMoveNumberComboBox.SelectedIndexChanged += new System.EventHandler(this.ShowMoveNumberComboBox_SelectedIndexChanged);
-			// 
-			// DebugModeMenuItem
-			// 
-			this.DebugModeMenuItem.CheckOnClick = true;
-			this.DebugModeMenuItem.Name = "DebugModeMenuItem";
-			this.DebugModeMenuItem.Size = new System.Drawing.Size(223, 22);
-			this.DebugModeMenuItem.Text = "Debug Message";
 			// 
 			// MainForm
 			// 

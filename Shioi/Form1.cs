@@ -314,6 +314,14 @@ namespace Shioi {
 			LastMoveStatusLabel.Text = FormRenju.GetLastMoveText();
 			TurnPlayerStatusLabel.Text = FormRenju.GetTurnPlayerText();
 			StepStatusLabel.Text = FormRenju.GetStepText();
+			// Redraw Combobox
+			/*var memo = ShowMoveNumberComboBox.Text;
+			ShowMoveNumberComboBox.Items.Clear();
+			ShowMoveNumberComboBox.Items.Add("-1");
+			for(int p = 0; p <= FormRenju.MovePointer; ++p) {
+				ShowMoveNumberComboBox.Items.Add(p.ToString());
+			}
+			ShowMoveNumberComboBox.Refresh();*/
 		}
 
 		private class Renju {
