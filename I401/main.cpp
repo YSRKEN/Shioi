@@ -1348,9 +1348,9 @@ class Board {
 		return false;
 	}
 	Result FindShioiMove(const Stone turn, const size_t depth) {
-		for (size_t p = 0; p < kBoardSize * kBoardSize; ++p) {
-			if (board_[p] != Stone::None) continue;
-			if (turn == Stone::Black) {
+		if (turn == Stone::Black) {
+			for (size_t p = 0; p < kBoardSize * kBoardSize; ++p) {
+				if (board_[p] != Stone::None) continue;
 				bool cho_ren_flg = false;
 				size_t sum_4_strong = 0, sum_4_normal = 0, sum_3 = 0;
 				size_t block_position;
@@ -1367,7 +1367,7 @@ class Board {
 					sum_3 += s3;
 				}
 				/*if (sum_4_strong + sum_4_normal > 0) {
-					cout << PositionToString(p) << " " << sum_4_strong << " " << sum_4_normal << endl;
+				cout << PositionToString(p) << " " << sum_4_strong << " " << sum_4_normal << endl;
 				}*/
 				if (cho_ren_flg || sum_4_strong + sum_4_normal >= 2 || sum_3 >= 2) continue;
 				if (sum_4_strong > 0) return Result(p, true);
@@ -1375,10 +1375,13 @@ class Board {
 					board_[p] = Stone::Black;
 					auto score = IsShioiMove(Stone::Black, block_position, depth);
 					board_[p] = Stone::None;
-					if(score) return Result(p, true);
+					if (score) return Result(p, true);
 					continue;
 				}
-			}else{
+			}
+		}else{
+			for (size_t p = 0; p < kBoardSize * kBoardSize; ++p) {
+				if (board_[p] != Stone::None) continue;
 				size_t block_position;
 				size_t sum_4_strong = 0, sum_4_normal = 0;
 				for (uint8_t dir = 0; dir < Direction::Directions; ++dir) {
@@ -1392,7 +1395,7 @@ class Board {
 					if (s4n) block_position = blk;
 				}
 				/*if (sum_4_strong + sum_4_normal >= 1) {
-					cout << PositionToString(p) << " " << sum_4_strong << " " << sum_4_normal << endl;
+				cout << PositionToString(p) << " " << sum_4_strong << " " << sum_4_normal << endl;
 				}*/
 				if (sum_4_strong > 0) return Result(p, true);
 				if (sum_4_normal > 1) return Result(p, true);
@@ -1407,11 +1410,16 @@ class Board {
 		}
 		return Result(0, false);
 	}
+	// 
 	// Find Normal move
 	Result FindNormalMove(const size_t depth) {
 		vector<size_t> next_move;
 		int max_score = -kScoreInf - 1;
 		if (depth == 0) {
+			// Find enemy's Shioi(Pre-search)
+			bool enemy_shioi_flg = false;
+			auto result = FindShioiMove(EnemyTurn(turn_), 5);
+			if (result.second) enemy_shioi_flg = true;
 			if (turn_ == Stone::Black) {
 				for (size_t p = 0; p < kBoardSize * kBoardSize; ++p) {
 					if (board_[p] != Stone::None) continue;
@@ -1434,14 +1442,20 @@ class Board {
 					if (sum_4_strong == 1) return Result(p, true);
 					// Find enemy's Shioi
 					int score;
-					board_[p] = turn_;
-					auto result = FindShioiMove(EnemyTurn(turn_), 10);
-					board_[p] = Stone::None;
-					if (result.second) {
-						// Don't block Shioi
-						score = -kScoreInf;
-					}else{
-						// Normal Score
+					if (enemy_shioi_flg) {
+						board_[p] = turn_;
+						auto result = FindShioiMove(EnemyTurn(turn_), 5);
+						board_[p] = Stone::None;
+						if (result.second) {
+							// Don't block Shioi
+							score = -kScoreInf;
+						}
+						else {
+							// Normal Score
+							score = kTenGenDist[p];
+						}
+					}
+					else {
 						score = kTenGenDist[p];
 					}
 					if (max_score < score) {
@@ -1468,15 +1482,20 @@ class Board {
 					if (sum_4_strong >= 1 || sum_4_normal >= 2) return Result(p, true);
 					// Find enemy's Shioi
 					int score;
-					board_[p] = turn_;
-					auto result = FindShioiMove(EnemyTurn(turn_), 10);
-					board_[p] = Stone::None;
-					if (result.second) {
-						// Don't block Shioi
-						score = -kScoreInf;
+					if (enemy_shioi_flg) {
+						board_[p] = turn_;
+						auto result = FindShioiMove(EnemyTurn(turn_), 5);
+						board_[p] = Stone::None;
+						if (result.second) {
+							// Don't block Shioi
+							score = -kScoreInf;
+						}
+						else {
+							// Normal Score
+							score = kTenGenDist[p];
+						}
 					}
 					else {
-						// Normal Score
 						score = kTenGenDist[p];
 					}
 					if (max_score < score) {
@@ -1490,7 +1509,98 @@ class Board {
 			}
 		}
 		else {
-			
+			// Find enemy's Shioi(Pre-search)
+			bool enemy_shioi_flg = false;
+			auto result = FindShioiMove(EnemyTurn(turn_), 5);
+			if (result.second) enemy_shioi_flg = true;
+			if (turn_ == Stone::Black) {
+				for (size_t p = 0; p < kBoardSize * kBoardSize; ++p) {
+					if (board_[p] != Stone::None) continue;
+					// Judge valid move
+					bool cho_ren_flg = false;
+					size_t sum_4_strong = 0, sum_4_normal = 0, sum_3 = 0;
+					for (uint8_t dir = 0; dir < Direction::Directions; ++dir) {
+						auto move_pattern = GetPatternB(p, static_cast<Direction>(dir));
+						if (IsChorenB(move_pattern)) {
+							cho_ren_flg = true;
+							break;
+						}
+						size_t s4s, s4n, s3;
+						std::tie(s4s, s4n, s3) = CountRenB(move_pattern, p, static_cast<Direction>(dir));
+						sum_4_strong += s4s;
+						sum_4_normal += s4n;
+						sum_3 += s3;
+					}
+					if (cho_ren_flg || sum_4_strong + sum_4_normal >= 2 || sum_3 >= 2) continue;
+					if (sum_4_strong == 1) return Result(p, true);
+					// Find enemy's Shioi
+					int score;
+					if (enemy_shioi_flg) {
+						board_[p] = turn_;
+						auto result = FindShioiMove(EnemyTurn(turn_), 5);
+						board_[p] = Stone::None;
+						if (result.second) {
+							// Don't block Shioi
+							score = -kScoreInf;
+						}
+						else {
+							// Normal Score
+							score = kTenGenDist[p];
+						}
+					}
+					else {
+						score = kTenGenDist[p];
+					}
+					if (max_score < score) {
+						max_score = score;
+						next_move.clear();
+					}
+					if (max_score == score) {
+						next_move.push_back(p);
+					}
+				}
+			}
+			else {
+				for (size_t p = 0; p < kBoardSize * kBoardSize; ++p) {
+					if (board_[p] != Stone::None) continue;
+					size_t sum_4_strong = 0, sum_4_normal = 0, sum_3 = 0;
+					for (uint8_t dir = 0; dir < Direction::Directions; ++dir) {
+						auto move_pattern = GetPatternB(p, static_cast<Direction>(dir));
+						if (IsChorenB(move_pattern)) return Result(p, true);
+						size_t s4s, s4n, s3;
+						std::tie(s4s, s4n, s3) = CountRenB(move_pattern, p, static_cast<Direction>(dir));
+						sum_4_strong += s4s;
+						sum_4_normal += s4n;
+						sum_3 += s3;
+					}
+					if (sum_4_strong >= 1 || sum_4_normal >= 2) return Result(p, true);
+					// Find enemy's Shioi
+					int score;
+					if (enemy_shioi_flg) {
+						board_[p] = turn_;
+						auto result = FindShioiMove(EnemyTurn(turn_), 5);
+						board_[p] = Stone::None;
+						if (result.second) {
+							// Don't block Shioi
+							score = -kScoreInf;
+						}
+						else {
+							// Normal Score
+							score = kTenGenDist[p];
+						}
+					}
+					else {
+						score = kTenGenDist[p];
+					}
+					if (max_score < score) {
+						max_score = score;
+						next_move.clear();
+					}
+					if (max_score == score) {
+						next_move.push_back(p);
+					}
+				}
+			}
 		}
 		if (max_score == -kScoreInf) return Result(kBoardSize * kBoardSize, false);
 		return (next_move.size() == 0 ? Result(0, false) : Result(next_move[RandInt(next_move.size())], true));
@@ -1582,7 +1692,7 @@ public:
 			if(turn_ == Stone::White || IsValidMove(result.first)) return result.first;
 		}
 		// Search of quadruplex's problem(Shioi Tsume)
-		result = FindShioiMove(turn_, 225);
+		result = FindShioiMove(turn_, 10);
 		if (result.second) return result.first;
 		// Normal move search
 		result = FindNormalMove(depth);
@@ -1619,7 +1729,7 @@ int main(int argc, char *argv[]) {
 }
 
 /* 進捗：
-・ベンチマーク問題(2秒ほど)
-h8,h7,i7,i8,j9,j8,k9,i9,k7,l7,k8,k6,j6,k5,l8,m9,iB,jA,hB,jB,g9,fA,gA,gB,hA,jC,hC,h9,iC,jD,jE,hD,**,
-----------------------------------------------------------------------O-------------*O-----------O*-*O----------*OO**---------*OO**-O-------O**-O-----------O**O------------**O------------O-O--------------*-------------------- *
+・ベンチマーク問題(63449ms、gBが正着っぽい？)
+h8,i7,i9,g9,g7,f6,h7,h9,i8,g8,g6,f5,j8,j9,hA,k7,f8,fA,f9,i6,iA,jA,f7,j7,j6,h6,gA,e8,e7,d7,kA,e6,g4,**,
+---------------------------------------------------*-------------O-------------OO*OO*--------O****OOO--------O*O***----------*OO*O----------O***O*------------------------------------------------------------------------------- O
 */

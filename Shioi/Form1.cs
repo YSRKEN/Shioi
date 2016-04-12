@@ -19,6 +19,7 @@ namespace Shioi {
 		const int BoardSize = 15;
 		const string PositionStringX = "abcdefghijklmno";
 		const string PositionStringY = "123456789ABCDEF";
+		bool CalcFlg = false;
 		public enum Stone {
 			None,
 			Black,
@@ -116,55 +117,25 @@ namespace Shioi {
 		}
 
 		private void StartComputingToolStripMenuItem_Click(object sender, EventArgs e) {
-			var psInfo = new ProcessStartInfo();
-			psInfo.FileName = System.Windows.Forms.Application.StartupPath + @"\I401.exe";
-			psInfo.CreateNoWindow = true;
-			psInfo.UseShellExecute = false;
-			psInfo.Arguments = FormRenju.GetArgumentString();
-			if(ComputeDepthComboBox.SelectedIndex != -1) {
-				psInfo.Arguments += " " + ComputeDepthComboBox.SelectedIndex.ToString();
-			} else {
-				psInfo.Arguments += " 0";
-			}
-			if(DebugModeMenuItem.CheckState == CheckState.Checked) {
-				psInfo.Arguments += " Debug";
-			}
-			psInfo.RedirectStandardOutput = true;
-			psInfo.RedirectStandardError = true;
-			this.Text = SoftName + " - Thinking - ";
-			var sw = new System.Diagnostics.Stopwatch();
-			sw.Start();
-			Process p = Process.Start(psInfo);
-			var output = p.StandardOutput.ReadToEnd();
-			var output_error = p.StandardError.ReadToEnd();
-			sw.Stop();
-			this.Text = SoftName;
-			ElapsedTimeStatusLabel.Text = "Time : " + sw.ElapsedMilliseconds.ToString() + "[ms]";
-			var nextMove = int.Parse(output);
-			if(nextMove >= 0) {
-				if(DebugModeMenuItem.CheckState != CheckState.Checked) {
-					FormRenju.SetMove(nextMove);
-					DrawBoard();
-				}else {
-					MessageBox.Show(Renju.ToStringMoveMini(nextMove), SoftName);
-				}
-			}else {
-				if(nextMove == -2) {
-					MessageBox.Show("Give Up!", SoftName);
-				}
-			}
-			if(output_error != "") {
-				MessageBox.Show(output_error, SoftName);
+			if(!CalcFlg) {
+				StartAndStopComputingButton.Text = "||";
+				CalcFlg = true;
 			}
 		}
 		private void StopComputingToolStripMenuItem_Click(object sender, EventArgs e) {
-
+			if(!CalcFlg) {
+				StartAndStopComputingButton.Text = "|>";
+				CalcFlg = false;
+			}
 		}
-		private void StartComputingButton_Click(object sender, EventArgs e) {
-			StartComputingToolStripMenuItem_Click(sender, e);
-		}
-		private void StopComputingButton_Click(object sender, EventArgs e) {
-			StopComputingToolStripMenuItem_Click(sender, e);
+		private void StartAndStopComputingButton_Click(object sender, EventArgs e) {
+			if(!CalcFlg) {
+				StartAndStopComputingButton.Text = "||";
+				CalcFlg = true;
+			} else {
+				StartAndStopComputingButton.Text = "|>";
+				CalcFlg = false;
+			}
 		}
 		private void ShowMoveNumberComboBox_SelectedIndexChanged(object sender, EventArgs e) {
 			DrawBoard();
@@ -216,6 +187,16 @@ namespace Shioi {
 				e.Effect = DragDropEffects.All;
 			} else {
 				e.Effect = DragDropEffects.None;
+			}
+		}
+		private void GameTimer_Tick(object sender, EventArgs e) {
+			if(!CalcFlg || ComTypeComboBox.SelectedIndex <= 0)
+				return;
+			if(FormRenju.TurnPlayer() == Stone.Black && ComTypeComboBox.SelectedIndex != 2) {
+				ComputingNextMove();
+			}
+			if(FormRenju.TurnPlayer() == Stone.White && ComTypeComboBox.SelectedIndex != 1) {
+				ComputingNextMove();
 			}
 		}
 
@@ -322,6 +303,46 @@ namespace Shioi {
 				ShowMoveNumberComboBox.Items.Add(p.ToString());
 			}
 			ShowMoveNumberComboBox.Refresh();*/
+		}
+		private void ComputingNextMove() {
+			var psInfo = new ProcessStartInfo();
+			psInfo.FileName = System.Windows.Forms.Application.StartupPath + @"\I401.exe";
+			psInfo.CreateNoWindow = true;
+			psInfo.UseShellExecute = false;
+			psInfo.Arguments = FormRenju.GetArgumentString();
+			if(ComputeDepthComboBox.SelectedIndex != -1) {
+				psInfo.Arguments += " " + ComputeDepthComboBox.SelectedIndex.ToString();
+			} else {
+				psInfo.Arguments += " 0";
+			}
+			if(DebugModeMenuItem.CheckState == CheckState.Checked) {
+				psInfo.Arguments += " Debug";
+			}
+			psInfo.RedirectStandardOutput = true;
+			psInfo.RedirectStandardError = true;
+			this.Text = SoftName + " - Thinking - ";
+			var sw = new System.Diagnostics.Stopwatch();
+			sw.Start();
+			Process process = Process.Start(psInfo);
+			var output = process.StandardOutput.ReadToEnd();
+			var output_error = process.StandardError.ReadToEnd();
+			sw.Stop();
+			this.Text = SoftName;
+			ElapsedTimeStatusLabel.Text = "Time : " + sw.ElapsedMilliseconds.ToString() + "[ms]";
+			var nextMove = int.Parse(output);
+			if(nextMove >= 0) {
+				FormRenju.SetMove(nextMove);
+				DrawBoard();
+			} else {
+				StartAndStopComputingButton.Text = "|>";
+				CalcFlg = false;
+				if(nextMove == -2) {
+					MessageBox.Show("Give Up!", SoftName);
+				}
+			}
+			if(DebugModeMenuItem.CheckState == CheckState.Checked && output_error != "") {
+				MessageBox.Show(output_error, SoftName);
+			}
 		}
 
 		private class Renju {
