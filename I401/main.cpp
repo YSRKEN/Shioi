@@ -470,15 +470,15 @@ class Board {
 	}
 	bool MatchPatternW(const Pattern &pattern, const size_t position, const Direction dir, const Side side
 		, const Stone s1) const noexcept {
-		return (kIterateTable[position][dir][side] >= 1 && pattern[side][1] == s1);
+		return (kIterateTable[position][dir][side] >= 1 && pattern[side][0] == s1);
 	}
 	bool MatchPatternW(const Pattern &pattern, const size_t position, const Direction dir, const Side side
 		, const Stone s1, const Stone s2) const noexcept {
-		return (kIterateTable[position][dir][side] >= 2 && pattern[side][2] == PackPattern(s1, s2));
+		return (kIterateTable[position][dir][side] >= 2 && pattern[side][1] == PackPattern(s1, s2));
 	}
 	bool MatchPatternW(const Pattern &pattern, const size_t position, const Direction dir, const Side side
 		, const Stone s1, const Stone s2, const Stone s3) const noexcept {
-		return (kIterateTable[position][dir][side] >= 3 && pattern[side][3] == PackPattern(s1, s2, s3));
+		return (kIterateTable[position][dir][side] >= 3 && pattern[side][2] == PackPattern(s1, s2, s3));
 	}
 	bool MatchPatternW(const Pattern &pattern, const size_t position, const Direction dir, const Side side
 		, const Stone s1, const Stone s2, const Stone s3, const Stone s4) const noexcept {
@@ -1391,6 +1391,9 @@ class Board {
 					sum_4_normal += s4n;
 					if (s4n) block_position = blk;
 				}
+				/*if (sum_4_strong + sum_4_normal >= 1) {
+					cout << PositionToString(p) << " " << sum_4_strong << " " << sum_4_normal << endl;
+				}*/
 				if (sum_4_strong > 0) return Result(p, true);
 				if (sum_4_normal > 1) return Result(p, true);
 				if (sum_4_normal == 1) {
@@ -1407,8 +1410,8 @@ class Board {
 	// Find Normal move
 	Result FindNormalMove(const size_t depth) {
 		vector<size_t> next_move;
+		int max_score = -kScoreInf - 1;
 		if (depth == 0) {
-			int max_score = -kScoreInf - 1;
 			if (turn_ == Stone::Black) {
 				for (size_t p = 0; p < kBoardSize * kBoardSize; ++p) {
 					if (board_[p] != Stone::None) continue;
@@ -1489,6 +1492,7 @@ class Board {
 		else {
 			
 		}
+		if (max_score == -kScoreInf) return Result(kBoardSize * kBoardSize, false);
 		return (next_move.size() == 0 ? Result(0, false) : Result(next_move[RandInt(next_move.size())], true));
 	}
 	// Find Random tsume
@@ -1583,10 +1587,7 @@ public:
 		// Normal move search
 		result = FindNormalMove(depth);
 		if (result.second) return result.first;
-		// Random move(test code)
-		std::cerr << "Random" << endl;
-		result = FindRandomMove(EnemyTurn(turn_));
-		if (result.second) return result.first;
+		if (result.first >= kBoardSize * kBoardSize) return -2;
 		return -1;
 	}
 };
