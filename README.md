@@ -12,7 +12,6 @@ Shioi is renju player and solver by C++ and C#.
 - Value of the combo-box which is on board is number of move's mark.  
 If this value is "-1", then all stones are marked.  
 Otherwise, there are only this value's stones which is marked.
-- You can change thinking depth by combo-box in menu [Game].
 - If you check "Debug Message", show moves'es score after thinking computer.
 
 ## File Format
@@ -44,6 +43,7 @@ http://www.vector.co.jp/soft/win95/game/se169850.html
 ## Version History
 |Version|Information|
 |-------|-----------|
+|0.6.0|rewrite CPU routine, update GUI|
 |0.5.0|Optimize computing speed|
 |0.4.0|Add support of computing next move|
 |0.3.0|Add support of Renju's rule(include of "Ina-San-San")|
@@ -61,11 +61,13 @@ Shioiは、C++とC#によって書かれた連珠ソフトです。しおいっ�
 - 「Game」……上から、「一手進める」「一手戻る」「最初に戻す」「最後まで飛ぶ」「次の手を読む」になります。
 - 「Help」……ソフトウェアについての情報が確認できます。
 - 棋譜ファイルをドラッグ＆ドロップして読み込めます。
-- 盤面のすぐ上にあるコンボボックスは、手番を表す数字が表示される、盤面の石の数を指します。  
+- 盤面のすぐ上にある、ボタンの右にある2つのコンボボックスは、黒および白のゲーム開始時の状態を示します。  
+「|>」ボタンを有効にするには、「Black」「White」以外の状態にしてください。  
+「Human」とした手番はコンピューターによる読みが働かず、それ以外では読みが有効になります。  
+「Lv.0」だと1手読み、それ以降だと複数手読むはずです。
+- 盤面のすぐ上にある、一番右のコンボボックスは、手番を表す数字が表示される、盤面の石の数を指します。  
 「-1」の場合、初手から全ての番号を表示します。  
 それ以外の場合は、その数字の値だけ、直前の手における番号を表示します。
-- メニューの「Game」から選べるコンボボックスにて、次の手を読む際の読みの深さを選びます。  
-「depth : 0」だと1手読み、「depth : 2」だと3手読みとなります。  
 - 「Debug Message」にチェックを入れると、CPUの探索処理実行後の各指し手のスコアが表示されます。
 
 
@@ -100,6 +102,7 @@ http://www.vector.co.jp/soft/win95/game/se169850.html
 ## 更新履歴
 |Version|Information|
 |-------|-----------|
+|0.6.0|コンピューターを全面的に書き換え、GUIも改善させた|
 |0.5.0|コンピューターの思考速度を大幅に向上させた|
 |0.4.0|次の手を読む機能を追加(3手読みまで)|
 |0.3.0|盤面における、各種追い手および禁手表示を実装(否三々対応済)|

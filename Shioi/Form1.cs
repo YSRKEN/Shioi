@@ -19,6 +19,7 @@ namespace Shioi {
 		const int BoardSize = 15;
 		const string PositionStringX = "abcdefghijklmno";
 		const string PositionStringY = "123456789ABCDEF";
+		bool CalcFlg = false;
 		public enum Stone {
 			None,
 			Black,
@@ -33,6 +34,7 @@ namespace Shioi {
 
 		private void NewToolStripMenuItem_Click(object sender, EventArgs e) {
 			FormRenju = new Renju();
+			DrawBoard();
 		}
 		private void OpenToolStripMenuItem_Click(object sender, EventArgs e) {
 			// Show "open file dialog"
@@ -115,51 +117,31 @@ namespace Shioi {
 		}
 
 		private void StartComputingToolStripMenuItem_Click(object sender, EventArgs e) {
-			var psInfo = new ProcessStartInfo();
-			psInfo.FileName = System.Windows.Forms.Application.StartupPath + @"\I401.exe";
-			psInfo.CreateNoWindow = true;
-			psInfo.UseShellExecute = false;
-			psInfo.Arguments = FormRenju.GetArgumentString();
-			if(ComputeDepthComboBox.SelectedIndex != -1) {
-				psInfo.Arguments += " " + ComputeDepthComboBox.SelectedIndex.ToString();
-			} else {
-				psInfo.Arguments += " 0";
-			}
-			if(DebugModeMenuItem.CheckState == CheckState.Checked) {
-				psInfo.Arguments += " Debug";
-			}
-			psInfo.RedirectStandardOutput = true;
-			psInfo.RedirectStandardError = true;
-			this.Text = SoftName + " - Thinking - ";
-			var sw = new System.Diagnostics.Stopwatch();
-			sw.Start();
-			Process p = Process.Start(psInfo);
-			var output = p.StandardOutput.ReadToEnd();
-			var output_error = p.StandardError.ReadToEnd();
-			sw.Stop();
-			this.Text = SoftName;
-			ElapsedTimeStatusLabel.Text = "Time : " + sw.ElapsedMilliseconds.ToString() + "[ms]";
-			var nextMove = int.Parse(output);
-			if(nextMove >= 0) {
-				FormRenju.SetMove(nextMove);
-				DrawBoard();
-			}else {
-				if(nextMove == -2) {
-					MessageBox.Show("Give Up!", SoftName);
-				}
-			}
-			if(output_error != "") {
-				MessageBox.Show(output_error, SoftName);
+			if(ComType1ComboBox.SelectedIndex <= 0 || ComType2ComboBox.SelectedIndex <= 0)
+				return;
+			if(!CalcFlg) {
+				StartAndStopComputingButton.Text = "||";
+				CalcFlg = true;
 			}
 		}
 		private void StopComputingToolStripMenuItem_Click(object sender, EventArgs e) {
-
+			if(ComType1ComboBox.SelectedIndex <= 0 || ComType2ComboBox.SelectedIndex <= 0)
+				return;
+			if(!CalcFlg) {
+				StartAndStopComputingButton.Text = "|>";
+				CalcFlg = false;
+			}
 		}
-		private void StartComputingButton_Click(object sender, EventArgs e) {
-			StartComputingToolStripMenuItem_Click(sender, e);
-		}
-		private void StopComputingButton_Click(object sender, EventArgs e) {
-			StopComputingToolStripMenuItem_Click(sender, e);
+		private void StartAndStopComputingButton_Click(object sender, EventArgs e) {
+			if(ComType1ComboBox.SelectedIndex <= 0 || ComType2ComboBox.SelectedIndex <= 0)
+				return;
+			if(!CalcFlg) {
+				StartAndStopComputingButton.Text = "||";
+				CalcFlg = true;
+			} else {
+				StartAndStopComputingButton.Text = "|>";
+				CalcFlg = false;
+			}
 		}
 		private void ShowMoveNumberComboBox_SelectedIndexChanged(object sender, EventArgs e) {
 			DrawBoard();
@@ -211,6 +193,16 @@ namespace Shioi {
 				e.Effect = DragDropEffects.All;
 			} else {
 				e.Effect = DragDropEffects.None;
+			}
+		}
+		private void GameTimer_Tick(object sender, EventArgs e) {
+			if(!CalcFlg || ComType1ComboBox.SelectedIndex <= 0 || ComType2ComboBox.SelectedIndex <= 0)
+				return;
+			if(FormRenju.TurnPlayer() == Stone.Black && ComType1ComboBox.SelectedIndex >= 2) {
+				ComputingNextMove();
+			}
+			if(FormRenju.TurnPlayer() == Stone.White && ComType2ComboBox.SelectedIndex >= 2) {
+				ComputingNextMove();
 			}
 		}
 
@@ -309,6 +301,64 @@ namespace Shioi {
 			LastMoveStatusLabel.Text = FormRenju.GetLastMoveText();
 			TurnPlayerStatusLabel.Text = FormRenju.GetTurnPlayerText();
 			StepStatusLabel.Text = FormRenju.GetStepText();
+			// Redraw Combobox
+			/*var memo = ShowMoveNumberComboBox.Text;
+			ShowMoveNumberComboBox.Items.Clear();
+			ShowMoveNumberComboBox.Items.Add("-1");
+			for(int p = 0; p <= FormRenju.MovePointer; ++p) {
+				ShowMoveNumberComboBox.Items.Add(p.ToString());
+			}
+			ShowMoveNumberComboBox.Refresh();*/
+		}
+		private void ComputingNextMove() {
+			var psInfo = new ProcessStartInfo();
+			psInfo.FileName = System.Windows.Forms.Application.StartupPath + @"\I401.exe";
+			psInfo.CreateNoWindow = true;
+			psInfo.UseShellExecute = false;
+			psInfo.Arguments = FormRenju.GetArgumentString();
+			if(FormRenju.TurnPlayer() == Stone.Black) {
+				if(ComType1ComboBox.SelectedIndex >= 2) {
+					psInfo.Arguments += " " + (ComType1ComboBox.SelectedIndex - 2).ToString();
+				} else {
+					psInfo.Arguments += " 0";
+				}
+			} else {
+				if(ComType2ComboBox.SelectedIndex >= 2) {
+					psInfo.Arguments += " " + (ComType2ComboBox.SelectedIndex - 2).ToString();
+				} else {
+					psInfo.Arguments += " 0";
+				}
+			}
+			if(DebugModeMenuItem.CheckState == CheckState.Checked) {
+				psInfo.Arguments += " Debug";
+			}
+			psInfo.RedirectStandardOutput = true;
+			psInfo.RedirectStandardError = true;
+			this.Text = SoftName + " - Thinking - ";
+			var sw = new System.Diagnostics.Stopwatch();
+			sw.Start();
+			Process process = Process.Start(psInfo);
+			var output = process.StandardOutput.ReadToEnd();
+			var output_error = process.StandardError.ReadToEnd();
+			sw.Stop();
+			this.Text = SoftName;
+			ElapsedTimeStatusLabel.Text = "Time : " + sw.ElapsedMilliseconds.ToString() + "[ms]";
+			var nextMove = int.Parse(output);
+			if(nextMove >= 0) {
+				FormRenju.SetMove(nextMove);
+				DrawBoard();
+			} else {
+				StartAndStopComputingButton.Text = "|>";
+				CalcFlg = false;
+				if(nextMove == -2) {
+					MessageBox.Show("Give Up!", SoftName);
+				}
+			}
+			if(DebugModeMenuItem.CheckState == CheckState.Checked && output_error != "") {
+				if(ComType1ComboBox.SelectedIndex <= 1 || ComType2ComboBox.SelectedIndex <= 1) {
+					MessageBox.Show(output_error, SoftName);
+				}
+			}
 		}
 
 		private class Renju {
@@ -645,7 +695,7 @@ namespace Shioi {
 				return output;
 			}
 			// Convert move into string
-			private string ToStringMoveMini(int MovePosition) {
+			static public string ToStringMoveMini(int MovePosition) {
 				var moveXY = ConvertMove1to2(MovePosition);
 				return PositionStringX.Substring(moveXY[0], 1) + PositionStringY.Substring(moveXY[1], 1);
 			}

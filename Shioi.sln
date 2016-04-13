@@ -1,7 +1,7 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio 14
-VisualStudioVersion = 14.0.25029.0
+VisualStudioVersion = 14.0.25123.0
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Shioi", "Shioi\Shioi.csproj", "{1BA7C4A7-2884-4824-9336-1994D222AF32}"
 EndProject
@@ -9,9 +9,6 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "I401", "I401\I401.vcxproj",
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
-		Debug(with GUI)|Any CPU = Debug(with GUI)|Any CPU
-		Debug(with GUI)|x64 = Debug(with GUI)|x64
-		Debug(with GUI)|x86 = Debug(with GUI)|x86
 		Debug|Any CPU = Debug|Any CPU
 		Debug|x64 = Debug|x64
 		Debug|x86 = Debug|x86
@@ -20,12 +17,6 @@ Global
 		Release|x86 = Release|x86
 	EndGlobalSection
 	GlobalSection(ProjectConfigurationPlatforms) = postSolution
-		{1BA7C4A7-2884-4824-9336-1994D222AF32}.Debug(with GUI)|Any CPU.ActiveCfg = Debug(with GUI)|Any CPU
-		{1BA7C4A7-2884-4824-9336-1994D222AF32}.Debug(with GUI)|Any CPU.Build.0 = Debug(with GUI)|Any CPU
-		{1BA7C4A7-2884-4824-9336-1994D222AF32}.Debug(with GUI)|x64.ActiveCfg = Debug(with GUI)|Any CPU
-		{1BA7C4A7-2884-4824-9336-1994D222AF32}.Debug(with GUI)|x64.Build.0 = Debug(with GUI)|Any CPU
-		{1BA7C4A7-2884-4824-9336-1994D222AF32}.Debug(with GUI)|x86.ActiveCfg = Debug(with GUI)|Any CPU
-		{1BA7C4A7-2884-4824-9336-1994D222AF32}.Debug(with GUI)|x86.Build.0 = Debug(with GUI)|Any CPU
 		{1BA7C4A7-2884-4824-9336-1994D222AF32}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{1BA7C4A7-2884-4824-9336-1994D222AF32}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{1BA7C4A7-2884-4824-9336-1994D222AF32}.Debug|x64.ActiveCfg = Debug|Any CPU
@@ -38,11 +29,6 @@ Global
 		{1BA7C4A7-2884-4824-9336-1994D222AF32}.Release|x64.Build.0 = Release|Any CPU
 		{1BA7C4A7-2884-4824-9336-1994D222AF32}.Release|x86.ActiveCfg = Release|Any CPU
 		{1BA7C4A7-2884-4824-9336-1994D222AF32}.Release|x86.Build.0 = Release|Any CPU
-		{D5A92CE6-A367-491F-9AB4-9024C2703EA8}.Debug(with GUI)|Any CPU.ActiveCfg = Debug(with GUI)|Win32
-		{D5A92CE6-A367-491F-9AB4-9024C2703EA8}.Debug(with GUI)|x64.ActiveCfg = Debug(with GUI)|x64
-		{D5A92CE6-A367-491F-9AB4-9024C2703EA8}.Debug(with GUI)|x64.Build.0 = Debug(with GUI)|x64
-		{D5A92CE6-A367-491F-9AB4-9024C2703EA8}.Debug(with GUI)|x86.ActiveCfg = Debug(with GUI)|Win32
-		{D5A92CE6-A367-491F-9AB4-9024C2703EA8}.Debug(with GUI)|x86.Build.0 = Debug(with GUI)|Win32
 		{D5A92CE6-A367-491F-9AB4-9024C2703EA8}.Debug|Any CPU.ActiveCfg = Debug|Win32
 		{D5A92CE6-A367-491F-9AB4-9024C2703EA8}.Debug|x64.ActiveCfg = Debug|x64
 		{D5A92CE6-A367-491F-9AB4-9024C2703EA8}.Debug|x64.Build.0 = Debug|x64
