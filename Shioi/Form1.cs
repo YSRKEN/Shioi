@@ -117,18 +117,24 @@ namespace Shioi {
 		}
 
 		private void StartComputingToolStripMenuItem_Click(object sender, EventArgs e) {
+			if(ComType1ComboBox.SelectedIndex <= 0 || ComType2ComboBox.SelectedIndex <= 0)
+				return;
 			if(!CalcFlg) {
 				StartAndStopComputingButton.Text = "||";
 				CalcFlg = true;
 			}
 		}
 		private void StopComputingToolStripMenuItem_Click(object sender, EventArgs e) {
+			if(ComType1ComboBox.SelectedIndex <= 0 || ComType2ComboBox.SelectedIndex <= 0)
+				return;
 			if(!CalcFlg) {
 				StartAndStopComputingButton.Text = "|>";
 				CalcFlg = false;
 			}
 		}
 		private void StartAndStopComputingButton_Click(object sender, EventArgs e) {
+			if(ComType1ComboBox.SelectedIndex <= 0 || ComType2ComboBox.SelectedIndex <= 0)
+				return;
 			if(!CalcFlg) {
 				StartAndStopComputingButton.Text = "||";
 				CalcFlg = true;
@@ -190,12 +196,12 @@ namespace Shioi {
 			}
 		}
 		private void GameTimer_Tick(object sender, EventArgs e) {
-			if(!CalcFlg || ComTypeComboBox.SelectedIndex <= 0)
+			if(!CalcFlg || ComType1ComboBox.SelectedIndex <= 0 || ComType2ComboBox.SelectedIndex <= 0)
 				return;
-			if(FormRenju.TurnPlayer() == Stone.Black && ComTypeComboBox.SelectedIndex != 2) {
+			if(FormRenju.TurnPlayer() == Stone.Black && ComType1ComboBox.SelectedIndex >= 2) {
 				ComputingNextMove();
 			}
-			if(FormRenju.TurnPlayer() == Stone.White && ComTypeComboBox.SelectedIndex != 1) {
+			if(FormRenju.TurnPlayer() == Stone.White && ComType2ComboBox.SelectedIndex >= 2) {
 				ComputingNextMove();
 			}
 		}
@@ -310,10 +316,18 @@ namespace Shioi {
 			psInfo.CreateNoWindow = true;
 			psInfo.UseShellExecute = false;
 			psInfo.Arguments = FormRenju.GetArgumentString();
-			if(ComputeDepthComboBox.SelectedIndex != -1) {
-				psInfo.Arguments += " " + ComputeDepthComboBox.SelectedIndex.ToString();
+			if(FormRenju.TurnPlayer() == Stone.Black) {
+				if(ComType1ComboBox.SelectedIndex >= 2) {
+					psInfo.Arguments += " " + (ComType1ComboBox.SelectedIndex - 2).ToString();
+				} else {
+					psInfo.Arguments += " 0";
+				}
 			} else {
-				psInfo.Arguments += " 0";
+				if(ComType2ComboBox.SelectedIndex >= 2) {
+					psInfo.Arguments += " " + (ComType2ComboBox.SelectedIndex - 2).ToString();
+				} else {
+					psInfo.Arguments += " 0";
+				}
 			}
 			if(DebugModeMenuItem.CheckState == CheckState.Checked) {
 				psInfo.Arguments += " Debug";
@@ -341,7 +355,9 @@ namespace Shioi {
 				}
 			}
 			if(DebugModeMenuItem.CheckState == CheckState.Checked && output_error != "") {
-				MessageBox.Show(output_error, SoftName);
+				if(ComType1ComboBox.SelectedIndex <= 1 || ComType2ComboBox.SelectedIndex <= 1) {
+					MessageBox.Show(output_error, SoftName);
+				}
 			}
 		}
 

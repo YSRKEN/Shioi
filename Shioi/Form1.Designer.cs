@@ -45,7 +45,6 @@
 			this.toolStripSeparator2 = new System.Windows.Forms.ToolStripSeparator();
 			this.StartComputingToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
 			this.StopComputingToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
-			this.ComputeDepthComboBox = new System.Windows.Forms.ToolStripComboBox();
 			this.DebugModeMenuItem = new System.Windows.Forms.ToolStripMenuItem();
 			this.HelpToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
 			this.AboutAToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
@@ -61,8 +60,9 @@
 			this.LastMoveButton = new System.Windows.Forms.Button();
 			this.StartAndStopComputingButton = new System.Windows.Forms.Button();
 			this.ShowMoveNumberComboBox = new System.Windows.Forms.ComboBox();
-			this.ComTypeComboBox = new System.Windows.Forms.ComboBox();
+			this.ComType1ComboBox = new System.Windows.Forms.ComboBox();
 			this.GameTimer = new System.Windows.Forms.Timer(this.components);
+			this.ComType2ComboBox = new System.Windows.Forms.ComboBox();
 			this.MenuStrip.SuspendLayout();
 			this.StatusStrip.SuspendLayout();
 			((System.ComponentModel.ISupportInitialize)(this.PictureBox)).BeginInit();
@@ -189,7 +189,6 @@
             this.toolStripSeparator2,
             this.StartComputingToolStripMenuItem,
             this.StopComputingToolStripMenuItem,
-            this.ComputeDepthComboBox,
             this.DebugModeMenuItem});
 			this.GameToolStripMenuItem.Name = "GameToolStripMenuItem";
 			this.GameToolStripMenuItem.Size = new System.Drawing.Size(65, 20);
@@ -247,19 +246,6 @@
 			this.StopComputingToolStripMenuItem.Size = new System.Drawing.Size(223, 22);
 			this.StopComputingToolStripMenuItem.Text = "|| Stop computing(&T)";
 			this.StopComputingToolStripMenuItem.Click += new System.EventHandler(this.StopComputingToolStripMenuItem_Click);
-			// 
-			// ComputeDepthComboBox
-			// 
-			this.ComputeDepthComboBox.Items.AddRange(new object[] {
-            "depth : 0",
-            "depth : 1",
-            "depth : 2",
-            "depth : 3",
-            "depth : 4",
-            "depth : 5"});
-			this.ComputeDepthComboBox.Name = "ComputeDepthComboBox";
-			this.ComputeDepthComboBox.Size = new System.Drawing.Size(121, 23);
-			this.ComputeDepthComboBox.Text = "depth : 0";
 			// 
 			// DebugModeMenuItem
 			// 
@@ -385,7 +371,7 @@
 			// 
 			// ShowMoveNumberComboBox
 			// 
-			this.ShowMoveNumberComboBox.Font = new System.Drawing.Font("MS UI Gothic", 12F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(128)));
+			this.ShowMoveNumberComboBox.Font = new System.Drawing.Font("MS UI Gothic", 9.75F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(128)));
 			this.ShowMoveNumberComboBox.FormattingEnabled = true;
 			this.ShowMoveNumberComboBox.Items.AddRange(new object[] {
             "-1",
@@ -449,32 +435,49 @@
             "57",
             "58",
             "59"});
-			this.ShowMoveNumberComboBox.Location = new System.Drawing.Point(367, 31);
+			this.ShowMoveNumberComboBox.Location = new System.Drawing.Point(364, 34);
 			this.ShowMoveNumberComboBox.Name = "ShowMoveNumberComboBox";
-			this.ShowMoveNumberComboBox.Size = new System.Drawing.Size(45, 24);
+			this.ShowMoveNumberComboBox.Size = new System.Drawing.Size(45, 21);
 			this.ShowMoveNumberComboBox.TabIndex = 9;
 			this.ShowMoveNumberComboBox.Text = "-1";
 			this.ShowMoveNumberComboBox.SelectedIndexChanged += new System.EventHandler(this.ShowMoveNumberComboBox_SelectedIndexChanged);
 			// 
-			// ComTypeComboBox
+			// ComType1ComboBox
 			// 
-			this.ComTypeComboBox.Font = new System.Drawing.Font("MS UI Gothic", 12F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(128)));
-			this.ComTypeComboBox.FormattingEnabled = true;
-			this.ComTypeComboBox.Items.AddRange(new object[] {
-            "CPU->None",
-            "CPU->Black",
-            "CPU->White",
-            "CPU->All"});
-			this.ComTypeComboBox.Location = new System.Drawing.Point(242, 31);
-			this.ComTypeComboBox.Name = "ComTypeComboBox";
-			this.ComTypeComboBox.Size = new System.Drawing.Size(119, 24);
-			this.ComTypeComboBox.TabIndex = 10;
-			this.ComTypeComboBox.Text = "CPU->None";
+			this.ComType1ComboBox.Font = new System.Drawing.Font("MS UI Gothic", 9.75F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(128)));
+			this.ComType1ComboBox.FormattingEnabled = true;
+			this.ComType1ComboBox.Items.AddRange(new object[] {
+            "Black",
+            "Human",
+            "Lv.0",
+            "Lv.1",
+            "Lv.2"});
+			this.ComType1ComboBox.Location = new System.Drawing.Point(242, 34);
+			this.ComType1ComboBox.Name = "ComType1ComboBox";
+			this.ComType1ComboBox.Size = new System.Drawing.Size(55, 21);
+			this.ComType1ComboBox.TabIndex = 10;
+			this.ComType1ComboBox.Text = "Black";
 			// 
 			// GameTimer
 			// 
 			this.GameTimer.Enabled = true;
 			this.GameTimer.Tick += new System.EventHandler(this.GameTimer_Tick);
+			// 
+			// ComType2ComboBox
+			// 
+			this.ComType2ComboBox.Font = new System.Drawing.Font("MS UI Gothic", 9.75F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(128)));
+			this.ComType2ComboBox.FormattingEnabled = true;
+			this.ComType2ComboBox.Items.AddRange(new object[] {
+            "White",
+            "Human",
+            "Lv.0",
+            "Lv.1",
+            "Lv.2"});
+			this.ComType2ComboBox.Location = new System.Drawing.Point(303, 34);
+			this.ComType2ComboBox.Name = "ComType2ComboBox";
+			this.ComType2ComboBox.Size = new System.Drawing.Size(55, 21);
+			this.ComType2ComboBox.TabIndex = 11;
+			this.ComType2ComboBox.Text = "White";
 			// 
 			// MainForm
 			// 
@@ -482,7 +485,8 @@
 			this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 12F);
 			this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
 			this.ClientSize = new System.Drawing.Size(424, 501);
-			this.Controls.Add(this.ComTypeComboBox);
+			this.Controls.Add(this.ComType2ComboBox);
+			this.Controls.Add(this.ComType1ComboBox);
 			this.Controls.Add(this.ShowMoveNumberComboBox);
 			this.Controls.Add(this.StartAndStopComputingButton);
 			this.Controls.Add(this.LastMoveButton);
@@ -546,10 +550,10 @@
 		private System.Windows.Forms.ComboBox ShowMoveNumberComboBox;
 		private System.Windows.Forms.ToolStripMenuItem CopyBoardandTurnTextAToolStripMenuItem;
 		private System.Windows.Forms.ToolStripStatusLabel ElapsedTimeStatusLabel;
-		private System.Windows.Forms.ToolStripComboBox ComputeDepthComboBox;
 		private System.Windows.Forms.ToolStripMenuItem DebugModeMenuItem;
-		private System.Windows.Forms.ComboBox ComTypeComboBox;
+		private System.Windows.Forms.ComboBox ComType1ComboBox;
 		private System.Windows.Forms.Timer GameTimer;
+		private System.Windows.Forms.ComboBox ComType2ComboBox;
 	}
 }
 

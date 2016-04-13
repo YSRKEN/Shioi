@@ -19,6 +19,7 @@ using std::vector;
 // const value declaration
 const size_t kBoardSize = 15;
 const size_t kSearchWidth = 5;
+const size_t kShioiDepth1 = 20, kShioiDepth2 = 3;
 const int kScoreInf = 1000;
 const int kScoreInf2 = kScoreInf + 1;
 const string kPositionStringX = "abcdefghijklmno";
@@ -45,6 +46,8 @@ enum Side : uint8_t {
 	Left,
 	Sides
 };
+
+size_t node = 0;
 
 // typedef declaration
 typedef std::pair<size_t, int> Score;
@@ -1410,16 +1413,208 @@ class Board {
 		}
 		return Result(0, false);
 	}
-	// 
-	// Find Normal move
-	Result FindNormalMove(const size_t depth) {
-		vector<size_t> next_move;
-		int max_score = -kScoreInf - 1;
+	// Get Range(for Prospective pruning)
+	array<size_t, 4> GetRange() const noexcept {
+		array<size_t, 4> range{ kBoardSize, kBoardSize, 0, 0 };
+		for (size_t y = 0; y < kBoardSize; ++y) {
+			for (size_t x = 0; x < kBoardSize; ++x) {
+				size_t p = x + y * kBoardSize;
+				if (board_[p] == Stone::None) continue;
+				range[0] = std::min(range[0], x);
+				range[1] = std::min(range[1], y);
+				range[2] = std::max(range[2], x);
+				range[3] = std::max(range[3], y);
+			}
+		}
+		if (range[0] <= 2) range[0] = 0; else range[0] -= 2;
+		if (range[1] <= 2) range[1] = 0; else range[1] -= 2;
+		if (range[2] + 2 >= kBoardSize) range[2] = kBoardSize - 1; else range[2] += 2;
+		if (range[3] + 2 >= kBoardSize) range[3] = kBoardSize - 1; else range[3] += 2;
+		return range;
+	}
+	// AlphaBeta Method
+	int NegaMax(const Stone turn, const size_t depth, int alpha, int beta) {
+		if (FindGorenMove(turn).second) return beta;
+		int max_score = -kScoreInf2;
 		if (depth == 0) {
 			// Find enemy's Shioi(Pre-search)
-			bool enemy_shioi_flg = false;
-			auto result = FindShioiMove(EnemyTurn(turn_), 5);
-			if (result.second) enemy_shioi_flg = true;
+			if (turn == Stone::Black) {
+				auto range = GetRange();
+				for (size_t y = range[1]; y <= range[3]; ++y) {
+					for (size_t x = range[0]; x <= range[2]; ++x) {
+						size_t p = ToPosition(x, y);
+						if (board_[p] != Stone::None) continue;
+						// Judge valid move
+						bool cho_ren_flg = false;
+						size_t sum_4_strong = 0, sum_4_normal = 0, sum_3 = 0;
+						for (uint8_t dir = 0; dir < Direction::Directions; ++dir) {
+							auto move_pattern = GetPatternB(p, static_cast<Direction>(dir));
+							if (IsChorenB(move_pattern)) {
+								cho_ren_flg = true;
+								break;
+							}
+							size_t s4s, s4n, s3;
+							std::tie(s4s, s4n, s3) = CountRenB(move_pattern, p, static_cast<Direction>(dir));
+							sum_4_strong += s4s;
+							sum_4_normal += s4n;
+							sum_3 += s3;
+						}
+						if (cho_ren_flg || sum_4_strong + sum_4_normal >= 2 || sum_3 >= 2) continue;
+						if (sum_4_strong == 1) return beta;
+						int score;
+						/* // Find enemy's Shioi
+						board_[p] = turn;
+						auto result = FindShioiMove(EnemyTurn(turn), kShioiDepth3);
+						board_[p] = Stone::None;
+						if (result.second) {
+							// Don't block Shioi
+							score = -kScoreInf;
+						}
+						else {*/
+							// Normal Score
+							score = kTenGenDist[p];
+						//}
+						if (max_score < score) {
+							max_score = score;
+							if (max_score >= beta) {
+								return beta;
+							}
+						}
+					}
+				}
+			}
+			else {
+				auto range = GetRange();
+				for (size_t y = range[1]; y <= range[3]; ++y) {
+					for (size_t x = range[0]; x <= range[2]; ++x) {
+						size_t p = ToPosition(x, y);
+						if (board_[p] != Stone::None) continue;
+						size_t sum_4_strong = 0, sum_4_normal = 0, sum_3 = 0;
+						for (uint8_t dir = 0; dir < Direction::Directions; ++dir) {
+							auto move_pattern = GetPatternB(p, static_cast<Direction>(dir));
+							if (IsChorenB(move_pattern)) return beta;
+							size_t s4s, s4n, s3;
+							std::tie(s4s, s4n, s3) = CountRenB(move_pattern, p, static_cast<Direction>(dir));
+							sum_4_strong += s4s;
+							sum_4_normal += s4n;
+							sum_3 += s3;
+						}
+						if (sum_4_strong >= 1 || sum_4_normal >= 2) return beta;
+						int score;
+						/*// Find enemy's Shioi
+						board_[p] = turn;
+						auto result = FindShioiMove(EnemyTurn(turn), kShioiDepth3);
+						board_[p] = Stone::None;
+						if (result.second) {
+							// Don't block Shioi
+							score = -kScoreInf;
+						}
+						else {*/
+							// Normal Score
+							score = kTenGenDist[p];
+						//}
+						if (max_score < score) {
+							max_score = score;
+							if (max_score >= beta) {
+								return beta;
+							}
+						}
+					}
+				}
+			}
+			return max_score;
+		}
+		else {
+			vector<Score> next_move2;
+			auto range = GetRange();
+			if (turn == Stone::Black) {
+				for (size_t y = range[1]; y <= range[3]; ++y) {
+					for (size_t x = range[0]; x <= range[2]; ++x) {
+						size_t p = ToPosition(x, y);
+						if (board_[p] != Stone::None) continue;
+						// Judge valid move
+						bool cho_ren_flg = false;
+						size_t sum_4_strong = 0, sum_4_normal = 0, sum_3 = 0;
+						for (uint8_t dir = 0; dir < Direction::Directions; ++dir) {
+							auto move_pattern = GetPatternB(p, static_cast<Direction>(dir));
+							if (IsChorenB(move_pattern)) {
+								cho_ren_flg = true;
+								break;
+							}
+							size_t s4s, s4n, s3;
+							std::tie(s4s, s4n, s3) = CountRenB(move_pattern, p, static_cast<Direction>(dir));
+							sum_4_strong += s4s;
+							sum_4_normal += s4n;
+							sum_3 += s3;
+						}
+						if (cho_ren_flg || sum_4_strong + sum_4_normal >= 2 || sum_3 >= 2) continue;
+						if (sum_4_strong == 1) return kScoreInf;
+						/*// Find enemy's Shioi
+						board_[p] = Stone::Black;
+						auto result = FindShioiMove(Stone::White, kShioiDepth3);
+						board_[p] = Stone::None;
+						if (result.second) {
+							// Don't block Shioi
+							next_move2.push_back(Score(p, -kScoreInf));
+						}
+						else {*/
+							// Normal Score
+							next_move2.push_back(Score(p, kTenGenDist[p]));
+						//}
+					}
+				}
+			}
+			else {
+				for (size_t y = range[1]; y <= range[3]; ++y) {
+					for (size_t x = range[0]; x <= range[2]; ++x) {
+						size_t p = ToPosition(x, y);
+						if (board_[p] != Stone::None) continue;
+						size_t sum_4_strong = 0, sum_4_normal = 0, sum_3 = 0;
+						for (uint8_t dir = 0; dir < Direction::Directions; ++dir) {
+							auto move_pattern = GetPatternB(p, static_cast<Direction>(dir));
+							if (IsChorenB(move_pattern)) return kScoreInf;
+							size_t s4s, s4n, s3;
+							std::tie(s4s, s4n, s3) = CountRenB(move_pattern, p, static_cast<Direction>(dir));
+							sum_4_strong += s4s;
+							sum_4_normal += s4n;
+							sum_3 += s3;
+						}
+						if (sum_4_strong >= 1 || sum_4_normal >= 2) return kScoreInf;
+						/*// Find enemy's Shioi
+						board_[p] = Stone::White;
+						auto result = FindShioiMove(Stone::Black, kShioiDepth3);
+						board_[p] = Stone::None;
+						if (result.second) {
+							// Don't block Shioi
+							next_move2.push_back(Score(p, -kScoreInf));
+						}
+						else {*/
+							// Normal Score
+							next_move2.push_back(Score(p, kTenGenDist[p]));
+						//}
+					}
+				}
+			}
+			std::sort(next_move2.begin(), next_move2.end(), [](const Score &a, const Score &b) {return a.second > b.second; });
+			for (auto &it : next_move2) {
+				board_[it.first] = turn;
+				auto score = -NegaMax(EnemyTurn(turn), depth - 1, -kScoreInf2, kScoreInf2);
+				board_[it.first] = Stone::None;
+				if (max_score < score) {
+					max_score = score;
+					if (max_score >= beta) {
+						return beta;
+					}
+				}
+			}
+			return max_score;
+		}
+	}
+	// Find Normal move
+	Result FindNormalMove(const size_t depth, bool debug_flg = false) {
+		vector<size_t> next_move;
+		int max_score = -kScoreInf2;
+		if (depth == 0) {
 			if (turn_ == Stone::Black) {
 				for (size_t p = 0; p < kBoardSize * kBoardSize; ++p) {
 					if (board_[p] != Stone::None) continue;
@@ -1442,27 +1637,24 @@ class Board {
 					if (sum_4_strong == 1) return Result(p, true);
 					// Find enemy's Shioi
 					int score;
-					if (enemy_shioi_flg) {
-						board_[p] = turn_;
-						auto result = FindShioiMove(EnemyTurn(turn_), 5);
-						board_[p] = Stone::None;
-						if (result.second) {
-							// Don't block Shioi
-							score = -kScoreInf;
-						}
-						else {
-							// Normal Score
-							score = kTenGenDist[p];
-						}
+					board_[p] = turn_;
+					auto result = FindShioiMove(EnemyTurn(turn_), kShioiDepth2);
+					board_[p] = Stone::None;
+					if (result.second) {
+						// Don't block Shioi
+						score = -kScoreInf;
 					}
 					else {
+						// Normal Score
 						score = kTenGenDist[p];
 					}
 					if (max_score < score) {
 						max_score = score;
+						if (debug_flg) std::cerr << endl << "  " << score << " : ";
 						next_move.clear();
 					}
 					if (max_score == score) {
+						if (debug_flg) std::cerr << PositionToString(p) << ", ";
 						next_move.push_back(p);
 					}
 				}
@@ -1482,123 +1674,114 @@ class Board {
 					if (sum_4_strong >= 1 || sum_4_normal >= 2) return Result(p, true);
 					// Find enemy's Shioi
 					int score;
-					if (enemy_shioi_flg) {
-						board_[p] = turn_;
-						auto result = FindShioiMove(EnemyTurn(turn_), 5);
-						board_[p] = Stone::None;
-						if (result.second) {
-							// Don't block Shioi
-							score = -kScoreInf;
-						}
-						else {
-							// Normal Score
-							score = kTenGenDist[p];
-						}
+					board_[p] = turn_;
+					auto result = FindShioiMove(EnemyTurn(turn_), kShioiDepth2);
+					board_[p] = Stone::None;
+					if (result.second) {
+						// Don't block Shioi
+						score = -kScoreInf;
 					}
 					else {
+						// Normal Score
 						score = kTenGenDist[p];
 					}
 					if (max_score < score) {
 						max_score = score;
+						if (debug_flg) std::cerr << endl << "  " << score << " : ";
 						next_move.clear();
 					}
 					if (max_score == score) {
+						if (debug_flg) std::cerr << PositionToString(p) << ", ";
 						next_move.push_back(p);
 					}
 				}
 			}
 		}
 		else {
-			// Find enemy's Shioi(Pre-search)
-			bool enemy_shioi_flg = false;
-			auto result = FindShioiMove(EnemyTurn(turn_), 5);
-			if (result.second) enemy_shioi_flg = true;
+			vector<Score> next_move2;
+			auto range = GetRange();
 			if (turn_ == Stone::Black) {
-				for (size_t p = 0; p < kBoardSize * kBoardSize; ++p) {
-					if (board_[p] != Stone::None) continue;
-					// Judge valid move
-					bool cho_ren_flg = false;
-					size_t sum_4_strong = 0, sum_4_normal = 0, sum_3 = 0;
-					for (uint8_t dir = 0; dir < Direction::Directions; ++dir) {
-						auto move_pattern = GetPatternB(p, static_cast<Direction>(dir));
-						if (IsChorenB(move_pattern)) {
-							cho_ren_flg = true;
-							break;
+				for (size_t y = range[1]; y <= range[3]; ++y) {
+					for (size_t x = range[0]; x <= range[2]; ++x) {
+						size_t p = ToPosition(x, y);
+						if (board_[p] != Stone::None) continue;
+						// Judge valid move
+						bool cho_ren_flg = false;
+						size_t sum_4_strong = 0, sum_4_normal = 0, sum_3 = 0;
+						for (uint8_t dir = 0; dir < Direction::Directions; ++dir) {
+							auto move_pattern = GetPatternB(p, static_cast<Direction>(dir));
+							if (IsChorenB(move_pattern)) {
+								cho_ren_flg = true;
+								break;
+							}
+							size_t s4s, s4n, s3;
+							std::tie(s4s, s4n, s3) = CountRenB(move_pattern, p, static_cast<Direction>(dir));
+							sum_4_strong += s4s;
+							sum_4_normal += s4n;
+							sum_3 += s3;
 						}
-						size_t s4s, s4n, s3;
-						std::tie(s4s, s4n, s3) = CountRenB(move_pattern, p, static_cast<Direction>(dir));
-						sum_4_strong += s4s;
-						sum_4_normal += s4n;
-						sum_3 += s3;
-					}
-					if (cho_ren_flg || sum_4_strong + sum_4_normal >= 2 || sum_3 >= 2) continue;
-					if (sum_4_strong == 1) return Result(p, true);
-					// Find enemy's Shioi
-					int score;
-					if (enemy_shioi_flg) {
-						board_[p] = turn_;
-						auto result = FindShioiMove(EnemyTurn(turn_), 5);
+						if (cho_ren_flg || sum_4_strong + sum_4_normal >= 2 || sum_3 >= 2) continue;
+						if (sum_4_strong == 1) return Result(p, true);
+						// Find enemy's Shioi
+						board_[p] = Stone::Black;
+						auto result = FindShioiMove(Stone::White, kShioiDepth2);
 						board_[p] = Stone::None;
 						if (result.second) {
 							// Don't block Shioi
-							score = -kScoreInf;
+							next_move2.push_back(Score(p, -kScoreInf));
 						}
 						else {
 							// Normal Score
-							score = kTenGenDist[p];
+							next_move2.push_back(Score(p, kTenGenDist[p]));
 						}
-					}
-					else {
-						score = kTenGenDist[p];
-					}
-					if (max_score < score) {
-						max_score = score;
-						next_move.clear();
-					}
-					if (max_score == score) {
-						next_move.push_back(p);
 					}
 				}
 			}
 			else {
-				for (size_t p = 0; p < kBoardSize * kBoardSize; ++p) {
-					if (board_[p] != Stone::None) continue;
-					size_t sum_4_strong = 0, sum_4_normal = 0, sum_3 = 0;
-					for (uint8_t dir = 0; dir < Direction::Directions; ++dir) {
-						auto move_pattern = GetPatternB(p, static_cast<Direction>(dir));
-						if (IsChorenB(move_pattern)) return Result(p, true);
-						size_t s4s, s4n, s3;
-						std::tie(s4s, s4n, s3) = CountRenB(move_pattern, p, static_cast<Direction>(dir));
-						sum_4_strong += s4s;
-						sum_4_normal += s4n;
-						sum_3 += s3;
-					}
-					if (sum_4_strong >= 1 || sum_4_normal >= 2) return Result(p, true);
-					// Find enemy's Shioi
-					int score;
-					if (enemy_shioi_flg) {
-						board_[p] = turn_;
-						auto result = FindShioiMove(EnemyTurn(turn_), 5);
+				for (size_t y = range[1]; y <= range[3]; ++y) {
+					for (size_t x = range[0]; x <= range[2]; ++x) {
+						size_t p = ToPosition(x, y);
+						if (board_[p] != Stone::None) continue;
+						size_t sum_4_strong = 0, sum_4_normal = 0, sum_3 = 0;
+						for (uint8_t dir = 0; dir < Direction::Directions; ++dir) {
+							auto move_pattern = GetPatternB(p, static_cast<Direction>(dir));
+							if (IsChorenB(move_pattern)) return Result(p, true);
+							size_t s4s, s4n, s3;
+							std::tie(s4s, s4n, s3) = CountRenB(move_pattern, p, static_cast<Direction>(dir));
+							sum_4_strong += s4s;
+							sum_4_normal += s4n;
+							sum_3 += s3;
+						}
+						if (sum_4_strong >= 1 || sum_4_normal >= 2) return Result(p, true);
+						// Find enemy's Shioi
+						board_[p] = Stone::White;
+						auto result = FindShioiMove(Stone::Black, kShioiDepth2);
 						board_[p] = Stone::None;
 						if (result.second) {
 							// Don't block Shioi
-							score = -kScoreInf;
+							next_move2.push_back(Score(p, -kScoreInf));
 						}
 						else {
 							// Normal Score
-							score = kTenGenDist[p];
+							next_move2.push_back(Score(p, kTenGenDist[p]));
 						}
 					}
-					else {
-						score = kTenGenDist[p];
-					}
-					if (max_score < score) {
-						max_score = score;
-						next_move.clear();
-					}
-					if (max_score == score) {
-						next_move.push_back(p);
-					}
+				}
+			}
+			std::sort(next_move2.begin(), next_move2.end(), [](const Score &a, const Score &b) {return a.second > b.second; });
+			for (auto &it : next_move2) {
+				board_[it.first] = turn_;
+				int score = -NegaMax(EnemyTurn(turn_), depth - 1, -kScoreInf2, kScoreInf2) + kTenGenDist[it.first];
+				board_[it.first] = Stone::None;
+				if (score == kScoreInf) return Result(it.first, true);
+				if (max_score < score) {
+					max_score = score;
+					if (debug_flg) std::cerr << endl << "  " << score << " : ";
+					next_move.clear();
+				}
+				if (max_score == score) {
+					if (debug_flg) std::cerr << PositionToString(it.first) << ", ";
+					next_move.push_back(it.first);
 				}
 			}
 		}
@@ -1681,21 +1864,26 @@ public:
 		// If the game is end, you don't move.
 		if (IsGameEnd()) return -1;
 		// Opening move
+		if (debug_flg) std::cerr << "Opening" << endl;
 		auto result = GetOpeningMove(turn_);
 		if (result.second) return result.first;
 		// If you can make Go-ren, you must do.
+		if (debug_flg) std::cerr << "Goren" << endl;
 		result = FindGorenMove(turn_);
 		if (result.second) return result.first;
 		// If enemy can make Go-ren, you must block it.
+		if (debug_flg) std::cerr << "Stop Goren" << endl;
 		result = FindGorenMove(EnemyTurn(turn_));
 		if (result.second) {
 			if(turn_ == Stone::White || IsValidMove(result.first)) return result.first;
 		}
 		// Search of quadruplex's problem(Shioi Tsume)
-		result = FindShioiMove(turn_, 10);
+		if (debug_flg) std::cerr << "Shioi" << endl;
+		result = FindShioiMove(turn_, kShioiDepth1);
 		if (result.second) return result.first;
 		// Normal move search
-		result = FindNormalMove(depth);
+		if (debug_flg) std::cerr << "Normal" << endl;
+		result = FindNormalMove(depth, debug_flg);
 		if (result.second) return result.first;
 		if (result.first >= kBoardSize * kBoardSize) return -2;
 		return -1;
