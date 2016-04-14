@@ -1,4 +1,4 @@
-#include<algorithm>
+Ôªø#include<algorithm>
 #include<array>
 #include<cmath>
 #include<cstdint>
@@ -7,7 +7,7 @@
 #include<string>
 #include<tuple>
 #include<vector>
-
+#include<cassert>
 // using declaration
 using std::array;
 using std::cout;
@@ -31,13 +31,13 @@ enum Stone : uint8_t {
 	White
 };
 enum Direction : uint8_t {
-	// Row(Ñü) R[1, 0] L[-1, 0]
+	// Row(‚îÄ) R[1, 0] L[-1, 0]
 	Row,
-	// Column(Ñ†) R[0, 1] L[0, -1]
+	// Column(‚îÇ) R[0, 1] L[0, -1]
 	Column,
-	// Diagonally right(Å^) R[-1, 1] L[1, -1]
+	// Diagonally right(Ôºè) R[-1, 1] L[1, -1]
 	DiagR,
-	// Diagonally left(Å_) R[1, 1] L[-1, -1]
+	// Diagonally left(Ôºº) R[1, 1] L[-1, -1]
 	DiagL,
 	Directions
 };
@@ -88,7 +88,39 @@ constexpr size_t PackPattern(const Stone s1, const Stone s2, const Stone s3, con
 constexpr size_t PackPatternAdd(const size_t s1, const Stone s2) {
 	return (s1 << 2) + s2;
 }
-
+namespace Board_helper {
+	constexpr std::pair<array<size_t, 2>, size_t> ToPositionByDirection(const Direction d, const size_t i, const size_t j) {
+		//C++11 constexpr„Åß„ÅØswitchÊñá„Åå‰Ωø„Åà„Å™„ÅÑ„ÅÆ„ÅßËá¥„ÅóÊñπ„Å™„Åó
+		return (d < DiagR)
+			? (d == Row)
+				? std::pair<array<size_t, 2>, size_t>{ {{ ToPosition(j, i), 0 }}, 1U }// Row(‚îÄ)
+				: std::pair<array<size_t, 2>, size_t>{ {{ ToPosition(i, j), 0 }}, 1U }// Column(‚îÇ)
+			: (d == DiagR)
+				? std::pair<array<size_t, 2>, size_t>{ {{ ToPosition(i - j, j), ToPosition(kBoardSize - 1 - j, i + j)}}, 2U }// Diagonally right(Ôºè)
+				: std::pair<array<size_t, 2>, size_t>{ {{ ToPosition(i + j, j), ToPosition(j, i + j)}}, 2U };// Diagonally left(Ôºº)
+	}
+	constexpr std::pair<array<size_t, 2>, size_t> CalcOuterLoopMaxByDirection(const Direction d) {
+		//C++11 constexpr„Åß„ÅØswitchÊñá„Åå‰Ωø„Åà„Å™„ÅÑ„ÅÆ„ÅßËá¥„ÅóÊñπ„Å™„Åó
+		return (d < DiagR)
+			? std::pair<array<size_t, 2>, size_t>{ {{ kBoardSize, 0 }}, 1U }// Row(‚îÄ) Column(‚îÇ)
+			: (d == DiagR)
+				? std::pair<array<size_t, 2>, size_t>{ {{ kBoardSize, kBoardSize - 4}}, 2U }// Diagonally right(Ôºè)
+				: std::pair<array<size_t, 2>, size_t>{ {{ kBoardSize - 4, kBoardSize - 4 }}, 2U };// Diagonally left(Ôºº)
+	}
+	std::pair<array<size_t, 2>, size_t> CalcInnerLoopMaxByDirection(const Direction d, const size_t i) {
+		switch (d) {
+		case Row:
+		case Column:
+			return std::pair<array<size_t, 2>, size_t>{ { { kBoardSize, 0 }}, 1U };
+		case DiagR:
+			return std::pair<array<size_t, 2>, size_t>{ { { i + 1, kBoardSize }}, 2U };
+		case DiagL:
+			return std::pair<array<size_t, 2>, size_t>{ { { kBoardSize, kBoardSize }}, 2U };
+		default:
+			return{};
+		}
+	}
+}
 // Board class
 class Board {
 	// values
@@ -98,7 +130,7 @@ class Board {
 	array<size_t, kBoardSize * kBoardSize> kTenGenDist;
 	// Put board
 	void PutBoard() {
-		const static string kStoneString2[] = { "Ñ©", "Åú", "Åõ" };
+		const static string kStoneString2[] = { "‚îº", "‚óè", "‚óã" };
 		for (size_t y = 0; y < kBoardSize; ++y) {
 			for (size_t x = 0; x < kBoardSize; ++x) {
 				size_t p = x + y * kBoardSize;
@@ -107,88 +139,34 @@ class Board {
 			cout << endl;
 		}
 	}
+	bool IsGameEndImpl(const Stone turn, Direction d) {
+		const auto outer_loop_max = Board_helper::CalcOuterLoopMaxByDirection(d);
+		for (size_t c = 0; c < outer_loop_max.second; ++c) {
+			for (size_t i = 0; i < outer_loop_max.first[c]; ++i) {
+				size_t len = 0;
+				const auto inner_loop_max = Board_helper::CalcInnerLoopMaxByDirection(d, i);
+				assert(inner_loop_max.second == outer_loop_max.second);
+				for (size_t j = 0; j < inner_loop_max.first[c]; ++j) {
+					const auto ps = Board_helper::ToPositionByDirection(d, i, j);
+					assert(ps.second == outer_loop_max.second);
+					const size_t p = ps.first[c];
+					if (board_[p] == turn) {
+						++len;
+						if (len == 5) return true;
+					}
+					else {
+						len = 0;
+					}
+				}
+			}
+		}
+		return false;
+	}
 	// Check GameEnd
 	bool IsGameEnd(const Stone turn) {
-		// Row(Ñü)
-		for (size_t i = 0; i < kBoardSize; ++i) {
-			size_t len = 0;
-			for (size_t j = 0; j < kBoardSize; ++j) {
-				size_t p = ToPosition(j, i);
-				if (board_[p] == turn) {
-					++len;
-					if (len == 5) return true;
-				}else{
-					len = 0;
-				}
-			}
-		}
-		// Column(Ñ†)
-		for (size_t i = 0; i < kBoardSize; ++i) {
-			size_t len = 0;
-			for (size_t j = 0; j < kBoardSize; ++j) {
-				size_t p = ToPosition(i, j);
-				if (board_[p] == turn) {
-					++len;
-					if (len == 5) return true;
-				}
-				else {
-					len = 0;
-				}
-			}
-		}
-		// Diagonally right(Å^)
-		for (size_t i = 4; i < kBoardSize; ++i) {
-			size_t len = 0;
-			for (size_t j = 0; j <= i; ++j) {
-				size_t p = ToPosition(i - j, j);
-				if (board_[p] == turn) {
-					++len;
-					if (len == 5) return true;
-				}
-				else {
-					len = 0;
-				}
-			}
-		}
-		for (size_t i = 1; i < kBoardSize - 4; ++i) {
-			size_t len = 0;
-			for (size_t j = 0; j < kBoardSize - i; ++j) {
-				size_t p = ToPosition(kBoardSize - 1 - j, i + j);
-				if (board_[p] == turn) {
-					++len;
-					if (len == 5) return true;
-				}
-				else {
-					len = 0;
-				}
-			}
-		}
-		// Diagonally left(Å_)
-		for (size_t i = 0; i < kBoardSize - 4; ++i) {
-			size_t len = 0;
-			for (size_t j = 0; j < kBoardSize - i; ++j) {
-				size_t p = ToPosition(i + j, j);
-				if (board_[p] == turn) {
-					++len;
-					if (len == 5) return true;
-				}
-				else {
-					len = 0;
-				}
-			}
-		}
-		for (size_t i = 1; i < kBoardSize - 4; ++i) {
-			size_t len = 0;
-			for (size_t j = 0; j < kBoardSize - i; ++j) {
-				size_t p = ToPosition(j, i + j);
-				if (board_[p] == turn) {
-					++len;
-					if (len == 5) return true;
-				}
-				else {
-					len = 0;
-				}
-			}
+		Direction d;
+		for (Direction d = Direction::Row; d < Direction::Directions; d = static_cast<Direction>(static_cast<uint8_t>(d) + 1)) {
+			if (IsGameEndImpl(turn, d)) return true;
 		}
 		return false;
 	}
@@ -209,33 +187,30 @@ class Board {
 	Result GetOpeningMove(const Stone turn) {
 		size_t count = CountStone();
 		if (count == 0) {
-			return Result(ToPosition(7, 7), true);
+			return{ ToPosition(7, 7), true };
 		}
+		else if (board_[ToPosition(7, 7)] != Stone::Black) return{};
 		else if (count == 1) {
-			if (board_[ToPosition(7, 7)] == Stone::Black) {
-				const static size_t next_move[] = { ToPosition(7, 6), ToPosition(8, 6) };
-				return Result(next_move[RandInt(2)], true);
-			}
+			constexpr static size_t next_move[] = { ToPosition(7, 6), ToPosition(8, 6) };
+			return{ next_move[RandInt(2)], true };
 		}
 		else if (count == 2) {
-			if (board_[ToPosition(7, 7)] == Stone::Black) {
-				// Ka-getsu
-				if (board_[ToPosition(7, 6)] == Stone::White) return Result(ToPosition(8, 6), true);
-				if (board_[ToPosition(8, 7)] == Stone::White) return Result(ToPosition(8, 8), true);
-				if (board_[ToPosition(7, 8)] == Stone::White) return Result(ToPosition(6, 8), true);
-				if (board_[ToPosition(6, 7)] == Stone::White) return Result(ToPosition(6, 6), true);
-				// Ho-getsu
-				if (board_[ToPosition(8, 6)] == Stone::White) return Result(ToPosition(8, 8), true);
-				if (board_[ToPosition(8, 8)] == Stone::White) return Result(ToPosition(6, 8), true);
-				if (board_[ToPosition(6, 8)] == Stone::White) return Result(ToPosition(6, 6), true);
-				if (board_[ToPosition(6, 6)] == Stone::White) return Result(ToPosition(8, 6), true);
-			}
+			// Ka-getsu
+			if (board_[ToPosition(7, 6)] == Stone::White) return{ToPosition(8, 6), true};
+			if (board_[ToPosition(8, 7)] == Stone::White) return{ToPosition(8, 8), true};
+			if (board_[ToPosition(7, 8)] == Stone::White) return{ToPosition(6, 8), true};
+			if (board_[ToPosition(6, 7)] == Stone::White) return{ToPosition(6, 6), true};
+			// Ho-getsu
+			if (board_[ToPosition(8, 6)] == Stone::White) return{ToPosition(8, 8), true};
+			if (board_[ToPosition(8, 8)] == Stone::White) return{ToPosition(6, 8), true};
+			if (board_[ToPosition(6, 8)] == Stone::White) return{ToPosition(6, 6), true};
+			if (board_[ToPosition(6, 6)] == Stone::White) return{ToPosition(8, 6), true};
 		}
-		return Result(0, false);
+		return{};
 	}
 	// Find Go-ren move
 	Result FindGorenMove(const Stone turn) {
-		// Row(Ñü)
+		// Row(‚îÄ)
 		for (size_t i = 0; i < kBoardSize; ++i) {
 			for (size_t j = 0; j < kBoardSize; ++j) {
 				size_t p = ToPosition(j, i);
@@ -258,7 +233,7 @@ class Board {
 				}
 			}
 		}
-		// Column(Ñ†)
+		// Column(‚îÇ)
 		for (size_t i = 0; i < kBoardSize; ++i) {
 			for (size_t j = 0; j < kBoardSize; ++j) {
 				size_t p = ToPosition(i, j);
@@ -281,7 +256,7 @@ class Board {
 				}
 			}
 		}
-		// Diagonally right(Å^)
+		// Diagonally right(Ôºè)
 		for (size_t i = 4; i < kBoardSize; ++i) {
 			for (size_t j = 0; j <= i; ++j) {
 				size_t p = ToPosition(i - j, j);
@@ -326,7 +301,7 @@ class Board {
 				}
 			}
 		}
-		// Diagonally left(Å_)
+		// Diagonally left(Ôºº)
 		for (size_t i = 0; i < kBoardSize - 4; ++i) {
 			for (size_t j = 0; j < kBoardSize - i; ++j) {
 				size_t p = ToPosition(i + j, j);
@@ -493,7 +468,7 @@ class Board {
 		/* 1. BO|BBB|OB   "Ryoutou-no-ShiShi"
 		 * 2. BBO|BB|OBB  "Chouda-no-ShiShi"
 		 * 3. BBBO|B|OBBB "Souryu-no-ShiShi"
-		 * àÍíºê¸è„Ç…èoóàÇÈélÅXÇ≈ÅAóºì™ÇÃélÅXÅEí∑é÷ÇÃélÅXÅEëoó¥ÇÃélÅX
+		 * ‰∏ÄÁõ¥Á∑ö‰∏ä„Å´Âá∫Êù•„ÇãÂõõ„ÄÖ„Åß„ÄÅ‰∏°È†≠„ÅÆÂõõ„ÄÖ„ÉªÈï∑Ëõá„ÅÆÂõõ„ÄÖ„ÉªÂèåÈæç„ÅÆÂõõ„ÄÖ
 		 */
 		{
 			//BO|BBB|OB
@@ -656,7 +631,7 @@ class Board {
 		/* 1. BO|BBB|OB   "Ryoutou-no-ShiShi"
 		 * 2. BBO|BB|OBB  "Chouda-no-ShiShi"
 		 * 3. BBBO|B|OBBB "Souryu-no-ShiShi"
-		 * àÍíºê¸è„Ç…èoóàÇÈélÅXÇ≈ÅAóºì™ÇÃélÅXÅEí∑é÷ÇÃélÅXÅEëoó¥ÇÃélÅX
+		 * ‰∏ÄÁõ¥Á∑ö‰∏ä„Å´Âá∫Êù•„ÇãÂõõ„ÄÖ„Åß„ÄÅ‰∏°È†≠„ÅÆÂõõ„ÄÖ„ÉªÈï∑Ëõá„ÅÆÂõõ„ÄÖ„ÉªÂèåÈæç„ÅÆÂõõ„ÄÖ
 		 */
 		{
 			//BO|BBB|OB
@@ -765,7 +740,7 @@ class Board {
 		* 1. BO|BBB|OB   "Ryoutou-no-ShiShi"
 		* 2. BBO|BB|OBB  "Chouda-no-ShiShi"
 		* 3. BBBO|B|OBBB "Souryu-no-ShiShi"
-		* àÍíºê¸è„Ç…èoóàÇÈélÅXÇ≈ÅAóºì™ÇÃélÅXÅEí∑é÷ÇÃélÅXÅEëoó¥ÇÃélÅX
+		* ‰∏ÄÁõ¥Á∑ö‰∏ä„Å´Âá∫Êù•„ÇãÂõõ„ÄÖ„Åß„ÄÅ‰∏°È†≠„ÅÆÂõõ„ÄÖ„ÉªÈï∑Ëõá„ÅÆÂõõ„ÄÖ„ÉªÂèåÈæç„ÅÆÂõõ„ÄÖ
 		*/
 		{
 			//BO|BBB|OB
@@ -1108,7 +1083,7 @@ class Board {
 		* 1. BO|BBB|OB   "Ryoutou-no-ShiShi"
 		* 2. BBO|BB|OBB  "Chouda-no-ShiShi"
 		* 3. BBBO|B|OBBB "Souryu-no-ShiShi"
-		* àÍíºê¸è„Ç…èoóàÇÈélÅXÇ≈ÅAóºì™ÇÃélÅXÅEí∑é÷ÇÃélÅXÅEëoó¥ÇÃélÅX
+		* ‰∏ÄÁõ¥Á∑ö‰∏ä„Å´Âá∫Êù•„ÇãÂõõ„ÄÖ„Åß„ÄÅ‰∏°È†≠„ÅÆÂõõ„ÄÖ„ÉªÈï∑Ëõá„ÅÆÂõõ„ÄÖ„ÉªÂèåÈæç„ÅÆÂõõ„ÄÖ
 		*/
 		{
 			//BO|BBB|OB
@@ -1843,16 +1818,16 @@ public:
 			for (size_t x = 0; x < kBoardSize; ++x) {
 				auto p = ToPosition(x, y);
 				kTenGenDist[p] = kTengen - std::max(std::abs(static_cast<int>(x) - kTengen), std::abs(static_cast<int>(y) - kTengen));
-				// Row(Ñü)
+				// Row(‚îÄ)
 				kIterateTable[p][Direction::Row][Side::Right] = std::min(kBoardSize - x - 1, kSearchWidth);
 				kIterateTable[p][Direction::Row][Side::Left ] = std::min(x, kSearchWidth);
-				// Column(Ñ†)
+				// Column(‚îÇ)
 				kIterateTable[p][Direction::Column][Side::Right] = std::min(kBoardSize - y - 1, kSearchWidth);
 				kIterateTable[p][Direction::Column][Side::Left ] = std::min(y, kSearchWidth);
-				// Diagonally right(Å^)
+				// Diagonally right(Ôºè)
 				kIterateTable[p][Direction::DiagR][Side::Right] = std::min(std::min(x, kBoardSize - y - 1), kSearchWidth);
 				kIterateTable[p][Direction::DiagR][Side::Left ] = std::min(std::min(kBoardSize - x - 1, y), kSearchWidth);
-				// Diagonally left(Å_)
+				// Diagonally left(Ôºº)
 				kIterateTable[p][Direction::DiagL][Side::Right] = std::min(std::min(kBoardSize - x - 1, kBoardSize - y - 1), kSearchWidth);
 				kIterateTable[p][Direction::DiagL][Side::Left ] = std::min(std::min(x, y), kSearchWidth);
 			}
@@ -1916,8 +1891,8 @@ int main(int argc, char *argv[]) {
 	return 0;
 }
 
-/* êiíªÅF
-ÅEÉxÉìÉ`É}Å[ÉNñ‚ëË(63449msÅAgBÇ™ê≥íÖÇ¡Ç€Ç¢ÅH)
+/* ÈÄ≤ÊçóÔºö
+„Éª„Éô„É≥„ÉÅ„Éû„Éº„ÇØÂïèÈ°å(63449ms„ÄÅgB„ÅåÊ≠£ÁùÄ„Å£„ÅΩ„ÅÑÔºü)
 h8,i7,i9,g9,g7,f6,h7,h9,i8,g8,g6,f5,j8,j9,hA,k7,f8,fA,f9,i6,iA,jA,f7,j7,j6,h6,gA,e8,e7,d7,kA,e6,g4,**,
 ---------------------------------------------------*-------------O-------------OO*OO*--------O****OOO--------O*O***----------*OO*O----------O***O*------------------------------------------------------------------------------- O
 */
