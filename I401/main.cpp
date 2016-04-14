@@ -1595,7 +1595,7 @@ class Board {
 						}
 						else {*/
 							// Normal Score
-							score = kTenGenDist[p];
+							score = CalcScore(p, turn);
 						//}
 						if (max_score < score) {
 							max_score = score;
@@ -1634,7 +1634,7 @@ class Board {
 						}
 						else {*/
 							// Normal Score
-							score = kTenGenDist[p];
+							score = CalcScore(p, turn);
 						//}
 						if (max_score < score) {
 							max_score = score;
@@ -1721,7 +1721,7 @@ class Board {
 			std::sort(next_move2.begin(), next_move2.end(), [](const Score &a, const Score &b) {return a.second > b.second; });
 			for (auto &it : next_move2) {
 				board_[it.first] = turn;
-				auto score = -NegaMax(EnemyTurn(turn), depth - 1, -kScoreInf2, kScoreInf2);
+				auto score = -NegaMax(EnemyTurn(turn), depth - 1, -kScoreInf2, kScoreInf2) + CalcScore(it.first, turn);
 				board_[it.first] = Stone::None;
 				if (max_score < score) {
 					max_score = score;
@@ -1732,6 +1732,28 @@ class Board {
 			}
 			return max_score;
 		}
+	}
+	int CalcScore(const size_t position, const Stone turn) {
+		int score = 0;
+		size_t px = position % kBoardSize, py = position / kBoardSize;
+		array<size_t, 4> range;
+		if (px <= 2) range[0] = 0; else range[0] = px - 2;
+		if (py <= 2) range[1] = 0; else range[1] = py - 2;
+		if (px + 2 >= kBoardSize) range[2] = kBoardSize - 1; else range[2] = px + 2;
+		if (py + 2 >= kBoardSize) range[3] = kBoardSize - 1; else range[3] = py + 2;
+		for (size_t y = range[1]; y <= range[3]; ++y) {
+			for (size_t x = range[0]; x <= range[2]; ++x) {
+				size_t p = ToPosition(x, y);
+				if (board_[p] == Stone::None || p == position) continue;
+				int dist = std::max(std::abs(static_cast<int>(x) - static_cast<int>(px)), std::abs(static_cast<int>(y) - static_cast<int>(py)));
+				if (board_[p] == turn) {
+					score += (3 - dist) * 2;
+				}else{
+					score += 3 - dist;
+				}
+			}
+		}
+		return score;
 	}
 	// Find Normal move
 	Result FindNormalMove(const size_t depth, bool debug_flg = false) {
@@ -1769,7 +1791,7 @@ class Board {
 					}
 					else {
 						// Normal Score
-						score = kTenGenDist[p];
+						score = CalcScore(p, turn_);
 					}
 					if (max_score < score) {
 						max_score = score;
@@ -1806,7 +1828,7 @@ class Board {
 					}
 					else {
 						// Normal Score
-						score = kTenGenDist[p];
+						score = CalcScore(p, turn_);
 					}
 					if (max_score < score) {
 						max_score = score;
@@ -1894,7 +1916,7 @@ class Board {
 			std::sort(next_move2.begin(), next_move2.end(), [](const Score &a, const Score &b) {return a.second > b.second; });
 			for (auto &it : next_move2) {
 				board_[it.first] = turn_;
-				int score = -NegaMax(EnemyTurn(turn_), depth - 1, -kScoreInf2, kScoreInf2) + kTenGenDist[it.first];
+				int score = -NegaMax(EnemyTurn(turn_), depth - 1, -kScoreInf2, kScoreInf2) + CalcScore(it.first, turn_);
 				board_[it.first] = Stone::None;
 				if (score == kScoreInf) return Result(it.first, true);
 				if (max_score < score) {
