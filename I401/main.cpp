@@ -73,6 +73,42 @@ constexpr inline Stone EnemyTurn(const Stone turn) {
 inline size_t RandInt(const size_t n) {
 	return std::uniform_int_distribution<size_t>{0, n - 1}(mt);
 }
+namespace detail {
+	struct GetBoardValue_helper {
+		size_t pos;
+		Direction direction;
+		int count;
+	};
+	Stone operator|(const std::array<Stone, kBoardSize * kBoardSize>& board, const GetBoardValue_helper& info) {
+		return board[info.pos + kPositionoffset[info.direction] * info.count];
+	}
+	struct StoneNormalizer_helper {};
+	Stone operator| (Stone value, StoneNormalizer_helper) {
+		return (value != Stone::White) ? value : Stone::None;
+	}
+	struct PackPattern_helper {
+		int start;
+		int stop;
+		size_t pos;
+		Direction direction;
+	};
+	size_t operator| (const array<Stone, kBoardSize * kBoardSize>& board, const PackPattern_helper& info) {
+		using std::abs;
+		if (abs(info.start) <= abs(info.stop)) return 0;
+		size_t re = 0;
+		int i;
+		for (i = info.start; abs(i) <= abs(info.stop) - 1; i += (i > 0) ? 1 : -1, re <<= 2U) re += board | Get(info.pos, info.direction, i);
+		re += board | Get(info.pos, info.direction, i) | Normalize();
+		return re;
+	}
+}
+constexpr detail::GetBoardValue_helper Get(size_t position, Direction dir, int count) {
+	return{ position, dir, count };
+}
+constexpr detail::StoneNormalizer_helper Normalize() { return{}; }
+constexpr detail::PackPattern_helper PackPattern(size_t position, Direction dir, int start, int stop) {
+	return{ start, stop, position, dir };
+}
 constexpr size_t PackPattern(const Stone s1, const Stone s2) {
 	return (s1 << 2) + s2;
 }
@@ -360,7 +396,7 @@ class Board {
 		};
 		pattern[Side::Right][0] = (right_pattern_length <= 0 ? Stone::None : GetBoardValue2(position, dir, 1));
 		pattern[Side::Right][1] = (right_pattern_length <= 1 ? PackPatternAdd(pattern[Side::Right][0], Stone::None)
-			: PackPattern(GetBoardValue(position, dir, 1), GetBoardValue2(position, dir, 2)));
+			: PackPattern(position, dir, 1, 2);
 		pattern[Side::Right][2] = (right_pattern_length <= 2 ? PackPatternAdd(pattern[Side::Right][1], Stone::None)
 			: PackPattern(GetBoardValue(position, dir, 1), GetBoardValue(position, dir, 2), GetBoardValue2(position, dir, 3)));
 		pattern[Side::Right][3] = (right_pattern_length <= 3 ? PackPatternAdd(pattern[Side::Right][2], Stone::None)
