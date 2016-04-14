@@ -111,6 +111,14 @@ using detail::Normalize;
 constexpr detail::PackPattern_helper PackPattern(size_t position, Direction dir, int start, int stop) {
 	return{ start, stop, position, dir };
 }
+namespace detail {
+	constexpr size_t PackPattern_n_impl(const size_t tmp, const Stone s, const size_t rest_count) {
+		return (rest_count - 1) ? PackPattern_n_impl((tmp << 2) + s, s, rest_count - 1) : (tmp << 2) + s;
+	}
+}
+constexpr size_t PackPattern_n(const Stone s, size_t n) {
+	return (n * 2 > sizeof(size_t)) ? std::numeric_limits<size_t>::max() : detail::PackPattern_n_impl(0U, s, n);
+}
 constexpr size_t PackPattern(const Stone s1, const Stone s2) {
 	return (s1 << 2) + s2;
 }
@@ -442,16 +450,16 @@ class Board {
 	}
 	// Check Cho-ren
 	bool IsChorenB(const Pattern &pattern) {
-		if (pattern[Side::Right][4] == PackPattern(Stone::Black, Stone::Black, Stone::Black, Stone::Black, Stone::Black)) return true;
-		if (pattern[Side::Right][3] == PackPattern(Stone::Black, Stone::Black, Stone::Black, Stone::Black)
+		if (pattern[Side::Right][4] == PackPattern_n(Stone::Black, 5)) return true;
+		if (pattern[Side::Right][3] == PackPattern_n(Stone::Black, 4)
 			&& pattern[Side::Left][0] == Stone::Black) return true;
-		if (pattern[Side::Right][2] == PackPattern(Stone::Black, Stone::Black, Stone::Black)
-			&& pattern[Side::Left][1] == PackPattern(Stone::Black, Stone::Black)) return true;
-		if (pattern[Side::Left][4] == PackPattern(Stone::Black, Stone::Black, Stone::Black, Stone::Black, Stone::Black)) return true;
-		if (pattern[Side::Left][3] == PackPattern(Stone::Black, Stone::Black, Stone::Black, Stone::Black)
+		if (pattern[Side::Right][2] == PackPattern_n(Stone::Black, 3)
+			&& pattern[Side::Left][1] == PackPattern_n(Stone::Black, 2)) return true;
+		if (pattern[Side::Left][4] == PackPattern_n(Stone::Black, 5)) return true;
+		if (pattern[Side::Left][3] == PackPattern_n(Stone::Black, 4)
 			&& pattern[Side::Right][0] == Stone::Black) return true;
-		if (pattern[Side::Left][2] == PackPattern(Stone::Black, Stone::Black, Stone::Black)
-			&& pattern[Side::Right][1] == PackPattern(Stone::Black, Stone::Black)) return true;
+		if (pattern[Side::Left][2] == PackPattern_n(Stone::Black, 3)
+			&& pattern[Side::Right][1] == PackPattern_n(Stone::Black, 2)) return true;
 		return false;
 	}
 	bool IsChorenW(const Pattern &pattern) {
