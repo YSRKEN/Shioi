@@ -92,6 +92,10 @@ namespace detail {
 		size_t pos;
 		Direction direction;
 	};
+	constexpr GetBoardValue_helper Get(size_t position, Direction dir, int count) {
+		return{ position, dir, count };
+	}
+	constexpr StoneNormalizer_helper Normalize() { return{}; }
 	size_t operator| (const array<Stone, kBoardSize * kBoardSize>& board, const PackPattern_helper& info) {
 		using std::abs;
 		if (abs(info.start) < abs(info.stop)) return 0;
@@ -102,10 +106,8 @@ namespace detail {
 		return re;
 	}
 }
-constexpr detail::GetBoardValue_helper Get(size_t position, Direction dir, int count) {
-	return{ position, dir, count };
-}
-constexpr detail::StoneNormalizer_helper Normalize() { return{}; }
+using detail::Get;
+using detail::Normalize;
 constexpr detail::PackPattern_helper PackPattern(size_t position, Direction dir, int start, int stop) {
 	return{ start, stop, position, dir };
 }
@@ -200,7 +202,6 @@ class Board {
 	}
 	// Check GameEnd
 	bool IsGameEnd(const Stone turn) {
-		Direction d;
 		for (Direction d = Direction::Row; d < Direction::Directions; d = static_cast<Direction>(static_cast<uint8_t>(d) + 1)) {
 			if (IsGameEndImpl(turn, d)) return true;
 		}
@@ -405,16 +406,14 @@ class Board {
 			: this->board_ | PackPattern(position, dir, 1, 5);
 
 		pattern[Side::Left][0] = (left_pattern_length <= 0 ? Stone::None : GetBoardValue2(position, dir, -1));
-		pattern[Side::Left][1] = (left_pattern_length <= 1 ? PackPatternAdd(pattern[Side::Left][0], Stone::None)
-			: PackPattern(GetBoardValue(position, dir, -1), GetBoardValue2(position, dir, -2)));
-		pattern[Side::Left][2] = (left_pattern_length <= 2 ? PackPatternAdd(pattern[Side::Left][1], Stone::None)
-			: PackPattern(GetBoardValue(position, dir, -1), GetBoardValue(position, dir, -2), GetBoardValue2(position, dir, -3)));
-		pattern[Side::Left][3] = (left_pattern_length <= 3 ? PackPatternAdd(pattern[Side::Left][2], Stone::None)
-			: PackPattern(GetBoardValue(position, dir, -1), GetBoardValue(position, dir, -2),
-				GetBoardValue(position, dir, -3), GetBoardValue2(position, dir, -4)));
-		pattern[Side::Left][4] = (left_pattern_length <= 4 ? PackPatternAdd(pattern[Side::Left][3], Stone::None)
-			: PackPattern(GetBoardValue(position, dir, -1), GetBoardValue(position, dir, -2), GetBoardValue(position, dir, -3),
-				GetBoardValue(position, dir, -4), GetBoardValue2(position, dir, -5)));
+		pattern[Side::Left][1] = (left_pattern_length <= 1) ? PackPatternAdd(pattern[Side::Left][0], Stone::None)
+			: this->board_ | PackPattern(position, dir, -1, -2);
+		pattern[Side::Left][2] = (left_pattern_length <= 2) ? PackPatternAdd(pattern[Side::Left][1], Stone::None)
+			: this->board_ | PackPattern(position, dir, -1, -3);
+		pattern[Side::Left][3] = (left_pattern_length <= 3) ? PackPatternAdd(pattern[Side::Left][2], Stone::None)
+			: this->board_ | PackPattern(position, dir, -1, -4);
+		pattern[Side::Left][4] = (left_pattern_length <= 4) ? PackPatternAdd(pattern[Side::Left][3], Stone::None)
+			: this->board_ | PackPattern(position, dir, -1, -4);
 		return pattern;
 	}
 	Pattern GetPatternW(const size_t position, const Direction dir) {
@@ -424,23 +423,21 @@ class Board {
 		auto GetBoardValue = [this](size_t position, Direction dir, int count) -> Stone {return board_[position + kPositionoffset[dir] * count]; };
 		pattern[Side::Right][0] = (right_pattern_length <= 0 ? Stone::None
 			: GetBoardValue(position, dir, 1));
-		pattern[Side::Right][1] = (right_pattern_length <= 1 ? PackPatternAdd(pattern[Side::Right][0], Stone::None)
-			: PackPattern(GetBoardValue(position, dir, 1), GetBoardValue(position, dir, 2)));
-		pattern[Side::Right][2] = (right_pattern_length <= 2 ? PackPatternAdd(pattern[Side::Right][1], Stone::None)
-			: PackPattern(GetBoardValue(position, dir, 1), GetBoardValue(position, dir, 2), GetBoardValue(position, dir, 3)));
-		pattern[Side::Right][3] = (right_pattern_length <= 3 ? PackPatternAdd(pattern[Side::Right][2], Stone::None)
-			: PackPattern(GetBoardValue(position, dir, 1), GetBoardValue(position, dir, 2),
-				GetBoardValue(position, dir, 3), GetBoardValue(position, dir, 4)));
+		pattern[Side::Right][1] = (right_pattern_length <= 1) ? PackPatternAdd(pattern[Side::Right][0], Stone::None)
+			: this->board_ | PackPattern(position, dir, 1, 2);
+		pattern[Side::Right][2] = (right_pattern_length <= 2) ? PackPatternAdd(pattern[Side::Right][1], Stone::None)
+			: this->board_ | PackPattern(position, dir, 1, 3);
+		pattern[Side::Right][3] = (right_pattern_length <= 3) ? PackPatternAdd(pattern[Side::Right][2], Stone::None)
+			: this->board_ | PackPattern(position, dir, 1, 4);
 
 		pattern[Side::Left][0] = (left_pattern_length <= 0 ? Stone::None
 			: GetBoardValue(position, dir, -1));
-		pattern[Side::Left][1] = (left_pattern_length <= 1 ? PackPatternAdd(pattern[Side::Left][0], Stone::None)
-			: PackPattern(GetBoardValue(position, dir, -1), GetBoardValue(position, dir, -2)));
-		pattern[Side::Left][2] = (left_pattern_length <= 2 ? PackPatternAdd(pattern[Side::Left][1], Stone::None)
-			: PackPattern(GetBoardValue(position, dir, -1), GetBoardValue(position, dir, -2), GetBoardValue(position, dir, -3)));
-		pattern[Side::Left][3] = (left_pattern_length <= 3 ? PackPatternAdd(pattern[Side::Left][2], Stone::None)
-			: PackPattern(GetBoardValue(position, dir, -1), GetBoardValue(position, dir, -2),
-				GetBoardValue(position, dir, -3), GetBoardValue(position, dir, -4)));
+		pattern[Side::Left][1] = (left_pattern_length <= 1) ? PackPatternAdd(pattern[Side::Left][0], Stone::None)
+			: this->board_ | PackPattern(position, dir, -1, -2);
+		pattern[Side::Left][2] = (left_pattern_length <= 2) ? PackPatternAdd(pattern[Side::Left][1], Stone::None)
+			: this->board_ | PackPattern(position, dir, -1, -3);
+		pattern[Side::Left][3] = (left_pattern_length <= 3) ? PackPatternAdd(pattern[Side::Left][2], Stone::None)
+			: this->board_ | PackPattern(position, dir, -1, -4);
 		return pattern;
 	}
 	// Check Cho-ren
