@@ -17,14 +17,14 @@ using std::tuple;
 using std::vector;
 
 // const value declaration
-const size_t kBoardSize = 15;
-const size_t kSearchWidth = 5;
-const size_t kShioiDepth1 = 20, kShioiDepth2 = 3;
-const int kScoreInf = 1000;
-const int kScoreInf2 = kScoreInf + 1;
+constexpr size_t kBoardSize = 15;
+constexpr size_t kSearchWidth = 5;
+constexpr size_t kShioiDepth1 = 20, kShioiDepth2 = 3;
+constexpr int kScoreInf = 1000;
+constexpr int kScoreInf2 = kScoreInf + 1;
 const string kPositionStringX = "abcdefghijklmno";
 const string kPositionStringY = "123456789ABCDEF";
-const size_t kPositionoffset[] = {1, kBoardSize, kBoardSize - 1, kBoardSize + 1};
+constexpr size_t kPositionoffset[] = {1, kBoardSize, kBoardSize - 1, kBoardSize + 1};
 enum Stone : uint8_t {
 	None,
 	Black,
@@ -79,11 +79,11 @@ namespace detail {
 		Direction direction;
 		int count;
 	};
-	Stone operator|(const std::array<Stone, kBoardSize * kBoardSize>& board, const GetBoardValue_helper& info) {
+	constexpr Stone operator|(const std::array<Stone, kBoardSize * kBoardSize>& board, const GetBoardValue_helper& info) {
 		return board[info.pos + kPositionoffset[info.direction] * info.count];
 	}
 	struct StoneNormalizer_helper {};
-	Stone operator| (Stone value, StoneNormalizer_helper) {
+	constexpr Stone operator| (Stone value, StoneNormalizer_helper) {
 		return (value != Stone::White) ? value : Stone::None;
 	}
 	struct PackPattern_helper {
@@ -94,7 +94,7 @@ namespace detail {
 	};
 	size_t operator| (const array<Stone, kBoardSize * kBoardSize>& board, const PackPattern_helper& info) {
 		using std::abs;
-		if (abs(info.start) <= abs(info.stop)) return 0;
+		if (abs(info.start) < abs(info.stop)) return 0;
 		size_t re = 0;
 		int i;
 		for (i = info.start; abs(i) <= abs(info.stop) - 1; i += (i > 0) ? 1 : -1, re <<= 2U) re += board | Get(info.pos, info.direction, i);
@@ -395,16 +395,14 @@ class Board {
 			return (value != Stone::White ? value : Stone::None);
 		};
 		pattern[Side::Right][0] = (right_pattern_length <= 0 ? Stone::None : GetBoardValue2(position, dir, 1));
-		pattern[Side::Right][1] = (right_pattern_length <= 1 ? PackPatternAdd(pattern[Side::Right][0], Stone::None)
-			: PackPattern(position, dir, 1, 2);
-		pattern[Side::Right][2] = (right_pattern_length <= 2 ? PackPatternAdd(pattern[Side::Right][1], Stone::None)
-			: PackPattern(GetBoardValue(position, dir, 1), GetBoardValue(position, dir, 2), GetBoardValue2(position, dir, 3)));
-		pattern[Side::Right][3] = (right_pattern_length <= 3 ? PackPatternAdd(pattern[Side::Right][2], Stone::None)
-			: PackPattern(GetBoardValue(position, dir, 1), GetBoardValue(position, dir, 2),
-				GetBoardValue(position, dir, 3), GetBoardValue2(position, dir, 4)));
-		pattern[Side::Right][4] = (right_pattern_length <= 4 ? PackPatternAdd(pattern[Side::Right][3], Stone::None)
-			: PackPattern(GetBoardValue(position, dir, 1), GetBoardValue(position, dir, 2), GetBoardValue(position, dir, 3),
-				GetBoardValue(position, dir, 4), GetBoardValue2(position, dir, 5)));
+		pattern[Side::Right][1] = (right_pattern_length <= 1) ? PackPatternAdd(pattern[Side::Right][0], Stone::None)
+			: this->board_ | PackPattern(position, dir, 1, 2);
+		pattern[Side::Right][2] = (right_pattern_length <= 2) ? PackPatternAdd(pattern[Side::Right][1], Stone::None)
+			: this->board_ | PackPattern(position, dir, 1, 3);
+		pattern[Side::Right][3] = (right_pattern_length <= 3) ? PackPatternAdd(pattern[Side::Right][2], Stone::None)
+			: this->board_ | PackPattern(position, dir, 1, 4);
+		pattern[Side::Right][4] = (right_pattern_length <= 4) ? PackPatternAdd(pattern[Side::Right][3], Stone::None)
+			: this->board_ | PackPattern(position, dir, 1, 5);
 
 		pattern[Side::Left][0] = (left_pattern_length <= 0 ? Stone::None : GetBoardValue2(position, dir, -1));
 		pattern[Side::Left][1] = (left_pattern_length <= 1 ? PackPatternAdd(pattern[Side::Left][0], Stone::None)
