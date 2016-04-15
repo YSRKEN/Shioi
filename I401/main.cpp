@@ -15,6 +15,7 @@ using std::endl;
 using std::string;
 using std::tuple;
 using std::vector;
+using std::size_t;
 
 // const value declaration
 constexpr size_t kBoardSize = 15;
@@ -111,6 +112,8 @@ using detail::Normalize;
 constexpr detail::PackPattern_helper PackPattern(size_t position, Direction dir, int start, int stop) {
 	return{ start, stop, position, dir };
 }
+constexpr size_t operator|(Stone l, Stone r) { return (l << 2) + r; }
+constexpr size_t operator|(size_t l, Stone r) { return (l << 2) + r; }
 namespace detail {
 	constexpr size_t PackPattern_n_impl(const size_t tmp, const Stone s, const size_t rest_count) {
 		return (rest_count - 1) ? PackPattern_n_impl((tmp << 2) + s, s, rest_count - 1) : (tmp << 2) + s;
@@ -118,21 +121,6 @@ namespace detail {
 }
 constexpr size_t PackPattern_n(const Stone s, size_t n) {
 	return (n * 2 > sizeof(size_t)) ? std::numeric_limits<size_t>::max() : detail::PackPattern_n_impl(0U, s, n);
-}
-constexpr size_t PackPattern(const Stone s1, const Stone s2) {
-	return (s1 << 2) + s2;
-}
-constexpr size_t PackPattern(const Stone s1, const Stone s2, const Stone s3) {
-	return (s1 << 4) + (s2 << 2) + s3;
-}
-constexpr size_t PackPattern(const Stone s1, const Stone s2, const Stone s3, const Stone s4) {
-	return (s1 << 6) + (s2 << 4) + (s3 << 2) + s4;
-}
-constexpr size_t PackPattern(const Stone s1, const Stone s2, const Stone s3, const Stone s4, const Stone s5) {
-	return (s1 << 8) + (s2 << 6) + (s3 << 4) + (s4 << 2) + s5;
-}
-constexpr size_t PackPatternAdd(const size_t s1, const Stone s2) {
-	return (s1 << 2) + s2;
 }
 namespace Board_helper {
 	constexpr std::pair<array<size_t, 2>, size_t> ToPositionByDirection(const Direction d, const size_t i, const size_t j) {
@@ -404,23 +392,23 @@ class Board {
 			return (value != Stone::White ? value : Stone::None);
 		};
 		pattern[Side::Right][0] = (right_pattern_length <= 0 ? Stone::None : GetBoardValue2(position, dir, 1));
-		pattern[Side::Right][1] = (right_pattern_length <= 1) ? PackPatternAdd(pattern[Side::Right][0], Stone::None)
+		pattern[Side::Right][1] = (right_pattern_length <= 1) ? pattern[Side::Right][0] | Stone::None
 			: this->board_ | PackPattern(position, dir, 1, 2);
-		pattern[Side::Right][2] = (right_pattern_length <= 2) ? PackPatternAdd(pattern[Side::Right][1], Stone::None)
+		pattern[Side::Right][2] = (right_pattern_length <= 2) ? pattern[Side::Right][1] | Stone::None
 			: this->board_ | PackPattern(position, dir, 1, 3);
-		pattern[Side::Right][3] = (right_pattern_length <= 3) ? PackPatternAdd(pattern[Side::Right][2], Stone::None)
+		pattern[Side::Right][3] = (right_pattern_length <= 3) ? pattern[Side::Right][2] | Stone::None
 			: this->board_ | PackPattern(position, dir, 1, 4);
-		pattern[Side::Right][4] = (right_pattern_length <= 4) ? PackPatternAdd(pattern[Side::Right][3], Stone::None)
+		pattern[Side::Right][4] = (right_pattern_length <= 4) ? pattern[Side::Right][3] | Stone::None
 			: this->board_ | PackPattern(position, dir, 1, 5);
 
 		pattern[Side::Left][0] = (left_pattern_length <= 0 ? Stone::None : GetBoardValue2(position, dir, -1));
-		pattern[Side::Left][1] = (left_pattern_length <= 1) ? PackPatternAdd(pattern[Side::Left][0], Stone::None)
+		pattern[Side::Left][1] = (left_pattern_length <= 1) ? pattern[Side::Left][0] | Stone::None
 			: this->board_ | PackPattern(position, dir, -1, -2);
-		pattern[Side::Left][2] = (left_pattern_length <= 2) ? PackPatternAdd(pattern[Side::Left][1], Stone::None)
+		pattern[Side::Left][2] = (left_pattern_length <= 2) ? pattern[Side::Left][1] | Stone::None
 			: this->board_ | PackPattern(position, dir, -1, -3);
-		pattern[Side::Left][3] = (left_pattern_length <= 3) ? PackPatternAdd(pattern[Side::Left][2], Stone::None)
+		pattern[Side::Left][3] = (left_pattern_length <= 3) ? pattern[Side::Left][2] | Stone::None
 			: this->board_ | PackPattern(position, dir, -1, -4);
-		pattern[Side::Left][4] = (left_pattern_length <= 4) ? PackPatternAdd(pattern[Side::Left][3], Stone::None)
+		pattern[Side::Left][4] = (left_pattern_length <= 4) ? pattern[Side::Left][3] | Stone::None
 			: this->board_ | PackPattern(position, dir, -1, -4);
 		return pattern;
 	}
@@ -431,20 +419,20 @@ class Board {
 		auto GetBoardValue = [this](size_t position, Direction dir, int count) -> Stone {return board_[position + kPositionoffset[dir] * count]; };
 		pattern[Side::Right][0] = (right_pattern_length <= 0 ? Stone::None
 			: GetBoardValue(position, dir, 1));
-		pattern[Side::Right][1] = (right_pattern_length <= 1) ? PackPatternAdd(pattern[Side::Right][0], Stone::None)
+		pattern[Side::Right][1] = (right_pattern_length <= 1) ? pattern[Side::Right][0] | Stone::None
 			: this->board_ | PackPattern(position, dir, 1, 2);
-		pattern[Side::Right][2] = (right_pattern_length <= 2) ? PackPatternAdd(pattern[Side::Right][1], Stone::None)
+		pattern[Side::Right][2] = (right_pattern_length <= 2) ? pattern[Side::Right][1] | Stone::None
 			: this->board_ | PackPattern(position, dir, 1, 3);
-		pattern[Side::Right][3] = (right_pattern_length <= 3) ? PackPatternAdd(pattern[Side::Right][2], Stone::None)
+		pattern[Side::Right][3] = (right_pattern_length <= 3) ? pattern[Side::Right][2] | Stone::None
 			: this->board_ | PackPattern(position, dir, 1, 4);
 
 		pattern[Side::Left][0] = (left_pattern_length <= 0 ? Stone::None
 			: GetBoardValue(position, dir, -1));
-		pattern[Side::Left][1] = (left_pattern_length <= 1) ? PackPatternAdd(pattern[Side::Left][0], Stone::None)
+		pattern[Side::Left][1] = (left_pattern_length <= 1) ? pattern[Side::Left][0] | Stone::None
 			: this->board_ | PackPattern(position, dir, -1, -2);
-		pattern[Side::Left][2] = (left_pattern_length <= 2) ? PackPatternAdd(pattern[Side::Left][1], Stone::None)
+		pattern[Side::Left][2] = (left_pattern_length <= 2) ? pattern[Side::Left][1] | Stone::None
 			: this->board_ | PackPattern(position, dir, -1, -3);
-		pattern[Side::Left][3] = (left_pattern_length <= 3) ? PackPatternAdd(pattern[Side::Left][2], Stone::None)
+		pattern[Side::Left][3] = (left_pattern_length <= 3) ? pattern[Side::Left][2] | Stone::None
 			: this->board_ | PackPattern(position, dir, -1, -4);
 		return pattern;
 	}
@@ -469,37 +457,11 @@ class Board {
 	bool MatchPatternB(const Pattern &pattern, const size_t position, const Direction dir, const Side side) const noexcept {
 		return (pattern[side][0] == Stone::None);
 	}
-	bool MatchPatternB(const Pattern &pattern, const size_t position, const Direction dir, const Side side
-		, const Stone s1) const noexcept{
-		return (kIterateTable[position][dir][side] >= 1 && pattern[side][1] == PackPattern(s1, Stone::None));
+	bool MatchPatternB(const Pattern &pattern, const size_t position, const Direction dir, const Side side, const size_t s1) const noexcept {
+		return (kIterateTable[position][dir][side] >= 1 && pattern[side][1] == (s1 | Stone::None));
 	}
-	bool MatchPatternB(const Pattern &pattern, const size_t position, const Direction dir, const Side side
-		, const Stone s1, const Stone s2) const noexcept {
-		return (kIterateTable[position][dir][side] >= 2 && pattern[side][2] == PackPattern(s1, s2, Stone::None));
-	}
-	bool MatchPatternB(const Pattern &pattern, const size_t position, const Direction dir, const Side side
-		, const Stone s1, const Stone s2, const Stone s3) const noexcept {
-		return (kIterateTable[position][dir][side] >= 3 && pattern[side][3] == PackPattern(s1, s2, s3, Stone::None));
-	}
-	bool MatchPatternB(const Pattern &pattern, const size_t position, const Direction dir, const Side side
-		, const Stone s1, const Stone s2, const Stone s3, const Stone s4) const noexcept {
-		return (kIterateTable[position][dir][side] >= 4 && pattern[side][4] == PackPattern(s1, s2, s3, s4, Stone::None));
-	}
-	bool MatchPatternW(const Pattern &pattern, const size_t position, const Direction dir, const Side side
-		, const Stone s1) const noexcept {
+	bool MatchPatternW(const Pattern &pattern, const size_t position, const Direction dir, const Side side, const size_t s1) const noexcept {
 		return (kIterateTable[position][dir][side] >= 1 && pattern[side][0] == s1);
-	}
-	bool MatchPatternW(const Pattern &pattern, const size_t position, const Direction dir, const Side side
-		, const Stone s1, const Stone s2) const noexcept {
-		return (kIterateTable[position][dir][side] >= 2 && pattern[side][1] == PackPattern(s1, s2));
-	}
-	bool MatchPatternW(const Pattern &pattern, const size_t position, const Direction dir, const Side side
-		, const Stone s1, const Stone s2, const Stone s3) const noexcept {
-		return (kIterateTable[position][dir][side] >= 3 && pattern[side][2] == PackPattern(s1, s2, s3));
-	}
-	bool MatchPatternW(const Pattern &pattern, const size_t position, const Direction dir, const Side side
-		, const Stone s1, const Stone s2, const Stone s3, const Stone s4) const noexcept {
-		return (kIterateTable[position][dir][side] >= 4 && pattern[side][3] == PackPattern(s1, s2, s3, s4));
 	}
 	// Count Ren
 	RenCount CountRenB(const Pattern &pattern, const size_t position, const Direction dir) {
@@ -511,78 +473,78 @@ class Board {
 		 */
 		{
 			//BO|BBB|OB
-			if (MatchPatternB(pattern, position, dir, Side::Right, Stone::Black, Stone::Black, Stone::None, Stone::Black)
-				&& MatchPatternB(pattern, position, dir, Side::Left, Stone::None, Stone::Black)) return RenCount(0, 2, 0);
-			if (MatchPatternB(pattern, position, dir, Side::Right, Stone::Black, Stone::None, Stone::Black)
-				&& MatchPatternB(pattern, position, dir, Side::Left, Stone::Black, Stone::None, Stone::Black)) return RenCount(0, 2, 0);
-			if (MatchPatternB(pattern, position, dir, Side::Left, Stone::Black, Stone::Black, Stone::None, Stone::Black)
-				&& MatchPatternB(pattern, position, dir, Side::Right, Stone::None, Stone::Black)) return RenCount(0, 2, 0);
+			if (MatchPatternB(pattern, position, dir, Side::Right, Stone::Black | Stone::Black | Stone::None | Stone::Black)
+				&& MatchPatternB(pattern, position, dir, Side::Left, Stone::None | Stone::Black)) return RenCount(0, 2, 0);
+			if (MatchPatternB(pattern, position, dir, Side::Right, Stone::Black | Stone::None | Stone::Black)
+				&& MatchPatternB(pattern, position, dir, Side::Left, Stone::Black | Stone::None | Stone::Black)) return RenCount(0, 2, 0);
+			if (MatchPatternB(pattern, position, dir, Side::Left, Stone::Black | Stone::Black | Stone::None | Stone::Black)
+				&& MatchPatternB(pattern, position, dir, Side::Right, Stone::None | Stone::Black)) return RenCount(0, 2, 0);
 			//BBO|BB|OBB
-			if (MatchPatternB(pattern, position, dir, Side::Right, Stone::Black, Stone::None, Stone::Black, Stone::Black)
-				&& MatchPatternB(pattern, position, dir, Side::Left, Stone::None, Stone::Black, Stone::Black)) return RenCount(0, 2, 0);
-			if (MatchPatternB(pattern, position, dir, Side::Left, Stone::Black, Stone::None, Stone::Black, Stone::Black)
-				&& MatchPatternB(pattern, position, dir, Side::Right, Stone::None, Stone::Black, Stone::Black)) return RenCount(0, 2, 0);
+			if (MatchPatternB(pattern, position, dir, Side::Right, Stone::Black | Stone::None | Stone::Black | Stone::Black)
+				&& MatchPatternB(pattern, position, dir, Side::Left, Stone::None | Stone::Black | Stone::Black)) return RenCount(0, 2, 0);
+			if (MatchPatternB(pattern, position, dir, Side::Left, Stone::Black | Stone::None | Stone::Black | Stone::Black)
+				&& MatchPatternB(pattern, position, dir, Side::Right, Stone::None | Stone::Black | Stone::Black)) return RenCount(0, 2, 0);
 			//BBBO|B|OBBB
-			if (MatchPatternB(pattern, position, dir, Side::Right, Stone::None, Stone::Black, Stone::Black, Stone::Black)
-				&& MatchPatternB(pattern, position, dir, Side::Left, Stone::None, Stone::Black, Stone::Black, Stone::Black)) return RenCount(0, 2, 0);
+			if (MatchPatternB(pattern, position, dir, Side::Right, Stone::None | Stone::Black | Stone::Black | Stone::Black)
+				&& MatchPatternB(pattern, position, dir, Side::Left, Stone::None | Stone::Black | Stone::Black | Stone::Black)) return RenCount(0, 2, 0);
 		}
 		// Count Shi-ren
 		{
-			if (MatchPatternB(pattern, position, dir, Side::Right, Stone::Black, Stone::Black, Stone::Black, Stone::None)
+			if (MatchPatternB(pattern, position, dir, Side::Right, Stone::Black | Stone::Black | Stone::Black | Stone::None)
 				&& MatchPatternB(pattern, position, dir, Side::Left, Stone::None)) return RenCount(1, 0, 0);
-			if (MatchPatternB(pattern, position, dir, Side::Right, Stone::Black, Stone::Black, Stone::None)
-				&& MatchPatternB(pattern, position, dir, Side::Left, Stone::Black, Stone::None)) return RenCount(1, 0, 0);
-			if (MatchPatternB(pattern, position, dir, Side::Left, Stone::Black, Stone::Black, Stone::Black, Stone::None)
+			if (MatchPatternB(pattern, position, dir, Side::Right, Stone::Black | Stone::Black | Stone::None)
+				&& MatchPatternB(pattern, position, dir, Side::Left, Stone::Black | Stone::None)) return RenCount(1, 0, 0);
+			if (MatchPatternB(pattern, position, dir, Side::Left, Stone::Black | Stone::Black | Stone::Black | Stone::None)
 				&& MatchPatternB(pattern, position, dir, Side::Right, Stone::None)) return RenCount(1, 0, 0);
-			if (MatchPatternB(pattern, position, dir, Side::Left, Stone::Black, Stone::Black, Stone::None)
-				&& MatchPatternB(pattern, position, dir, Side::Right, Stone::Black, Stone::None)) return RenCount(1, 0, 0);
+			if (MatchPatternB(pattern, position, dir, Side::Left, Stone::Black | Stone::Black | Stone::None)
+				&& MatchPatternB(pattern, position, dir, Side::Right, Stone::Black | Stone::None)) return RenCount(1, 0, 0);
 		}
 		// Count Katsu-Shi
 		{
 			//11110
 			if (MatchPatternB(pattern, position, dir, Side::Right, Stone::None)
-				&& MatchPatternB(pattern, position, dir, Side::Left, Stone::Black, Stone::Black, Stone::Black)) return RenCount(0, 1, 0);
-			if (MatchPatternB(pattern, position, dir, Side::Right, Stone::Black, Stone::None)
-				&& MatchPatternB(pattern, position, dir, Side::Left, Stone::Black, Stone::Black)) return RenCount(0, 1, 0);
-			if (MatchPatternB(pattern, position, dir, Side::Right, Stone::Black, Stone::Black, Stone::None)
+				&& MatchPatternB(pattern, position, dir, Side::Left, Stone::Black | Stone::Black | Stone::Black)) return RenCount(0, 1, 0);
+			if (MatchPatternB(pattern, position, dir, Side::Right, Stone::Black | Stone::None)
+				&& MatchPatternB(pattern, position, dir, Side::Left, Stone::Black | Stone::Black)) return RenCount(0, 1, 0);
+			if (MatchPatternB(pattern, position, dir, Side::Right, Stone::Black | Stone::Black | Stone::None)
 				&& MatchPatternB(pattern, position, dir, Side::Left, Stone::Black)) return RenCount(0, 1, 0);
-			if (MatchPatternB(pattern, position, dir, Side::Right, Stone::Black, Stone::Black, Stone::Black, Stone::None)
+			if (MatchPatternB(pattern, position, dir, Side::Right, Stone::Black | Stone::Black | Stone::Black | Stone::None)
 				&& MatchPatternB(pattern, position, dir, Side::Left)) return RenCount(0, 1, 0);
 			//11101
 			if (MatchPatternB(pattern, position, dir, Side::Right)
-				&& MatchPatternB(pattern, position, dir, Side::Left, Stone::None, Stone::Black, Stone::Black, Stone::Black)) return RenCount(0, 1, 0);
-			if (MatchPatternB(pattern, position, dir, Side::Right, Stone::None, Stone::Black)
-				&& MatchPatternB(pattern, position, dir, Side::Left, Stone::Black, Stone::Black)) return RenCount(0, 1, 0);
-			if (MatchPatternB(pattern, position, dir, Side::Right, Stone::Black, Stone::None, Stone::Black)
+				&& MatchPatternB(pattern, position, dir, Side::Left, Stone::None | Stone::Black | Stone::Black | Stone::Black)) return RenCount(0, 1, 0);
+			if (MatchPatternB(pattern, position, dir, Side::Right, Stone::None | Stone::Black)
+				&& MatchPatternB(pattern, position, dir, Side::Left, Stone::Black | Stone::Black)) return RenCount(0, 1, 0);
+			if (MatchPatternB(pattern, position, dir, Side::Right, Stone::Black | Stone::None | Stone::Black)
 				&& MatchPatternB(pattern, position, dir, Side::Left, Stone::Black)) return RenCount(0, 1, 0);
-			if (MatchPatternB(pattern, position, dir, Side::Right, Stone::Black, Stone::Black, Stone::None, Stone::Black)
+			if (MatchPatternB(pattern, position, dir, Side::Right, Stone::Black | Stone::Black | Stone::None | Stone::Black)
 				&& MatchPatternB(pattern, position, dir, Side::Left)) return RenCount(0, 1, 0);
 			//11011
 			if (MatchPatternB(pattern, position, dir, Side::Right)
-				&& MatchPatternB(pattern, position, dir, Side::Left, Stone::Black, Stone::None, Stone::Black, Stone::Black)) return RenCount(0, 1, 0);
+				&& MatchPatternB(pattern, position, dir, Side::Left, Stone::Black | Stone::None | Stone::Black | Stone::Black)) return RenCount(0, 1, 0);
 			if (MatchPatternB(pattern, position, dir, Side::Right, Stone::Black)
-				&& MatchPatternB(pattern, position, dir, Side::Left, Stone::None, Stone::Black, Stone::Black)) return RenCount(0, 1, 0);
+				&& MatchPatternB(pattern, position, dir, Side::Left, Stone::None | Stone::Black | Stone::Black)) return RenCount(0, 1, 0);
 			if (MatchPatternB(pattern, position, dir, Side::Left)
-				&& MatchPatternB(pattern, position, dir, Side::Right, Stone::Black, Stone::None, Stone::Black, Stone::Black)) return RenCount(0, 1, 0);
+				&& MatchPatternB(pattern, position, dir, Side::Right, Stone::Black | Stone::None | Stone::Black | Stone::Black)) return RenCount(0, 1, 0);
 			if (MatchPatternB(pattern, position, dir, Side::Left, Stone::Black)
-				&& MatchPatternB(pattern, position, dir, Side::Right, Stone::None, Stone::Black, Stone::Black)) return RenCount(0, 1, 0);
+				&& MatchPatternB(pattern, position, dir, Side::Right, Stone::None | Stone::Black | Stone::Black)) return RenCount(0, 1, 0);
 			//10111
 			if (MatchPatternB(pattern, position, dir, Side::Left)
-				&& MatchPatternB(pattern, position, dir, Side::Right, Stone::None, Stone::Black, Stone::Black, Stone::Black)) return RenCount(0, 1, 0);
-			if (MatchPatternB(pattern, position, dir, Side::Left, Stone::None, Stone::Black)
-				&& MatchPatternB(pattern, position, dir, Side::Right, Stone::Black, Stone::Black)) return RenCount(0, 1, 0);
-			if (MatchPatternB(pattern, position, dir, Side::Left, Stone::Black, Stone::None, Stone::Black)
+				&& MatchPatternB(pattern, position, dir, Side::Right, Stone::None | Stone::Black | Stone::Black | Stone::Black)) return RenCount(0, 1, 0);
+			if (MatchPatternB(pattern, position, dir, Side::Left, Stone::None | Stone::Black)
+				&& MatchPatternB(pattern, position, dir, Side::Right, Stone::Black | Stone::Black)) return RenCount(0, 1, 0);
+			if (MatchPatternB(pattern, position, dir, Side::Left, Stone::Black | Stone::None | Stone::Black)
 				&& MatchPatternB(pattern, position, dir, Side::Right, Stone::Black)) return RenCount(0, 1, 0);
-			if (MatchPatternB(pattern, position, dir, Side::Left, Stone::Black, Stone::Black, Stone::None, Stone::Black)
+			if (MatchPatternB(pattern, position, dir, Side::Left, Stone::Black | Stone::Black | Stone::None | Stone::Black)
 				&& MatchPatternB(pattern, position, dir, Side::Right)) return RenCount(0, 1, 0);
 			//01111
 			if (MatchPatternB(pattern, position, dir, Side::Left, Stone::None)
-				&& MatchPatternB(pattern, position, dir, Side::Right, Stone::Black, Stone::Black, Stone::Black)) return RenCount(0, 1, 0);
-			if (MatchPatternB(pattern, position, dir, Side::Left, Stone::Black, Stone::None)
-				&& MatchPatternB(pattern, position, dir, Side::Right, Stone::Black, Stone::Black)) return RenCount(0, 1, 0);
-			if (MatchPatternB(pattern, position, dir, Side::Left, Stone::Black, Stone::Black, Stone::None)
+				&& MatchPatternB(pattern, position, dir, Side::Right, Stone::Black | Stone::Black | Stone::Black)) return RenCount(0, 1, 0);
+			if (MatchPatternB(pattern, position, dir, Side::Left, Stone::Black | Stone::None)
+				&& MatchPatternB(pattern, position, dir, Side::Right, Stone::Black | Stone::Black)) return RenCount(0, 1, 0);
+			if (MatchPatternB(pattern, position, dir, Side::Left, Stone::Black | Stone::Black | Stone::None)
 				&& MatchPatternB(pattern, position, dir, Side::Right, Stone::Black)) return RenCount(0, 1, 0);
-			if (MatchPatternB(pattern, position, dir, Side::Left, Stone::Black, Stone::Black, Stone::Black, Stone::None)
+			if (MatchPatternB(pattern, position, dir, Side::Left, Stone::Black | Stone::Black | Stone::Black | Stone::None)
 				&& MatchPatternB(pattern, position, dir, Side::Right)) return RenCount(0, 1, 0);
 		}
 		// Count Katsu-San
@@ -590,54 +552,54 @@ class Board {
 			int offset1 = 0, offset2 = 0;
 			while (true) {
 				//011100
-				if (MatchPatternB(pattern, position, dir, Side::Right, Stone::None, Stone::None)
-					&& MatchPatternB(pattern, position, dir, Side::Left, Stone::Black, Stone::Black, Stone::None)) {
+				if (MatchPatternB(pattern, position, dir, Side::Right, Stone::None | Stone::None)
+					&& MatchPatternB(pattern, position, dir, Side::Left, Stone::Black | Stone::Black | Stone::None)) {
 					offset1 = 1; offset2 = -3; break;
 				}
-				if (MatchPatternB(pattern, position, dir, Side::Right, Stone::Black, Stone::None, Stone::None)
-					&& MatchPatternB(pattern, position, dir, Side::Left, Stone::Black, Stone::None)) {
+				if (MatchPatternB(pattern, position, dir, Side::Right, Stone::Black | Stone::None | Stone::None)
+					&& MatchPatternB(pattern, position, dir, Side::Left, Stone::Black | Stone::None)) {
 					offset1 = 2; offset2 = -2; break;
 				}
-				if (MatchPatternB(pattern, position, dir, Side::Right, Stone::Black, Stone::Black, Stone::None, Stone::None)
+				if (MatchPatternB(pattern, position, dir, Side::Right, Stone::Black | Stone::Black | Stone::None | Stone::None)
 					&& MatchPatternB(pattern, position, dir, Side::Left, Stone::None)) {
 					offset1 = 3; offset2 = -1; break;
 				}
 				//011010
 				if (MatchPatternB(pattern, position, dir, Side::Right, Stone::None)
-					&& MatchPatternB(pattern, position, dir, Side::Left, Stone::None, Stone::Black, Stone::Black, Stone::None)) {
+					&& MatchPatternB(pattern, position, dir, Side::Left, Stone::None | Stone::Black | Stone::Black | Stone::None)) {
 					offset1 = -1; break;
 				}
-				if (MatchPatternB(pattern, position, dir, Side::Right, Stone::None, Stone::Black, Stone::None)
-					&& MatchPatternB(pattern, position, dir, Side::Left, Stone::Black, Stone::None)) {
+				if (MatchPatternB(pattern, position, dir, Side::Right, Stone::None | Stone::Black | Stone::None)
+					&& MatchPatternB(pattern, position, dir, Side::Left, Stone::Black | Stone::None)) {
 					offset1 = 1; break;
 				}
-				if (MatchPatternB(pattern, position, dir, Side::Right, Stone::Black, Stone::None, Stone::Black, Stone::None)
+				if (MatchPatternB(pattern, position, dir, Side::Right, Stone::Black | Stone::None | Stone::Black | Stone::None)
 					&& MatchPatternB(pattern, position, dir, Side::Left, Stone::None)) {
 					offset1 = 2; break;
 				}
 				//010110
 				if (MatchPatternB(pattern, position, dir, Side::Left, Stone::None)
-					&& MatchPatternB(pattern, position, dir, Side::Right, Stone::None, Stone::Black, Stone::Black, Stone::None)) {
+					&& MatchPatternB(pattern, position, dir, Side::Right, Stone::None | Stone::Black | Stone::Black | Stone::None)) {
 					offset1 = 1; break;
 				}
-				if (MatchPatternB(pattern, position, dir, Side::Left, Stone::None, Stone::Black, Stone::None)
-					&& MatchPatternB(pattern, position, dir, Side::Right, Stone::Black, Stone::None)) {
+				if (MatchPatternB(pattern, position, dir, Side::Left, Stone::None | Stone::Black | Stone::None)
+					&& MatchPatternB(pattern, position, dir, Side::Right, Stone::Black | Stone::None)) {
 					offset1 = -1; break;
 				}
-				if (MatchPatternB(pattern, position, dir, Side::Left, Stone::Black, Stone::None, Stone::Black, Stone::None)
+				if (MatchPatternB(pattern, position, dir, Side::Left, Stone::Black | Stone::None | Stone::Black | Stone::None)
 					&& MatchPatternB(pattern, position, dir, Side::Right, Stone::None)) {
 					offset1 = -2; break;
 				}
 				//001110
-				if (MatchPatternB(pattern, position, dir, Side::Left, Stone::None, Stone::None)
-					&& MatchPatternB(pattern, position, dir, Side::Right, Stone::Black, Stone::Black, Stone::None)) {
+				if (MatchPatternB(pattern, position, dir, Side::Left, Stone::None | Stone::None)
+					&& MatchPatternB(pattern, position, dir, Side::Right, Stone::Black | Stone::Black | Stone::None)) {
 					offset1 = -1; offset2 = 3; break;
 				}
-				if (MatchPatternB(pattern, position, dir, Side::Left, Stone::Black, Stone::None, Stone::None)
-					&& MatchPatternB(pattern, position, dir, Side::Right, Stone::Black, Stone::None)) {
+				if (MatchPatternB(pattern, position, dir, Side::Left, Stone::Black | Stone::None | Stone::None)
+					&& MatchPatternB(pattern, position, dir, Side::Right, Stone::Black | Stone::None)) {
 					offset1 = -2; offset2 = 2; break;
 				}
-				if (MatchPatternB(pattern, position, dir, Side::Left, Stone::Black, Stone::Black, Stone::None, Stone::None)
+				if (MatchPatternB(pattern, position, dir, Side::Left, Stone::Black | Stone::Black | Stone::None | Stone::None)
 					&& MatchPatternB(pattern, position, dir, Side::Right, Stone::None)) {
 					offset1 = -3; offset2 = 1; break;
 				}
@@ -674,101 +636,101 @@ class Board {
 		 */
 		{
 			//BO|BBB|OB
-			if (MatchPatternW(pattern, position, dir, Side::Right, Stone::White, Stone::White, Stone::None, Stone::White)
-				&& MatchPatternW(pattern, position, dir, Side::Left, Stone::None, Stone::White)) return RenCount(0, 2, 0);
-			if (MatchPatternW(pattern, position, dir, Side::Right, Stone::White, Stone::None, Stone::White)
-				&& MatchPatternW(pattern, position, dir, Side::Left, Stone::White, Stone::None, Stone::White)) return RenCount(0, 2, 0);
-			if (MatchPatternW(pattern, position, dir, Side::Left, Stone::White, Stone::White, Stone::None, Stone::White)
-				&& MatchPatternW(pattern, position, dir, Side::Right, Stone::None, Stone::White)) return RenCount(0, 2, 0);
+			if (MatchPatternW(pattern, position, dir, Side::Right, Stone::White | Stone::White | Stone::None | Stone::White)
+				&& MatchPatternW(pattern, position, dir, Side::Left, Stone::None | Stone::White)) return RenCount(0, 2, 0);
+			if (MatchPatternW(pattern, position, dir, Side::Right, Stone::White | Stone::None | Stone::White)
+				&& MatchPatternW(pattern, position, dir, Side::Left, Stone::White | Stone::None | Stone::White)) return RenCount(0, 2, 0);
+			if (MatchPatternW(pattern, position, dir, Side::Left, Stone::White | Stone::White | Stone::None | Stone::White)
+				&& MatchPatternW(pattern, position, dir, Side::Right, Stone::None | Stone::White)) return RenCount(0, 2, 0);
 			//BBO|BB|OBB
-			if (MatchPatternW(pattern, position, dir, Side::Right, Stone::White, Stone::None, Stone::White, Stone::White)
-				&& MatchPatternW(pattern, position, dir, Side::Left, Stone::None, Stone::White, Stone::White)) return RenCount(0, 2, 0);
-			if (MatchPatternW(pattern, position, dir, Side::Left, Stone::White, Stone::None, Stone::White, Stone::White)
-				&& MatchPatternW(pattern, position, dir, Side::Right, Stone::None, Stone::White, Stone::White)) return RenCount(0, 2, 0);
+			if (MatchPatternW(pattern, position, dir, Side::Right, Stone::White | Stone::None | Stone::White | Stone::White)
+				&& MatchPatternW(pattern, position, dir, Side::Left, Stone::None | Stone::White | Stone::White)) return RenCount(0, 2, 0);
+			if (MatchPatternW(pattern, position, dir, Side::Left, Stone::White | Stone::None | Stone::White | Stone::White)
+				&& MatchPatternW(pattern, position, dir, Side::Right, Stone::None | Stone::White | Stone::White)) return RenCount(0, 2, 0);
 			//BBBO|B|OBBB
-			if (MatchPatternW(pattern, position, dir, Side::Right, Stone::None, Stone::White, Stone::White, Stone::White)
-				&& MatchPatternW(pattern, position, dir, Side::Left, Stone::None, Stone::White, Stone::White, Stone::White)) return RenCount(0, 2, 0);
+			if (MatchPatternW(pattern, position, dir, Side::Right, Stone::None | Stone::White | Stone::White | Stone::White)
+				&& MatchPatternW(pattern, position, dir, Side::Left, Stone::None | Stone::White | Stone::White | Stone::White)) return RenCount(0, 2, 0);
 		}
 		// Count Shi-ren
 		{
-			if (MatchPatternW(pattern, position, dir, Side::Right, Stone::White, Stone::White, Stone::White, Stone::None)
+			if (MatchPatternW(pattern, position, dir, Side::Right, Stone::White | Stone::White | Stone::White | Stone::None)
 				&& MatchPatternW(pattern, position, dir, Side::Left, Stone::None)) return RenCount(1, 0, 0);
-			if (MatchPatternW(pattern, position, dir, Side::Right, Stone::White, Stone::White, Stone::None)
-				&& MatchPatternW(pattern, position, dir, Side::Left, Stone::White, Stone::None)) return RenCount(1, 0, 0);
-			if (MatchPatternW(pattern, position, dir, Side::Left, Stone::White, Stone::White, Stone::White, Stone::None)
+			if (MatchPatternW(pattern, position, dir, Side::Right, Stone::White | Stone::White | Stone::None)
+				&& MatchPatternW(pattern, position, dir, Side::Left, Stone::White | Stone::None)) return RenCount(1, 0, 0);
+			if (MatchPatternW(pattern, position, dir, Side::Left, Stone::White | Stone::White | Stone::White | Stone::None)
 				&& MatchPatternW(pattern, position, dir, Side::Right, Stone::None)) return RenCount(1, 0, 0);
-			if (MatchPatternW(pattern, position, dir, Side::Left, Stone::White, Stone::White, Stone::None)
-				&& MatchPatternW(pattern, position, dir, Side::Right, Stone::White, Stone::None)) return RenCount(1, 0, 0);
+			if (MatchPatternW(pattern, position, dir, Side::Left, Stone::White | Stone::White | Stone::None)
+				&& MatchPatternW(pattern, position, dir, Side::Right, Stone::White | Stone::None)) return RenCount(1, 0, 0);
 		}
 		// Count Katsu-Shi
 		{
 			//11110
 			if (MatchPatternW(pattern, position, dir, Side::Right, Stone::None)
-				&& MatchPatternW(pattern, position, dir, Side::Left, Stone::White, Stone::White, Stone::White)) return RenCount(0, 1, 0);
-			if (MatchPatternW(pattern, position, dir, Side::Right, Stone::White, Stone::None)
-				&& MatchPatternW(pattern, position, dir, Side::Left, Stone::White, Stone::White)) return RenCount(0, 1, 0);
-			if (MatchPatternW(pattern, position, dir, Side::Right, Stone::White, Stone::White, Stone::None)
+				&& MatchPatternW(pattern, position, dir, Side::Left, Stone::White | Stone::White | Stone::White)) return RenCount(0, 1, 0);
+			if (MatchPatternW(pattern, position, dir, Side::Right, Stone::White | Stone::None)
+				&& MatchPatternW(pattern, position, dir, Side::Left, Stone::White | Stone::White)) return RenCount(0, 1, 0);
+			if (MatchPatternW(pattern, position, dir, Side::Right, Stone::White | Stone::White | Stone::None)
 				&& MatchPatternW(pattern, position, dir, Side::Left, Stone::White)) return RenCount(0, 1, 0);
-			if (MatchPatternW(pattern, position, dir, Side::Right, Stone::White, Stone::White, Stone::White, Stone::None)) return RenCount(0, 1, 0);
+			if (MatchPatternW(pattern, position, dir, Side::Right, Stone::White | Stone::White | Stone::White | Stone::None)) return RenCount(0, 1, 0);
 			//11101
-			if (MatchPatternW(pattern, position, dir, Side::Left, Stone::None, Stone::White, Stone::White, Stone::White)) return RenCount(0, 1, 0);
-			if (MatchPatternW(pattern, position, dir, Side::Right, Stone::None, Stone::White)
-				&& MatchPatternW(pattern, position, dir, Side::Left, Stone::White, Stone::White)) return RenCount(0, 1, 0);
-			if (MatchPatternW(pattern, position, dir, Side::Right, Stone::White, Stone::None, Stone::White)
+			if (MatchPatternW(pattern, position, dir, Side::Left, Stone::None | Stone::White | Stone::White | Stone::White)) return RenCount(0, 1, 0);
+			if (MatchPatternW(pattern, position, dir, Side::Right, Stone::None | Stone::White)
+				&& MatchPatternW(pattern, position, dir, Side::Left, Stone::White | Stone::White)) return RenCount(0, 1, 0);
+			if (MatchPatternW(pattern, position, dir, Side::Right, Stone::White | Stone::None | Stone::White)
 				&& MatchPatternW(pattern, position, dir, Side::Left, Stone::White)) return RenCount(0, 1, 0);
-			if (MatchPatternW(pattern, position, dir, Side::Right, Stone::White, Stone::White, Stone::None, Stone::White)) return RenCount(0, 1, 0);
+			if (MatchPatternW(pattern, position, dir, Side::Right, Stone::White | Stone::White | Stone::None | Stone::White)) return RenCount(0, 1, 0);
 			//11011
-			if (MatchPatternW(pattern, position, dir, Side::Left, Stone::White, Stone::None, Stone::White, Stone::White)) return RenCount(0, 1, 0);
+			if (MatchPatternW(pattern, position, dir, Side::Left, Stone::White | Stone::None | Stone::White | Stone::White)) return RenCount(0, 1, 0);
 			if (MatchPatternW(pattern, position, dir, Side::Right, Stone::White)
-				&& MatchPatternW(pattern, position, dir, Side::Left, Stone::None, Stone::White, Stone::White)) return RenCount(0, 1, 0);
-			if (MatchPatternW(pattern, position, dir, Side::Right, Stone::White, Stone::None, Stone::White, Stone::White)) return RenCount(0, 1, 0);
+				&& MatchPatternW(pattern, position, dir, Side::Left, Stone::None | Stone::White | Stone::White)) return RenCount(0, 1, 0);
+			if (MatchPatternW(pattern, position, dir, Side::Right, Stone::White | Stone::None | Stone::White | Stone::White)) return RenCount(0, 1, 0);
 			if (MatchPatternW(pattern, position, dir, Side::Left, Stone::White)
-				&& MatchPatternW(pattern, position, dir, Side::Right, Stone::None, Stone::White, Stone::White)) return RenCount(0, 1, 0);
+				&& MatchPatternW(pattern, position, dir, Side::Right, Stone::None | Stone::White | Stone::White)) return RenCount(0, 1, 0);
 			//10111
-			if (MatchPatternW(pattern, position, dir, Side::Right, Stone::None, Stone::White, Stone::White, Stone::White)) return RenCount(0, 1, 0);
-			if (MatchPatternW(pattern, position, dir, Side::Left, Stone::None, Stone::White)
-				&& MatchPatternW(pattern, position, dir, Side::Right, Stone::White, Stone::White)) return RenCount(0, 1, 0);
-			if (MatchPatternW(pattern, position, dir, Side::Left, Stone::White, Stone::None, Stone::White)
+			if (MatchPatternW(pattern, position, dir, Side::Right, Stone::None | Stone::White | Stone::White | Stone::White)) return RenCount(0, 1, 0);
+			if (MatchPatternW(pattern, position, dir, Side::Left, Stone::None | Stone::White)
+				&& MatchPatternW(pattern, position, dir, Side::Right, Stone::White | Stone::White)) return RenCount(0, 1, 0);
+			if (MatchPatternW(pattern, position, dir, Side::Left, Stone::White | Stone::None | Stone::White)
 				&& MatchPatternW(pattern, position, dir, Side::Right, Stone::White)) return RenCount(0, 1, 0);
-			if (MatchPatternW(pattern, position, dir, Side::Left, Stone::White, Stone::White, Stone::None, Stone::White)) return RenCount(0, 1, 0);
+			if (MatchPatternW(pattern, position, dir, Side::Left, Stone::White | Stone::White | Stone::None | Stone::White)) return RenCount(0, 1, 0);
 			//01111
 			if (MatchPatternW(pattern, position, dir, Side::Left, Stone::None)
-				&& MatchPatternW(pattern, position, dir, Side::Right, Stone::White, Stone::White, Stone::White)) return RenCount(0, 1, 0);
-			if (MatchPatternW(pattern, position, dir, Side::Left, Stone::White, Stone::None)
-				&& MatchPatternW(pattern, position, dir, Side::Right, Stone::White, Stone::White)) return RenCount(0, 1, 0);
-			if (MatchPatternW(pattern, position, dir, Side::Left, Stone::White, Stone::White, Stone::None)
+				&& MatchPatternW(pattern, position, dir, Side::Right, Stone::White | Stone::White | Stone::White)) return RenCount(0, 1, 0);
+			if (MatchPatternW(pattern, position, dir, Side::Left, Stone::White | Stone::None)
+				&& MatchPatternW(pattern, position, dir, Side::Right, Stone::White | Stone::White)) return RenCount(0, 1, 0);
+			if (MatchPatternW(pattern, position, dir, Side::Left, Stone::White | Stone::White | Stone::None)
 				&& MatchPatternW(pattern, position, dir, Side::Right, Stone::White)) return RenCount(0, 1, 0);
-			if (MatchPatternW(pattern, position, dir, Side::Left, Stone::White, Stone::White, Stone::White, Stone::None)) return RenCount(0, 1, 0);
+			if (MatchPatternW(pattern, position, dir, Side::Left, Stone::White | Stone::White | Stone::White | Stone::None)) return RenCount(0, 1, 0);
 		}
 		// Count Katsu-san
 		{
 			//011100
-			if (MatchPatternW(pattern, position, dir, Side::Right, Stone::None, Stone::None)
-				&& MatchPatternW(pattern, position, dir, Side::Left, Stone::White, Stone::White, Stone::None)) return RenCount(0, 0, 1);
-			if (MatchPatternW(pattern, position, dir, Side::Right, Stone::White, Stone::None, Stone::None)
-				&& MatchPatternW(pattern, position, dir, Side::Left, Stone::White, Stone::None)) return RenCount(0, 0, 1);
-			if (MatchPatternW(pattern, position, dir, Side::Right, Stone::White, Stone::White, Stone::None, Stone::None)
+			if (MatchPatternW(pattern, position, dir, Side::Right, Stone::None | Stone::None)
+				&& MatchPatternW(pattern, position, dir, Side::Left, Stone::White | Stone::White | Stone::None)) return RenCount(0, 0, 1);
+			if (MatchPatternW(pattern, position, dir, Side::Right, Stone::White | Stone::None | Stone::None)
+				&& MatchPatternW(pattern, position, dir, Side::Left, Stone::White | Stone::None)) return RenCount(0, 0, 1);
+			if (MatchPatternW(pattern, position, dir, Side::Right, Stone::White | Stone::White | Stone::None | Stone::None)
 				&& MatchPatternW(pattern, position, dir, Side::Left, Stone::None)) return RenCount(0, 0, 1);
 			//011010
 			if (MatchPatternW(pattern, position, dir, Side::Right, Stone::None)
-				&& MatchPatternW(pattern, position, dir, Side::Left, Stone::None, Stone::White, Stone::White, Stone::None)) return RenCount(0, 0, 1);
-			if (MatchPatternW(pattern, position, dir, Side::Right, Stone::None, Stone::White, Stone::None)
-				&& MatchPatternW(pattern, position, dir, Side::Left, Stone::White, Stone::None)) return RenCount(0, 0, 1);
-			if (MatchPatternW(pattern, position, dir, Side::Right, Stone::White, Stone::None, Stone::White, Stone::None)
+				&& MatchPatternW(pattern, position, dir, Side::Left, Stone::None | Stone::White | Stone::White | Stone::None)) return RenCount(0, 0, 1);
+			if (MatchPatternW(pattern, position, dir, Side::Right, Stone::None | Stone::White | Stone::None)
+				&& MatchPatternW(pattern, position, dir, Side::Left, Stone::White | Stone::None)) return RenCount(0, 0, 1);
+			if (MatchPatternW(pattern, position, dir, Side::Right, Stone::White | Stone::None | Stone::White | Stone::None)
 				&& MatchPatternW(pattern, position, dir, Side::Left, Stone::None)) return RenCount(0, 0, 1);
 			//010110
 			if (MatchPatternW(pattern, position, dir, Side::Left, Stone::None)
-				&& MatchPatternW(pattern, position, dir, Side::Right, Stone::None, Stone::White, Stone::White, Stone::None)) return RenCount(0, 0, 1);
-			if (MatchPatternW(pattern, position, dir, Side::Left, Stone::None, Stone::White, Stone::None)
-				&& MatchPatternW(pattern, position, dir, Side::Right, Stone::White, Stone::None)) return RenCount(0, 0, 1);
-			if (MatchPatternW(pattern, position, dir, Side::Left, Stone::White, Stone::None, Stone::White, Stone::None)
+				&& MatchPatternW(pattern, position, dir, Side::Right, Stone::None | Stone::White | Stone::White | Stone::None)) return RenCount(0, 0, 1);
+			if (MatchPatternW(pattern, position, dir, Side::Left, Stone::None | Stone::White | Stone::None)
+				&& MatchPatternW(pattern, position, dir, Side::Right, Stone::White | Stone::None)) return RenCount(0, 0, 1);
+			if (MatchPatternW(pattern, position, dir, Side::Left, Stone::White | Stone::None | Stone::White | Stone::None)
 				&& MatchPatternW(pattern, position, dir, Side::Right, Stone::None)) return RenCount(0, 0, 1);
 			//001110
-			if (MatchPatternW(pattern, position, dir, Side::Left, Stone::None, Stone::None)
-				&& MatchPatternW(pattern, position, dir, Side::Right, Stone::White, Stone::White, Stone::None)) return RenCount(0, 0, 1);
-			if (MatchPatternW(pattern, position, dir, Side::Left, Stone::White, Stone::None, Stone::None)
-				&& MatchPatternW(pattern, position, dir, Side::Right, Stone::White, Stone::None)) return RenCount(0, 0, 1);
-			if (MatchPatternW(pattern, position, dir, Side::Left, Stone::White, Stone::White, Stone::None, Stone::None)
+			if (MatchPatternW(pattern, position, dir, Side::Left, Stone::None | Stone::None)
+				&& MatchPatternW(pattern, position, dir, Side::Right, Stone::White | Stone::White | Stone::None)) return RenCount(0, 0, 1);
+			if (MatchPatternW(pattern, position, dir, Side::Left, Stone::White | Stone::None | Stone::None)
+				&& MatchPatternW(pattern, position, dir, Side::Right, Stone::White | Stone::None)) return RenCount(0, 0, 1);
+			if (MatchPatternW(pattern, position, dir, Side::Left, Stone::White | Stone::White | Stone::None | Stone::None)
 				&& MatchPatternW(pattern, position, dir, Side::Right, Stone::None)) return RenCount(0, 0, 1);
 		}
 		return RenCount(0, 0, 0);
@@ -783,38 +745,38 @@ class Board {
 		*/
 		{
 			//BO|BBB|OB
-			if (MatchPatternB(pattern, position, dir, Side::Right, Stone::Black, Stone::Black, Stone::None, Stone::Black)
-				&& MatchPatternB(pattern, position, dir, Side::Left, Stone::None, Stone::Black)) return RenCount(0, 2, 0);
-			if (MatchPatternB(pattern, position, dir, Side::Right, Stone::Black, Stone::None, Stone::Black)
-				&& MatchPatternB(pattern, position, dir, Side::Left, Stone::Black, Stone::None, Stone::Black)) return RenCount(0, 2, 0);
-			if (MatchPatternB(pattern, position, dir, Side::Left, Stone::Black, Stone::Black, Stone::None, Stone::Black)
-				&& MatchPatternB(pattern, position, dir, Side::Right, Stone::None, Stone::Black)) return RenCount(0, 2, 0);
+			if (MatchPatternB(pattern, position, dir, Side::Right, Stone::Black | Stone::Black | Stone::None | Stone::Black)
+				&& MatchPatternB(pattern, position, dir, Side::Left, Stone::None | Stone::Black)) return RenCount(0, 2, 0);
+			if (MatchPatternB(pattern, position, dir, Side::Right, Stone::Black | Stone::None | Stone::Black)
+				&& MatchPatternB(pattern, position, dir, Side::Left, Stone::Black | Stone::None | Stone::Black)) return RenCount(0, 2, 0);
+			if (MatchPatternB(pattern, position, dir, Side::Left, Stone::Black | Stone::Black | Stone::None | Stone::Black)
+				&& MatchPatternB(pattern, position, dir, Side::Right, Stone::None | Stone::Black)) return RenCount(0, 2, 0);
 			//BBO|BB|OBB
-			if (MatchPatternB(pattern, position, dir, Side::Right, Stone::Black, Stone::None, Stone::Black, Stone::Black)
-				&& MatchPatternB(pattern, position, dir, Side::Left, Stone::None, Stone::Black, Stone::Black)) return RenCount(0, 2, 0);
-			if (MatchPatternB(pattern, position, dir, Side::Left, Stone::Black, Stone::None, Stone::Black, Stone::Black)
-				&& MatchPatternB(pattern, position, dir, Side::Right, Stone::None, Stone::Black, Stone::Black)) return RenCount(0, 2, 0);
+			if (MatchPatternB(pattern, position, dir, Side::Right, Stone::Black | Stone::None | Stone::Black | Stone::Black)
+				&& MatchPatternB(pattern, position, dir, Side::Left, Stone::None | Stone::Black | Stone::Black)) return RenCount(0, 2, 0);
+			if (MatchPatternB(pattern, position, dir, Side::Left, Stone::Black | Stone::None | Stone::Black | Stone::Black)
+				&& MatchPatternB(pattern, position, dir, Side::Right, Stone::None | Stone::Black | Stone::Black)) return RenCount(0, 2, 0);
 			//BBBO|B|OBBB
-			if (MatchPatternB(pattern, position, dir, Side::Right, Stone::None, Stone::Black, Stone::Black, Stone::Black)
-				&& MatchPatternB(pattern, position, dir, Side::Left, Stone::None, Stone::Black, Stone::Black, Stone::Black)) return RenCount(0, 2, 0);
+			if (MatchPatternB(pattern, position, dir, Side::Right, Stone::None | Stone::Black | Stone::Black | Stone::Black)
+				&& MatchPatternB(pattern, position, dir, Side::Left, Stone::None | Stone::Black | Stone::Black | Stone::Black)) return RenCount(0, 2, 0);
 		}
 		// Count Shi-ren
 		{
-			if(MatchPatternB(pattern, position, dir, Side::Right, Stone::Black, Stone::Black, Stone::Black, Stone::None)
+			if(MatchPatternB(pattern, position, dir, Side::Right, Stone::Black | Stone::Black | Stone::Black | Stone::None)
 				&& MatchPatternB(pattern, position, dir, Side::Left, Stone::None)) return RenCount(1, 0, 0);
-			if (MatchPatternB(pattern, position, dir, Side::Right, Stone::Black, Stone::Black, Stone::None)
-				&& MatchPatternB(pattern, position, dir, Side::Left, Stone::Black, Stone::None)) return RenCount(1, 0, 0);
-			if (MatchPatternB(pattern, position, dir, Side::Left, Stone::Black, Stone::Black, Stone::Black, Stone::None)
+			if (MatchPatternB(pattern, position, dir, Side::Right, Stone::Black | Stone::Black | Stone::None)
+				&& MatchPatternB(pattern, position, dir, Side::Left, Stone::Black | Stone::None)) return RenCount(1, 0, 0);
+			if (MatchPatternB(pattern, position, dir, Side::Left, Stone::Black | Stone::Black | Stone::Black | Stone::None)
 				&& MatchPatternB(pattern, position, dir, Side::Right, Stone::None)) return RenCount(1, 0, 0);
-			if (MatchPatternB(pattern, position, dir, Side::Left, Stone::Black, Stone::Black, Stone::None)
-				&& MatchPatternB(pattern, position, dir, Side::Right, Stone::Black, Stone::None)) return RenCount(1, 0, 0);
+			if (MatchPatternB(pattern, position, dir, Side::Left, Stone::Black | Stone::Black | Stone::None)
+				&& MatchPatternB(pattern, position, dir, Side::Right, Stone::Black | Stone::None)) return RenCount(1, 0, 0);
 		}
 		// Count Katsu-Shi
 		auto GetPosition = [&position, &dir](int count) -> int {return position + kPositionoffset[dir] * count; };
 		{
 			//11110
 			if (MatchPatternB(pattern, position, dir, Side::Right, Stone::None)
-				&& MatchPatternB(pattern, position, dir, Side::Left, Stone::Black, Stone::Black, Stone::Black)) {
+				&& MatchPatternB(pattern, position, dir, Side::Left, Stone::Black | Stone::Black | Stone::Black)) {
 				int bp = GetPosition(1);
 				if (bp >= 0 && bp < kBoardSize * kBoardSize) {
 					block_position = bp;
@@ -824,8 +786,8 @@ class Board {
 				}
 				return RenCount(0, 1, 0);
 			}
-			if (MatchPatternB(pattern, position, dir, Side::Right, Stone::Black, Stone::None)
-				&& MatchPatternB(pattern, position, dir, Side::Left, Stone::Black, Stone::Black)) {
+			if (MatchPatternB(pattern, position, dir, Side::Right, Stone::Black | Stone::None)
+				&& MatchPatternB(pattern, position, dir, Side::Left, Stone::Black | Stone::Black)) {
 				int bp = GetPosition(2);
 				if (bp >= 0 && bp < kBoardSize * kBoardSize) {
 					block_position = bp;
@@ -835,7 +797,7 @@ class Board {
 				}
 				return RenCount(0, 1, 0);
 			}
-			if (MatchPatternB(pattern, position, dir, Side::Right, Stone::Black, Stone::Black, Stone::None)
+			if (MatchPatternB(pattern, position, dir, Side::Right, Stone::Black | Stone::Black | Stone::None)
 				&& MatchPatternB(pattern, position, dir, Side::Left, Stone::Black)) {
 				int bp = GetPosition(3);
 				if (bp >= 0 && bp < kBoardSize * kBoardSize) {
@@ -846,7 +808,7 @@ class Board {
 				}
 				return RenCount(0, 1, 0);
 			}
-			if (MatchPatternB(pattern, position, dir, Side::Right, Stone::Black, Stone::Black, Stone::Black, Stone::None)
+			if (MatchPatternB(pattern, position, dir, Side::Right, Stone::Black | Stone::Black | Stone::Black | Stone::None)
 				&& MatchPatternB(pattern, position, dir, Side::Left)) {
 				int bp = GetPosition(4);
 				if (bp >= 0 && bp < kBoardSize * kBoardSize) {
@@ -859,7 +821,7 @@ class Board {
 			}
 			//11101
 			if (MatchPatternB(pattern, position, dir, Side::Right)
-				&& MatchPatternB(pattern, position, dir, Side::Left, Stone::None, Stone::Black, Stone::Black, Stone::Black)) {
+				&& MatchPatternB(pattern, position, dir, Side::Left, Stone::None | Stone::Black | Stone::Black | Stone::Black)) {
 				int bp = GetPosition(-1);
 				if (bp >= 0 && bp < kBoardSize * kBoardSize) {
 					block_position = bp;
@@ -869,8 +831,8 @@ class Board {
 				}
 				return RenCount(0, 1, 0);
 			}
-			if (MatchPatternB(pattern, position, dir, Side::Right, Stone::None, Stone::Black)
-				&& MatchPatternB(pattern, position, dir, Side::Left, Stone::Black, Stone::Black)) {
+			if (MatchPatternB(pattern, position, dir, Side::Right, Stone::None | Stone::Black)
+				&& MatchPatternB(pattern, position, dir, Side::Left, Stone::Black | Stone::Black)) {
 				int bp = GetPosition(1);
 				if (bp >= 0 && bp < kBoardSize * kBoardSize) {
 					block_position = bp;
@@ -880,7 +842,7 @@ class Board {
 				}
 				return RenCount(0, 1, 0);
 			}
-			if (MatchPatternB(pattern, position, dir, Side::Right, Stone::Black, Stone::None, Stone::Black)
+			if (MatchPatternB(pattern, position, dir, Side::Right, Stone::Black | Stone::None | Stone::Black)
 				&& MatchPatternB(pattern, position, dir, Side::Left, Stone::Black)) {
 				int bp = GetPosition(2);
 				if (bp >= 0 && bp < kBoardSize * kBoardSize) {
@@ -891,7 +853,7 @@ class Board {
 				}
 				return RenCount(0, 1, 0);
 			}
-			if (MatchPatternB(pattern, position, dir, Side::Right, Stone::Black, Stone::Black, Stone::None, Stone::Black)
+			if (MatchPatternB(pattern, position, dir, Side::Right, Stone::Black | Stone::Black | Stone::None | Stone::Black)
 				&& MatchPatternB(pattern, position, dir, Side::Left)) {
 				int bp = GetPosition(3);
 				if (bp >= 0 && bp < kBoardSize * kBoardSize) {
@@ -904,7 +866,7 @@ class Board {
 			}
 			//11011
 			if (MatchPatternB(pattern, position, dir, Side::Right)
-				&& MatchPatternB(pattern, position, dir, Side::Left, Stone::Black, Stone::None, Stone::Black, Stone::Black)) {
+				&& MatchPatternB(pattern, position, dir, Side::Left, Stone::Black | Stone::None | Stone::Black | Stone::Black)) {
 				int bp = GetPosition(-2);
 				if (bp >= 0 && bp < kBoardSize * kBoardSize) {
 					block_position = bp;
@@ -915,7 +877,7 @@ class Board {
 				return RenCount(0, 1, 0);
 			}
 			if (MatchPatternB(pattern, position, dir, Side::Right, Stone::Black)
-				&& MatchPatternB(pattern, position, dir, Side::Left, Stone::None, Stone::Black, Stone::Black)) {
+				&& MatchPatternB(pattern, position, dir, Side::Left, Stone::None | Stone::Black | Stone::Black)) {
 				int bp = GetPosition(-1);
 				if (bp >= 0 && bp < kBoardSize * kBoardSize) {
 					block_position = bp;
@@ -926,7 +888,7 @@ class Board {
 				return RenCount(0, 1, 0);
 			}
 			if (MatchPatternB(pattern, position, dir, Side::Left)
-				&& MatchPatternB(pattern, position, dir, Side::Right, Stone::Black, Stone::None, Stone::Black, Stone::Black)) {
+				&& MatchPatternB(pattern, position, dir, Side::Right, Stone::Black | Stone::None | Stone::Black | Stone::Black)) {
 				int bp = GetPosition(2);
 				if (bp >= 0 && bp < kBoardSize * kBoardSize) {
 					block_position = bp;
@@ -937,7 +899,7 @@ class Board {
 				return RenCount(0, 1, 0);
 			}
 			if (MatchPatternB(pattern, position, dir, Side::Left, Stone::Black)
-				&& MatchPatternB(pattern, position, dir, Side::Right, Stone::None, Stone::Black, Stone::Black)) {
+				&& MatchPatternB(pattern, position, dir, Side::Right, Stone::None | Stone::Black | Stone::Black)) {
 				int bp = GetPosition(1);
 				if (bp >= 0 && bp < kBoardSize * kBoardSize) {
 					block_position = bp;
@@ -949,7 +911,7 @@ class Board {
 			}
 			//10111
 			if (MatchPatternB(pattern, position, dir, Side::Left)
-				&& MatchPatternB(pattern, position, dir, Side::Right, Stone::None, Stone::Black, Stone::Black, Stone::Black)) {
+				&& MatchPatternB(pattern, position, dir, Side::Right, Stone::None | Stone::Black | Stone::Black | Stone::Black)) {
 				int bp = GetPosition(1);
 				if (bp >= 0 && bp < kBoardSize * kBoardSize) {
 					block_position = bp;
@@ -959,8 +921,8 @@ class Board {
 				}
 				return RenCount(0, 1, 0);
 			}
-			if (MatchPatternB(pattern, position, dir, Side::Left, Stone::None, Stone::Black)
-				&& MatchPatternB(pattern, position, dir, Side::Right, Stone::Black, Stone::Black)) {
+			if (MatchPatternB(pattern, position, dir, Side::Left, Stone::None | Stone::Black)
+				&& MatchPatternB(pattern, position, dir, Side::Right, Stone::Black | Stone::Black)) {
 				int bp = GetPosition(-1);
 				if (bp >= 0 && bp < kBoardSize * kBoardSize) {
 					block_position = bp;
@@ -970,7 +932,7 @@ class Board {
 				}
 				return RenCount(0, 1, 0);
 			}
-			if (MatchPatternB(pattern, position, dir, Side::Left, Stone::Black, Stone::None, Stone::Black)
+			if (MatchPatternB(pattern, position, dir, Side::Left, Stone::Black | Stone::None | Stone::Black)
 				&& MatchPatternB(pattern, position, dir, Side::Right, Stone::Black)) {
 				int bp = GetPosition(-2);
 				if (bp >= 0 && bp < kBoardSize * kBoardSize) {
@@ -981,7 +943,7 @@ class Board {
 				}
 				return RenCount(0, 1, 0);
 			}
-			if (MatchPatternB(pattern, position, dir, Side::Left, Stone::Black, Stone::Black, Stone::None, Stone::Black)
+			if (MatchPatternB(pattern, position, dir, Side::Left, Stone::Black | Stone::Black | Stone::None | Stone::Black)
 				&& MatchPatternB(pattern, position, dir, Side::Right)) {
 				int bp = GetPosition(-3);
 				if (bp >= 0 && bp < kBoardSize * kBoardSize) {
@@ -994,7 +956,7 @@ class Board {
 			}
 			//01111
 			if (MatchPatternB(pattern, position, dir, Side::Left, Stone::None)
-				&& MatchPatternB(pattern, position, dir, Side::Right, Stone::Black, Stone::Black, Stone::Black)) {
+				&& MatchPatternB(pattern, position, dir, Side::Right, Stone::Black | Stone::Black | Stone::Black)) {
 				int bp = GetPosition(-1);
 				if (bp >= 0 && bp < kBoardSize * kBoardSize) {
 					block_position = bp;
@@ -1004,8 +966,8 @@ class Board {
 				}
 				return RenCount(0, 1, 0);
 			}
-			if (MatchPatternB(pattern, position, dir, Side::Left, Stone::Black, Stone::None)
-				&& MatchPatternB(pattern, position, dir, Side::Right, Stone::Black, Stone::Black)) {
+			if (MatchPatternB(pattern, position, dir, Side::Left, Stone::Black | Stone::None)
+				&& MatchPatternB(pattern, position, dir, Side::Right, Stone::Black | Stone::Black)) {
 				int bp = GetPosition(-2);
 				if (bp >= 0 && bp < kBoardSize * kBoardSize) {
 					block_position = bp;
@@ -1015,7 +977,7 @@ class Board {
 				}
 				return RenCount(0, 1, 0);
 			}
-			if (MatchPatternB(pattern, position, dir, Side::Left, Stone::Black, Stone::Black, Stone::None)
+			if (MatchPatternB(pattern, position, dir, Side::Left, Stone::Black | Stone::Black | Stone::None)
 				&& MatchPatternB(pattern, position, dir, Side::Right, Stone::Black)) {
 				int bp = GetPosition(-3);
 				if (bp >= 0 && bp < kBoardSize * kBoardSize) {
@@ -1026,7 +988,7 @@ class Board {
 				}
 				return RenCount(0, 1, 0);
 			}
-			if (MatchPatternB(pattern, position, dir, Side::Left, Stone::Black, Stone::Black, Stone::Black, Stone::None)
+			if (MatchPatternB(pattern, position, dir, Side::Left, Stone::Black | Stone::Black | Stone::Black | Stone::None)
 				&& MatchPatternB(pattern, position, dir, Side::Right)) {
 				int bp = GetPosition(-4);
 				if (bp >= 0 && bp < kBoardSize * kBoardSize) {
@@ -1043,54 +1005,54 @@ class Board {
 			int offset1 = 0, offset2 = 0;
 			while (true) {
 				//011100
-				if (MatchPatternB(pattern, position, dir, Side::Right, Stone::None, Stone::None)
-					&& MatchPatternB(pattern, position, dir, Side::Left, Stone::Black, Stone::Black, Stone::None)) {
+				if (MatchPatternB(pattern, position, dir, Side::Right, Stone::None | Stone::None)
+					&& MatchPatternB(pattern, position, dir, Side::Left, Stone::Black | Stone::Black | Stone::None)) {
 					offset1 = 1; offset2 = -3; break;
 				}
-				if (MatchPatternB(pattern, position, dir, Side::Right, Stone::Black, Stone::None, Stone::None)
-					&& MatchPatternB(pattern, position, dir, Side::Left, Stone::Black, Stone::None)) {
+				if (MatchPatternB(pattern, position, dir, Side::Right, Stone::Black | Stone::None | Stone::None)
+					&& MatchPatternB(pattern, position, dir, Side::Left, Stone::Black | Stone::None)) {
 					offset1 = 2; offset2 = -2; break;
 				}
-				if (MatchPatternB(pattern, position, dir, Side::Right, Stone::Black, Stone::Black, Stone::None, Stone::None)
+				if (MatchPatternB(pattern, position, dir, Side::Right, Stone::Black | Stone::Black | Stone::None | Stone::None)
 					&& MatchPatternB(pattern, position, dir, Side::Left, Stone::None)) {
 					offset1 = 3; offset2 = -1; break;
 				}
 				//011010
 				if (MatchPatternB(pattern, position, dir, Side::Right, Stone::None)
-					&& MatchPatternB(pattern, position, dir, Side::Left, Stone::None, Stone::Black, Stone::Black, Stone::None)) {
+					&& MatchPatternB(pattern, position, dir, Side::Left, Stone::None | Stone::Black | Stone::Black | Stone::None)) {
 					offset1 = -1; break;
 				}
-				if (MatchPatternB(pattern, position, dir, Side::Right, Stone::None, Stone::Black, Stone::None)
-					&& MatchPatternB(pattern, position, dir, Side::Left, Stone::Black, Stone::None)) {
+				if (MatchPatternB(pattern, position, dir, Side::Right, Stone::None | Stone::Black | Stone::None)
+					&& MatchPatternB(pattern, position, dir, Side::Left, Stone::Black | Stone::None)) {
 					offset1 = 1; break;
 				}
-				if (MatchPatternB(pattern, position, dir, Side::Right, Stone::Black, Stone::None, Stone::Black, Stone::None)
+				if (MatchPatternB(pattern, position, dir, Side::Right, Stone::Black | Stone::None | Stone::Black | Stone::None)
 					&& MatchPatternB(pattern, position, dir, Side::Left, Stone::None)) {
 					offset1 = 2; break;
 				}
 				//010110
 				if (MatchPatternB(pattern, position, dir, Side::Left, Stone::None)
-					&& MatchPatternB(pattern, position, dir, Side::Right, Stone::None, Stone::Black, Stone::Black, Stone::None)) {
+					&& MatchPatternB(pattern, position, dir, Side::Right, Stone::None | Stone::Black | Stone::Black | Stone::None)) {
 					offset1 = 1; break;
 				}
-				if (MatchPatternB(pattern, position, dir, Side::Left, Stone::None, Stone::Black, Stone::None)
-					&& MatchPatternB(pattern, position, dir, Side::Right, Stone::Black, Stone::None)) {
+				if (MatchPatternB(pattern, position, dir, Side::Left, Stone::None | Stone::Black | Stone::None)
+					&& MatchPatternB(pattern, position, dir, Side::Right, Stone::Black | Stone::None)) {
 					offset1 = -1; break;
 				}
-				if (MatchPatternB(pattern, position, dir, Side::Left, Stone::Black, Stone::None, Stone::Black, Stone::None)
+				if (MatchPatternB(pattern, position, dir, Side::Left, Stone::Black | Stone::None | Stone::Black | Stone::None)
 					&& MatchPatternB(pattern, position, dir, Side::Right, Stone::None)) {
 					offset1 = -2; break;
 				}
 				//001110
-				if (MatchPatternB(pattern, position, dir, Side::Left, Stone::None, Stone::None)
-					&& MatchPatternB(pattern, position, dir, Side::Right, Stone::Black, Stone::Black, Stone::None)) {
+				if (MatchPatternB(pattern, position, dir, Side::Left, Stone::None | Stone::None)
+					&& MatchPatternB(pattern, position, dir, Side::Right, Stone::Black | Stone::Black | Stone::None)) {
 					offset1 = -1; offset2 = 3; break;
 				}
-				if (MatchPatternB(pattern, position, dir, Side::Left, Stone::Black, Stone::None, Stone::None)
-					&& MatchPatternB(pattern, position, dir, Side::Right, Stone::Black, Stone::None)) {
+				if (MatchPatternB(pattern, position, dir, Side::Left, Stone::Black | Stone::None | Stone::None)
+					&& MatchPatternB(pattern, position, dir, Side::Right, Stone::Black | Stone::None)) {
 					offset1 = -2; offset2 = 2; break;
 				}
-				if (MatchPatternB(pattern, position, dir, Side::Left, Stone::Black, Stone::Black, Stone::None, Stone::None)
+				if (MatchPatternB(pattern, position, dir, Side::Left, Stone::Black | Stone::Black | Stone::None | Stone::None)
 					&& MatchPatternB(pattern, position, dir, Side::Right, Stone::None)) {
 					offset1 = -3; offset2 = 1; break;
 				}
@@ -1126,129 +1088,129 @@ class Board {
 		*/
 		{
 			//BO|BBB|OB
-			if (MatchPatternW(pattern, position, dir, Side::Right, Stone::White, Stone::White, Stone::None, Stone::White)
-				&& MatchPatternW(pattern, position, dir, Side::Left, Stone::None, Stone::White)) return RenCount(0, 2, 0);
-			if (MatchPatternW(pattern, position, dir, Side::Right, Stone::White, Stone::None, Stone::White)
-				&& MatchPatternW(pattern, position, dir, Side::Left, Stone::White, Stone::None, Stone::White)) return RenCount(0, 2, 0);
-			if (MatchPatternW(pattern, position, dir, Side::Left, Stone::White, Stone::White, Stone::None, Stone::White)
-				&& MatchPatternW(pattern, position, dir, Side::Right, Stone::None, Stone::White)) return RenCount(0, 2, 0);
+			if (MatchPatternW(pattern, position, dir, Side::Right, Stone::White | Stone::White | Stone::None | Stone::White)
+				&& MatchPatternW(pattern, position, dir, Side::Left, Stone::None | Stone::White)) return RenCount(0, 2, 0);
+			if (MatchPatternW(pattern, position, dir, Side::Right, Stone::White | Stone::None | Stone::White)
+				&& MatchPatternW(pattern, position, dir, Side::Left, Stone::White | Stone::None | Stone::White)) return RenCount(0, 2, 0);
+			if (MatchPatternW(pattern, position, dir, Side::Left, Stone::White | Stone::White | Stone::None | Stone::White)
+				&& MatchPatternW(pattern, position, dir, Side::Right, Stone::None | Stone::White)) return RenCount(0, 2, 0);
 			//BBO|BB|OBB
-			if (MatchPatternW(pattern, position, dir, Side::Right, Stone::White, Stone::None, Stone::White, Stone::White)
-				&& MatchPatternW(pattern, position, dir, Side::Left, Stone::None, Stone::White, Stone::White)) return RenCount(0, 2, 0);
-			if (MatchPatternW(pattern, position, dir, Side::Left, Stone::White, Stone::None, Stone::White, Stone::White)
-				&& MatchPatternW(pattern, position, dir, Side::Right, Stone::None, Stone::White, Stone::White)) return RenCount(0, 2, 0);
+			if (MatchPatternW(pattern, position, dir, Side::Right, Stone::White | Stone::None | Stone::White | Stone::White)
+				&& MatchPatternW(pattern, position, dir, Side::Left, Stone::None | Stone::White | Stone::White)) return RenCount(0, 2, 0);
+			if (MatchPatternW(pattern, position, dir, Side::Left, Stone::White | Stone::None | Stone::White | Stone::White)
+				&& MatchPatternW(pattern, position, dir, Side::Right, Stone::None | Stone::White | Stone::White)) return RenCount(0, 2, 0);
 			//BBBO|B|OBBB
-			if (MatchPatternW(pattern, position, dir, Side::Right, Stone::None, Stone::White, Stone::White, Stone::White)
-				&& MatchPatternW(pattern, position, dir, Side::Left, Stone::None, Stone::White, Stone::White, Stone::White)) return RenCount(0, 2, 0);
+			if (MatchPatternW(pattern, position, dir, Side::Right, Stone::None | Stone::White | Stone::White | Stone::White)
+				&& MatchPatternW(pattern, position, dir, Side::Left, Stone::None | Stone::White | Stone::White | Stone::White)) return RenCount(0, 2, 0);
 		}
 		// Count Shi-ren
 		{
-			if (MatchPatternW(pattern, position, dir, Side::Right, Stone::White, Stone::White, Stone::White, Stone::None)
+			if (MatchPatternW(pattern, position, dir, Side::Right, Stone::White | Stone::White | Stone::White | Stone::None)
 				&& MatchPatternW(pattern, position, dir, Side::Left, Stone::None)) return RenCount(1, 0, 0);
-			if (MatchPatternW(pattern, position, dir, Side::Right, Stone::White, Stone::White, Stone::None)
-				&& MatchPatternW(pattern, position, dir, Side::Left, Stone::White, Stone::None)) return RenCount(1, 0, 0);
-			if (MatchPatternW(pattern, position, dir, Side::Left, Stone::White, Stone::White, Stone::White, Stone::None)
+			if (MatchPatternW(pattern, position, dir, Side::Right, Stone::White | Stone::White | Stone::None)
+				&& MatchPatternW(pattern, position, dir, Side::Left, Stone::White | Stone::None)) return RenCount(1, 0, 0);
+			if (MatchPatternW(pattern, position, dir, Side::Left, Stone::White | Stone::White | Stone::White | Stone::None)
 				&& MatchPatternW(pattern, position, dir, Side::Right, Stone::None)) return RenCount(1, 0, 0);
-			if (MatchPatternW(pattern, position, dir, Side::Left, Stone::White, Stone::White, Stone::None)
-				&& MatchPatternW(pattern, position, dir, Side::Right, Stone::White, Stone::None)) return RenCount(1, 0, 0);
+			if (MatchPatternW(pattern, position, dir, Side::Left, Stone::White | Stone::White | Stone::None)
+				&& MatchPatternW(pattern, position, dir, Side::Right, Stone::White | Stone::None)) return RenCount(1, 0, 0);
 		}
 		// Count Katsu-Shi
 		{
 			auto GetPosition = [&position, &dir](int count) -> int {return position + kPositionoffset[dir] * count; };
 			//11110
 			if (MatchPatternW(pattern, position, dir, Side::Right, Stone::None)
-				&& MatchPatternW(pattern, position, dir, Side::Left, Stone::White, Stone::White, Stone::White)) {
+				&& MatchPatternW(pattern, position, dir, Side::Left, Stone::White | Stone::White | Stone::White)) {
 				int bp = GetPosition(1);
 				return RenCount(0, 1, (bp >= 0 && bp < kBoardSize * kBoardSize ? bp : kBoardSize * kBoardSize));
 			}
-			if (MatchPatternW(pattern, position, dir, Side::Right, Stone::White, Stone::None)
-				&& MatchPatternW(pattern, position, dir, Side::Left, Stone::White, Stone::White)) {
+			if (MatchPatternW(pattern, position, dir, Side::Right, Stone::White | Stone::None)
+				&& MatchPatternW(pattern, position, dir, Side::Left, Stone::White | Stone::White)) {
 				int bp = GetPosition(2);
 				return RenCount(0, 1, (bp >= 0 && bp < kBoardSize * kBoardSize ? bp : kBoardSize * kBoardSize));
 			}
-			if (MatchPatternW(pattern, position, dir, Side::Right, Stone::White, Stone::White, Stone::None)
+			if (MatchPatternW(pattern, position, dir, Side::Right, Stone::White | Stone::White | Stone::None)
 				&& MatchPatternW(pattern, position, dir, Side::Left, Stone::White)) {
 				int bp = GetPosition(3);
 				return RenCount(0, 1, (bp >= 0 && bp < kBoardSize * kBoardSize ? bp : kBoardSize * kBoardSize));
 			}
-			if (MatchPatternW(pattern, position, dir, Side::Right, Stone::White, Stone::White, Stone::White, Stone::None)) {
+			if (MatchPatternW(pattern, position, dir, Side::Right, Stone::White | Stone::White | Stone::White | Stone::None)) {
 				int bp = GetPosition(4);
 				return RenCount(0, 1, (bp >= 0 && bp < kBoardSize * kBoardSize ? bp : kBoardSize * kBoardSize));
 			}
 			//11101
-			if (MatchPatternW(pattern, position, dir, Side::Left, Stone::None, Stone::White, Stone::White, Stone::White)) {
+			if (MatchPatternW(pattern, position, dir, Side::Left, Stone::None | Stone::White | Stone::White | Stone::White)) {
 				int bp = GetPosition(-1);
 				return RenCount(0, 1, (bp >= 0 && bp < kBoardSize * kBoardSize ? bp : kBoardSize * kBoardSize));
 			}
-			if (MatchPatternW(pattern, position, dir, Side::Right, Stone::None, Stone::White)
-				&& MatchPatternW(pattern, position, dir, Side::Left, Stone::White, Stone::White)) {
+			if (MatchPatternW(pattern, position, dir, Side::Right, Stone::None | Stone::White)
+				&& MatchPatternW(pattern, position, dir, Side::Left, Stone::White | Stone::White)) {
 				int bp = GetPosition(1);
 				return RenCount(0, 1, (bp >= 0 && bp < kBoardSize * kBoardSize ? bp : kBoardSize * kBoardSize));
 			}
-			if (MatchPatternW(pattern, position, dir, Side::Right, Stone::White, Stone::None, Stone::White)
+			if (MatchPatternW(pattern, position, dir, Side::Right, Stone::White | Stone::None | Stone::White)
 				&& MatchPatternW(pattern, position, dir, Side::Left, Stone::White)) {
 				int bp = GetPosition(2);
 				return RenCount(0, 1, (bp >= 0 && bp < kBoardSize * kBoardSize ? bp : kBoardSize * kBoardSize));
 			}
-			if (MatchPatternW(pattern, position, dir, Side::Right, Stone::White, Stone::White, Stone::None, Stone::White)) {
+			if (MatchPatternW(pattern, position, dir, Side::Right, Stone::White | Stone::White | Stone::None | Stone::White)) {
 				int bp = GetPosition(3);
 				return RenCount(0, 1, (bp >= 0 && bp < kBoardSize * kBoardSize ? bp : kBoardSize * kBoardSize));
 			}
 			//11011
-			if (MatchPatternW(pattern, position, dir, Side::Left, Stone::White, Stone::None, Stone::White, Stone::White)) {
+			if (MatchPatternW(pattern, position, dir, Side::Left, Stone::White | Stone::None | Stone::White | Stone::White)) {
 				int bp = GetPosition(-2);
 				return RenCount(0, 1, (bp >= 0 && bp < kBoardSize * kBoardSize ? bp : kBoardSize * kBoardSize));
 			}
 			if (MatchPatternW(pattern, position, dir, Side::Right, Stone::White)
-				&& MatchPatternW(pattern, position, dir, Side::Left, Stone::None, Stone::White, Stone::White)) {
+				&& MatchPatternW(pattern, position, dir, Side::Left, Stone::None | Stone::White | Stone::White)) {
 				int bp = GetPosition(-1);
 				return RenCount(0, 1, (bp >= 0 && bp < kBoardSize * kBoardSize ? bp : kBoardSize * kBoardSize));
 			}
-			if (MatchPatternW(pattern, position, dir, Side::Right, Stone::White, Stone::None, Stone::White, Stone::White)) {
+			if (MatchPatternW(pattern, position, dir, Side::Right, Stone::White | Stone::None | Stone::White | Stone::White)) {
 				int bp = GetPosition(2);
 				return RenCount(0, 1, (bp >= 0 && bp < kBoardSize * kBoardSize ? bp : kBoardSize * kBoardSize));
 			}
 			if (MatchPatternW(pattern, position, dir, Side::Left, Stone::White)
-				&& MatchPatternW(pattern, position, dir, Side::Right, Stone::None, Stone::White, Stone::White)) {
+				&& MatchPatternW(pattern, position, dir, Side::Right, Stone::None | Stone::White | Stone::White)) {
 				int bp = GetPosition(1);
 				return RenCount(0, 1, (bp >= 0 && bp < kBoardSize * kBoardSize ? bp : kBoardSize * kBoardSize));
 			}
 			//10111
-			if (MatchPatternW(pattern, position, dir, Side::Right, Stone::None, Stone::White, Stone::White, Stone::White)) {
+			if (MatchPatternW(pattern, position, dir, Side::Right, Stone::None | Stone::White | Stone::White | Stone::White)) {
 				int bp = GetPosition(1);
 				return RenCount(0, 1, (bp >= 0 && bp < kBoardSize * kBoardSize ? bp : kBoardSize * kBoardSize));
 			}
-			if (MatchPatternW(pattern, position, dir, Side::Left, Stone::None, Stone::White)
-				&& MatchPatternW(pattern, position, dir, Side::Right, Stone::White, Stone::White)) {
+			if (MatchPatternW(pattern, position, dir, Side::Left, Stone::None | Stone::White)
+				&& MatchPatternW(pattern, position, dir, Side::Right, Stone::White | Stone::White)) {
 				int bp = GetPosition(-1);
 				return RenCount(0, 1, (bp >= 0 && bp < kBoardSize * kBoardSize ? bp : kBoardSize * kBoardSize));
 			}
-			if (MatchPatternW(pattern, position, dir, Side::Left, Stone::White, Stone::None, Stone::White)
+			if (MatchPatternW(pattern, position, dir, Side::Left, Stone::White | Stone::None | Stone::White)
 				&& MatchPatternW(pattern, position, dir, Side::Right, Stone::White)) {
 				int bp = GetPosition(-2);
 				return RenCount(0, 1, (bp >= 0 && bp < kBoardSize * kBoardSize ? bp : kBoardSize * kBoardSize));
 			}
-			if (MatchPatternW(pattern, position, dir, Side::Left, Stone::White, Stone::White, Stone::None, Stone::White)) {
+			if (MatchPatternW(pattern, position, dir, Side::Left, Stone::White | Stone::White | Stone::None | Stone::White)) {
 				int bp = GetPosition(-3);
 				return RenCount(0, 1, (bp >= 0 && bp < kBoardSize * kBoardSize ? bp : kBoardSize * kBoardSize));
 			}
 			//01111
 			if (MatchPatternW(pattern, position, dir, Side::Left, Stone::None)
-				&& MatchPatternW(pattern, position, dir, Side::Right, Stone::White, Stone::White, Stone::White)) {
+				&& MatchPatternW(pattern, position, dir, Side::Right, Stone::White | Stone::White | Stone::White)) {
 				int bp = GetPosition(-1);
 				return RenCount(0, 1, (bp >= 0 && bp < kBoardSize * kBoardSize ? bp : kBoardSize * kBoardSize));
 			}
-			if (MatchPatternW(pattern, position, dir, Side::Left, Stone::White, Stone::None)
-				&& MatchPatternW(pattern, position, dir, Side::Right, Stone::White, Stone::White)) {
+			if (MatchPatternW(pattern, position, dir, Side::Left, Stone::White | Stone::None)
+				&& MatchPatternW(pattern, position, dir, Side::Right, Stone::White | Stone::White)) {
 				int bp = GetPosition(-2);
 				return RenCount(0, 1, (bp >= 0 && bp < kBoardSize * kBoardSize ? bp : kBoardSize * kBoardSize));
 			}
-			if (MatchPatternW(pattern, position, dir, Side::Left, Stone::White, Stone::White, Stone::None)
+			if (MatchPatternW(pattern, position, dir, Side::Left, Stone::White | Stone::White | Stone::None)
 				&& MatchPatternW(pattern, position, dir, Side::Right, Stone::White)) {
 				int bp = GetPosition(-3);
 				return RenCount(0, 1, (bp >= 0 && bp < kBoardSize * kBoardSize ? bp : kBoardSize * kBoardSize));
 			}
-			if (MatchPatternW(pattern, position, dir, Side::Left, Stone::White, Stone::White, Stone::White, Stone::None)) {
+			if (MatchPatternW(pattern, position, dir, Side::Left, Stone::White | Stone::White | Stone::White | Stone::None)) {
 				int bp = GetPosition(-4);
 				return RenCount(0, 1, (bp >= 0 && bp < kBoardSize * kBoardSize ? bp : kBoardSize * kBoardSize));
 			}
