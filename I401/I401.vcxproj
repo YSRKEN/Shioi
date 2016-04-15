@@ -149,6 +149,12 @@
   <ItemGroup>
     <ClCompile Include="main.cpp" />
   </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="Board_helper.hpp" />
+    <ClInclude Include="constant.hpp" />
+    <ClInclude Include="misc_functions.hpp" />
+    <ClInclude Include="types.hpp" />
+  </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
   </ImportGroup>

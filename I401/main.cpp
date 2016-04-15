@@ -8,6 +8,8 @@
 #include<tuple>
 #include<vector>
 #include<cassert>
+#include "types.hpp"
+#include "Board_helper.hpp"
 // using declaration
 using std::array;
 using std::cout;
@@ -18,44 +20,10 @@ using std::vector;
 using std::size_t;
 
 // const value declaration
-constexpr size_t kBoardSize = 15;
-constexpr size_t kSearchWidth = 5;
-constexpr size_t kShioiDepth1 = 20, kShioiDepth2 = 3;
-constexpr int kScoreInf = 1000;
-constexpr int kScoreInf2 = kScoreInf + 1;
 const string kPositionStringX = "abcdefghijklmno";
 const string kPositionStringY = "123456789ABCDEF";
-constexpr size_t kPositionoffset[] = {1, kBoardSize, kBoardSize - 1, kBoardSize + 1};
-enum Stone : uint8_t {
-	None,
-	Black,
-	White
-};
-enum Direction : uint8_t {
-	// Row(─) R[1, 0] L[-1, 0]
-	Row,
-	// Column(│) R[0, 1] L[0, -1]
-	Column,
-	// Diagonally right(／) R[-1, 1] L[1, -1]
-	DiagR,
-	// Diagonally left(＼) R[1, 1] L[-1, -1]
-	DiagL,
-	Directions
-};
-enum Side : uint8_t {
-	Right,
-	Left,
-	Sides
-};
 
 size_t node = 0;
-
-// typedef declaration
-typedef std::pair<size_t, int> Score;
-typedef std::pair<size_t, bool> Result;
-typedef array<array<size_t, 5>, 2> Pattern;
-typedef tuple<size_t, size_t, size_t> RenCount;
-typedef array<array<array<size_t, Side::Sides>, Direction::Directions>, kBoardSize * kBoardSize> IterateTable;
 
 // definition in global area
 std::random_device rd;
@@ -65,95 +33,8 @@ std::mt19937 mt(rd());
 string PositionToString(const size_t p) {
 	return kPositionStringX.substr(p % kBoardSize, 1) + kPositionStringY.substr(p / kBoardSize, 1);
 }
-constexpr inline size_t ToPosition(const size_t x, const size_t y) {
-	return x + y * kBoardSize;
-}
-constexpr inline Stone EnemyTurn(const Stone turn) {
-	return (turn == Stone::Black ? Stone::White : Stone::Black);
-}
 inline size_t RandInt(const size_t n) {
 	return std::uniform_int_distribution<size_t>{0, n - 1}(mt);
-}
-namespace detail {
-	struct GetBoardValue_helper {
-		size_t pos;
-		Direction direction;
-		int count;
-	};
-	constexpr Stone operator|(const std::array<Stone, kBoardSize * kBoardSize>& board, const GetBoardValue_helper& info) {
-		return board[info.pos + kPositionoffset[info.direction] * info.count];
-	}
-	struct StoneNormalizer_helper {};
-	constexpr Stone operator| (Stone value, StoneNormalizer_helper) {
-		return (value != Stone::White) ? value : Stone::None;
-	}
-	struct PackPattern_helper {
-		int start;
-		int stop;
-		size_t pos;
-		Direction direction;
-	};
-	constexpr GetBoardValue_helper Get(size_t position, Direction dir, int count) {
-		return{ position, dir, count };
-	}
-	constexpr StoneNormalizer_helper Normalize() { return{}; }
-	size_t operator| (const array<Stone, kBoardSize * kBoardSize>& board, const PackPattern_helper& info) {
-		using std::abs;
-		if (abs(info.stop) < abs(info.start)) return 0;
-		size_t re = 0;
-		int i;
-		for (i = info.start; abs(i) <= abs(info.stop) - 1; i += (i > 0) ? 1 : -1, re <<= 2U) re += board | Get(info.pos, info.direction, i);
-		re += board | Get(info.pos, info.direction, i) | Normalize();
-		return re;
-	}
-}
-using detail::Get;
-using detail::Normalize;
-constexpr detail::PackPattern_helper PackPattern(size_t position, Direction dir, int start, int stop) {
-	return{ start, stop, position, dir };
-}
-constexpr size_t operator|(Stone l, Stone r) { return (l << 2) + r; }
-constexpr size_t operator|(size_t l, Stone r) { return (l << 2) + r; }
-namespace detail {
-	constexpr size_t PackPattern_n_impl(const size_t tmp, const Stone s, const size_t rest_count) {
-		return (rest_count - 1) ? PackPattern_n_impl((tmp << 2) + s, s, rest_count - 1) : (tmp << 2) + s;
-	}
-}
-constexpr size_t PackPattern_n(const Stone s, size_t n) {
-	return (n * 2 > sizeof(size_t)) ? std::numeric_limits<size_t>::max() : detail::PackPattern_n_impl(0U, s, n);
-}
-namespace Board_helper {
-	constexpr std::pair<array<size_t, 2>, size_t> ToPositionByDirection(const Direction d, const size_t i, const size_t j) {
-		//C++11 constexprではswitch文が使えないので致し方なし
-		return (d < DiagR)
-			? (d == Row)
-				? std::pair<array<size_t, 2>, size_t>{ {{ ToPosition(j, i), 0 }}, 1U }// Row(─)
-				: std::pair<array<size_t, 2>, size_t>{ {{ ToPosition(i, j), 0 }}, 1U }// Column(│)
-			: (d == DiagR)
-				? std::pair<array<size_t, 2>, size_t>{ {{ ToPosition(i - j, j), ToPosition(kBoardSize - 1 - j, i + j)}}, 2U }// Diagonally right(／)
-				: std::pair<array<size_t, 2>, size_t>{ {{ ToPosition(i + j, j), ToPosition(j, i + j)}}, 2U };// Diagonally left(＼)
-	}
-	constexpr std::pair<array<size_t, 2>, size_t> CalcOuterLoopMaxByDirection(const Direction d) {
-		//C++11 constexprではswitch文が使えないので致し方なし
-		return (d < DiagR)
-			? std::pair<array<size_t, 2>, size_t>{ {{ kBoardSize, 0 }}, 1U }// Row(─) Column(│)
-			: (d == DiagR)
-				? std::pair<array<size_t, 2>, size_t>{ {{ kBoardSize, kBoardSize - 4}}, 2U }// Diagonally right(／)
-				: std::pair<array<size_t, 2>, size_t>{ {{ kBoardSize - 4, kBoardSize - 4 }}, 2U };// Diagonally left(＼)
-	}
-	std::pair<array<size_t, 2>, size_t> CalcInnerLoopMaxByDirection(const Direction d, const size_t i) {
-		switch (d) {
-		case Row:
-		case Column:
-			return std::pair<array<size_t, 2>, size_t>{ { { kBoardSize, 0 }}, 1U };
-		case DiagR:
-			return std::pair<array<size_t, 2>, size_t>{ { { i + 1, kBoardSize }}, 2U };
-		case DiagL:
-			return std::pair<array<size_t, 2>, size_t>{ { { kBoardSize, kBoardSize }}, 2U };
-		default:
-			return{};
-		}
-	}
 }
 // Board class
 class Board {
@@ -427,23 +308,6 @@ class Board {
 		pattern[Side::Left][3] = (left_pattern_length <= 3) ? pattern[Side::Left][2] | Stone::None
 			: this->board_ | PackPattern(position, dir, -1, -4);
 		return pattern;
-	}
-	// Check Cho-ren
-	bool IsChorenB(const Pattern &pattern) {
-		if (pattern[Side::Right][4] == PackPattern_n(Stone::Black, 5)) return true;
-		if (pattern[Side::Right][3] == PackPattern_n(Stone::Black, 4)
-			&& pattern[Side::Left][0] == Stone::Black) return true;
-		if (pattern[Side::Right][2] == PackPattern_n(Stone::Black, 3)
-			&& pattern[Side::Left][1] == PackPattern_n(Stone::Black, 2)) return true;
-		if (pattern[Side::Left][4] == PackPattern_n(Stone::Black, 5)) return true;
-		if (pattern[Side::Left][3] == PackPattern_n(Stone::Black, 4)
-			&& pattern[Side::Right][0] == Stone::Black) return true;
-		if (pattern[Side::Left][2] == PackPattern_n(Stone::Black, 3)
-			&& pattern[Side::Right][1] == PackPattern_n(Stone::Black, 2)) return true;
-		return false;
-	}
-	bool IsChorenW(const Pattern &pattern) {
-		return false;
 	}
 	// Matching Pattern
 	bool MatchPatternB(const Pattern &pattern, const size_t position, const Direction dir, const Side side) const noexcept {
@@ -1214,7 +1078,7 @@ class Board {
 		size_t sum_4_strong = 0, sum_4_normal = 0, sum_3 = 0;
 		for (uint8_t dir = 0; dir < Direction::Directions; ++dir) {
 			auto move_pattern = GetPatternB(p, static_cast<Direction>(dir));
-			if (IsChorenB(move_pattern)) return false;
+			if (Board_helper::IsChorenB(move_pattern)) return false;
 			size_t s4s, s4n, s3;
 			std::tie(s4s, s4n, s3) = CountRenB(move_pattern, p, static_cast<Direction>(dir));
 			sum_4_strong += s4s;
@@ -1257,11 +1121,11 @@ class Board {
 				size_t block_position2;
 				for (uint8_t dir = 0; dir < Direction::Directions; ++dir) {
 					auto move_pattern = GetPatternB(p, static_cast<Direction>(dir));
-					if (IsChorenB(move_pattern)) {
+					if (Board_helper::IsChorenB(move_pattern)) {
 						cho_ren_flg = true;
 						break;
 					}
-					auto ren_count = CountRenB(move_pattern, p, static_cast<Direction>(dir));
+					//auto ren_count = CountRenB(move_pattern, p, static_cast<Direction>(dir));
 					size_t s4s, s4n, s3;
 					std::tie(s4s, s4n, s3) = CountRenB2(move_pattern, p, static_cast<Direction>(dir), block_position2);
 					sum_4_strong += s4s;
@@ -1290,8 +1154,8 @@ class Board {
 				size_t sum_4_strong = 0, sum_4_normal = 0;
 				for (uint8_t dir = 0; dir < Direction::Directions; ++dir) {
 					auto move_pattern = GetPatternW(p, static_cast<Direction>(dir));
-					auto ren_count = CountRenW2(move_pattern, p, static_cast<Direction>(dir));
-					if (IsChorenW(move_pattern)) return true;
+					//auto ren_count = CountRenW2(move_pattern, p, static_cast<Direction>(dir));
+					if (Board_helper::IsChorenW(move_pattern)) return true;
 					size_t s4s, s4n, blk;
 					std::tie(s4s, s4n, blk) = CountRenW2(move_pattern, p, static_cast<Direction>(dir));
 					sum_4_strong += s4s;
@@ -1327,7 +1191,7 @@ class Board {
 				size_t block_position;
 				for (uint8_t dir = 0; dir < Direction::Directions; ++dir) {
 					auto move_pattern = GetPatternB(p, static_cast<Direction>(dir));
-					if (IsChorenB(move_pattern)) {
+					if (Board_helper::IsChorenB(move_pattern)) {
 						cho_ren_flg = true;
 						break;
 					}
@@ -1357,8 +1221,8 @@ class Board {
 				size_t sum_4_strong = 0, sum_4_normal = 0;
 				for (uint8_t dir = 0; dir < Direction::Directions; ++dir) {
 					auto move_pattern = GetPatternW(p, static_cast<Direction>(dir));
-					auto ren_count = CountRenW2(move_pattern, p, static_cast<Direction>(dir));
-					if (IsChorenW(move_pattern)) return Result(p, true);
+					//auto ren_count = CountRenW2(move_pattern, p, static_cast<Direction>(dir));
+					if (Board_helper::IsChorenW(move_pattern)) return Result(p, true);
 					size_t s4s, s4n, blk;
 					std::tie(s4s, s4n, blk) = CountRenW2(move_pattern, p, static_cast<Direction>(dir));
 					sum_4_strong += s4s;
@@ -1383,7 +1247,7 @@ class Board {
 	}
 	// Get Range(for Prospective pruning)
 	array<size_t, 4> GetRange() const noexcept {
-		array<size_t, 4> range{ kBoardSize, kBoardSize, 0, 0 };
+		array<size_t, 4> range{ { kBoardSize, kBoardSize, 0, 0 } };
 		for (size_t y = 0; y < kBoardSize; ++y) {
 			for (size_t x = 0; x < kBoardSize; ++x) {
 				size_t p = x + y * kBoardSize;
@@ -1417,7 +1281,7 @@ class Board {
 						size_t sum_4_strong = 0, sum_4_normal = 0, sum_3 = 0;
 						for (uint8_t dir = 0; dir < Direction::Directions; ++dir) {
 							auto move_pattern = GetPatternB(p, static_cast<Direction>(dir));
-							if (IsChorenB(move_pattern)) {
+							if (Board_helper::IsChorenB(move_pattern)) {
 								cho_ren_flg = true;
 								break;
 							}
@@ -1460,7 +1324,7 @@ class Board {
 						size_t sum_4_strong = 0, sum_4_normal = 0, sum_3 = 0;
 						for (uint8_t dir = 0; dir < Direction::Directions; ++dir) {
 							auto move_pattern = GetPatternB(p, static_cast<Direction>(dir));
-							if (IsChorenB(move_pattern)) return beta;
+							if (Board_helper::IsChorenB(move_pattern)) return beta;
 							size_t s4s, s4n, s3;
 							std::tie(s4s, s4n, s3) = CountRenB(move_pattern, p, static_cast<Direction>(dir));
 							sum_4_strong += s4s;
@@ -1505,7 +1369,7 @@ class Board {
 						size_t sum_4_strong = 0, sum_4_normal = 0, sum_3 = 0;
 						for (uint8_t dir = 0; dir < Direction::Directions; ++dir) {
 							auto move_pattern = GetPatternB(p, static_cast<Direction>(dir));
-							if (IsChorenB(move_pattern)) {
+							if (Board_helper::IsChorenB(move_pattern)) {
 								cho_ren_flg = true;
 								break;
 							}
@@ -1540,7 +1404,7 @@ class Board {
 						size_t sum_4_strong = 0, sum_4_normal = 0, sum_3 = 0;
 						for (uint8_t dir = 0; dir < Direction::Directions; ++dir) {
 							auto move_pattern = GetPatternB(p, static_cast<Direction>(dir));
-							if (IsChorenB(move_pattern)) return kScoreInf;
+							if (Board_helper::IsChorenB(move_pattern)) return kScoreInf;
 							size_t s4s, s4n, s3;
 							std::tie(s4s, s4n, s3) = CountRenB(move_pattern, p, static_cast<Direction>(dir));
 							sum_4_strong += s4s;
@@ -1591,7 +1455,7 @@ class Board {
 					size_t sum_4_strong = 0, sum_4_normal = 0, sum_3 = 0;
 					for (uint8_t dir = 0; dir < Direction::Directions; ++dir) {
 						auto move_pattern = GetPatternB(p, static_cast<Direction>(dir));
-						if (IsChorenB(move_pattern)) {
+						if (Board_helper::IsChorenB(move_pattern)) {
 							cho_ren_flg = true;
 							break;
 						}
@@ -1632,7 +1496,7 @@ class Board {
 					size_t sum_4_strong = 0, sum_4_normal = 0, sum_3 = 0;
 					for (uint8_t dir = 0; dir < Direction::Directions; ++dir) {
 						auto move_pattern = GetPatternB(p, static_cast<Direction>(dir));
-						if (IsChorenB(move_pattern)) return Result(p, true);
+						if (Board_helper::IsChorenB(move_pattern)) return Result(p, true);
 						size_t s4s, s4n, s3;
 						std::tie(s4s, s4n, s3) = CountRenB(move_pattern, p, static_cast<Direction>(dir));
 						sum_4_strong += s4s;
@@ -1678,7 +1542,7 @@ class Board {
 						size_t sum_4_strong = 0, sum_4_normal = 0, sum_3 = 0;
 						for (uint8_t dir = 0; dir < Direction::Directions; ++dir) {
 							auto move_pattern = GetPatternB(p, static_cast<Direction>(dir));
-							if (IsChorenB(move_pattern)) {
+							if (Board_helper::IsChorenB(move_pattern)) {
 								cho_ren_flg = true;
 								break;
 							}
@@ -1713,7 +1577,7 @@ class Board {
 						size_t sum_4_strong = 0, sum_4_normal = 0, sum_3 = 0;
 						for (uint8_t dir = 0; dir < Direction::Directions; ++dir) {
 							auto move_pattern = GetPatternB(p, static_cast<Direction>(dir));
-							if (IsChorenB(move_pattern)) return Result(p, true);
+							if (Board_helper::IsChorenB(move_pattern)) return Result(p, true);
 							size_t s4s, s4n, s3;
 							std::tie(s4s, s4n, s3) = CountRenB(move_pattern, p, static_cast<Direction>(dir));
 							sum_4_strong += s4s;
@@ -1766,7 +1630,7 @@ class Board {
 				size_t sum_4_strong = 0, sum_4_normal = 0, sum_3 = 0;
 				for (uint8_t dir = 0; dir < Direction::Directions; ++dir) {
 					auto move_pattern = GetPatternB(p, static_cast<Direction>(dir));
-					if (IsChorenB(move_pattern)) {
+					if (Board_helper::IsChorenB(move_pattern)) {
 						cho_ren_flg = true;
 						break;
 					}
