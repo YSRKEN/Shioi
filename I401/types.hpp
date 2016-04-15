@@ -26,6 +26,9 @@ enum Side : uint8_t {
 	Right,
 	Sides
 };
+constexpr Side operator!(Side s) {
+	return (Side::Sides == s) ? s : static_cast<Side>(!static_cast<bool>(s));
+}
 using std::array;
 typedef std::pair<size_t, int> Score;
 typedef std::pair<size_t, bool> Result;
