@@ -5,6 +5,7 @@
 #include <string>
 #include <cerrno>
 #include <stdexcept>
+#include <type_traits>
 using std::array;
 using std::size_t;
 std::string PositionToString(const size_t p) {
@@ -68,7 +69,7 @@ namespace detail {
 			size_t n;
 		};
 		Impl p;
-		constexpr Impl operator*() {
+		constexpr Impl operator*() const {
 			return p;
 		}
 	};
@@ -76,7 +77,7 @@ namespace detail {
 		return PackPattern_n(s, n.n);
 	}
 }
-constexpr detail::PackPattern_n_operator_helper operator "" _pack(unsigned long long n) { return{ n }; }
+constexpr detail::PackPattern_n_operator_helper operator "" _pack(unsigned long long n) { return{ { static_cast<size_t>(n) } }; }
 namespace detail {
 	template<typename T>struct limit_helper {
 		T min, max;
@@ -84,13 +85,67 @@ namespace detail {
 	template<typename T>struct limit_helper2 {
 		T min, max;
 	};
+	template<typename Left, typename Right, bool all_arithmetic, bool left_is_sign, bool right_is_sign> struct less_or_equal_helper {
+		Left l;
+		Right r;
+		constexpr bool operator()() const {
+			return l <= r;
+		}
+	};
+	template<typename Left, typename Right> struct less_or_equal_helper<Left, Right, true, false, true> {
+		Left l;//unsigned
+		Right r;//signed
+		constexpr bool operator()() const {
+			return (r < 0) ? false : l <= static_cast<std::make_unsigned_t<Right>>(r);
+		}
+	};
+	template<typename Left, typename Right> struct less_or_equal_helper<Left, Right, true, true, false> {
+		Left l;//signed
+		Right r;//unsigned
+		constexpr bool operator()() const {
+			return (l < 0) ? true : static_cast<std::make_unsigned_t<Right>>(l) <= r;
+		}
+	};
+	template<typename Left, typename Right>
+	constexpr less_or_equal_helper<
+		Left, Right, 
+		std::is_arithmetic<Left>::value && std::is_arithmetic<Right>::value, 
+		std::is_signed<Left>::value, std::is_signed<Right>::value
+	> less_or_equal(const Left l, const Right r) { return{l, r}; }
+	template<typename Left, typename Right, bool all_arithmetic, bool left_is_sign, bool right_is_sign> struct less_helper {
+		Left l;
+		Right r;
+		constexpr bool operator()() const {
+			return l < r;
+		}
+	};
+	template<typename Left, typename Right> struct less_helper<Left, Right, true, false, true> {
+		Left l;//unsigned
+		Right r;//signed
+		constexpr bool operator()() const {
+			return (r <= 0) ? false : l < static_cast<std::make_unsigned_t<Right>>(r);
+		}
+	};
+	template<typename Left, typename Right> struct less_helper<Left, Right, true, true, false> {
+		Left l;//signed
+		Right r;//unsigned
+		constexpr bool operator()() const {
+			return (l <= 0) ? true : static_cast<std::make_unsigned_t<Right>>(l) < r;
+		}
+	};
+	template<typename Left, typename Right>
+	constexpr less_helper<
+		Left, Right,
+		std::is_arithmetic<Left>::value && std::is_arithmetic<Right>::value,
+		std::is_signed<Left>::value, std::is_signed<Right>::value
+	> less(const Left l, const Right r) { return{ l, r }; }
 	template<typename Result, typename T, std::enable_if_t<std::is_arithmetic<Result>::value && std::is_arithmetic<T>::value, std::nullptr_t> = nullptr>
 	constexpr Result operator|(const Result& r, const limit_helper<T>& info) {
-		return (info.min <= r) ? (r <= info.max) ? r : info.max : info.min;
+		return less_or_equal(info.min, r)() ? less_or_equal(r, info.max)() ? r : info.max : info.min;
 	}
 	template<typename Result, typename T, std::enable_if_t<std::is_arithmetic<Result>::value && std::is_arithmetic<T>::value, std::nullptr_t> = nullptr>
-	constexpr Result operator|(const Result& r, const limit_helper2<T>& info) {
-		return (info.min <= r && r < info.max) ? r : info.max;
+	constexpr T operator|(const Result& r, const limit_helper2<T>& info) {
+		return less_or_equal(info.min, r)() && less(r, info.max)() ? r : info.max;
 	}
 }
 template<typename T> constexpr detail::limit_helper<T> limit(const T& min, const T& max) { return{ min, max }; }
@@ -135,20 +190,20 @@ constexpr detail::to_i_helper to_i() { return{}; }
 namespace min_max_impl {
 	using std::min;
 	template<typename T>
-	constexpr T& min(const T& a1, const T& a2, const T& a3) {
+	constexpr const T& min(const T& a1, const T& a2, const T& a3) {
 		return std::min(std::min(a1, a2), a3);
 	}
 	template<typename T, typename ...Rest>
-	constexpr T& min(const T& a1, const T& a2, const Rest&... args) {
+	constexpr const T& min(const T& a1, const T& a2, const Rest&... args) {
 		return min(std::min(a1, a2), args...);
 	}
 	using std::max;
 	template<typename T>
-	constexpr T& max(const T& a1, const T& a2, const T& a3) {
+	constexpr const T& max(const T& a1, const T& a2, const T& a3) {
 		return std::max(std::max(a1, a2), a3);
 	}
 	template<typename T, typename ...Rest>
-	constexpr T& max(const T& a1, const T& a2, const Rest&... args) {
+	constexpr const T& max(const T& a1, const T& a2, const Rest&... args) {
 		return max(std::max(a1, a2), args...);
 	}
 }

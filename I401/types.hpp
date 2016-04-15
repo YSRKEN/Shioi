@@ -3,14 +3,14 @@
 #include <tuple>
 #include "constant.hpp"
 using std::uint8_t;
-enum Stone : uint8_t {
+enum Stone : size_t {
 	None,
 	Black,
 	White
 };
-constexpr size_t operator|(Stone l, Stone r) { return (l << 2) + r; }
-constexpr size_t operator|(size_t l, Stone r) { return (l << 2) + r; }
-constexpr size_t operator|(Stone l, size_t r) { return (l << 2) + r; }
+constexpr Stone operator|(Stone l, Stone r) { return static_cast<Stone>((l << 2) + r); }
+constexpr Stone operator|(size_t l, Stone r) { return static_cast<Stone>((l << 2) + r); }
+constexpr Stone operator|(Stone l, size_t r) { return static_cast<Stone>((l << 2) + r); }
 enum Direction : uint8_t {
 	// Row(─) R[1, 0] L[-1, 0]
 	Row,
@@ -28,7 +28,7 @@ enum Side : uint8_t {
 	Sides
 };
 constexpr Side operator!(Side s) {
-	return (Side::Sides == s) ? s : static_cast<Side>(!static_cast<bool>(s));
+	return (Side::Sides == s) ? s : static_cast<Side>(!static_cast<uint8_t>(s));
 }
 using std::array;
 typedef std::pair<size_t, int> Score;
