@@ -153,3 +153,4 @@ namespace detail {
 	}
 }
 constexpr detail::toStone_helper toStone(const char* err_message) { return{ err_message }; }
+template<typename T>constexpr T safe_dist(const T& a1, const T& a2) { return (a1 < a2) ? a2 - a1 : a1 - a2; }

@@ -1695,11 +1695,11 @@ public:
 			board_[p] = board_text[p] | toStone("Can't read board data.");
 		}
 		// Initialize IterateTable
-		constexpr int kTengen = kBoardSize / 2;
+		constexpr size_t kTengen = kBoardSize / 2;
 		for (size_t y = 0; y < kBoardSize; ++y) {
 			for (size_t x = 0; x < kBoardSize; ++x) {
 				auto p = ToPosition(x, y);
-				kTenGenDist[p] = kTengen - std::max(std::abs(static_cast<int>(x) - kTengen), std::abs(static_cast<int>(y) - kTengen));
+				kTenGenDist[p] = kTengen - std::max(safe_dist(x, kTengen), safe_dist(y, kTengen));
 				// Row(─)
 				kIterateTable[p][Direction::Row][Side::Right] = std::min(kBoardSize - x - 1, kSearchWidth);
 				kIterateTable[p][Direction::Row][Side::Left ] = std::min(x, kSearchWidth);
