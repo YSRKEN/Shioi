@@ -1682,28 +1682,20 @@ class Board {
 	}
 public:
 	// constructor
-	Board(const char board_text[], const char turn_text[]) {
-		const static string kStoneString = "-*O";
+	Board(const char board_text[], const char turn_text[]) 
+		: turn_(turn_text[0] | toStone("Can't read turn data."))
+	{
+		constexpr const char kStoneString[] = "-*O";
 		// Read board-text
 		const string board_text_str(board_text);
-		if (board_text_str.size() < kBoardSize * kBoardSize) {
+		if (strlen(board_text) < kBoardSize * kBoardSize) {
 			throw std::invalid_argument("Too short board-text size!");
 		}
 		for (size_t p = 0; p < kBoardSize * kBoardSize; ++p) {
-			auto stone_type = kStoneString.find_first_of(board_text[p], 0);
-			if (stone_type == string::npos) {
-				throw std::invalid_argument("Can't read board data.");
-			}
-			board_[p] = static_cast<Stone>(stone_type);
+			board_[p] = board_text[p] | toStone("Can't read board data.");
 		}
-		// Read turn-text
-		auto turn_type = kStoneString.find_first_of(turn_text[0], 0);
-		if (turn_type == string::npos) {
-			throw std::invalid_argument("Can't read turn data.");
-		}
-		turn_ = static_cast<Stone>(turn_type);
 		// Initialize IterateTable
-		const int kTengen = kBoardSize / 2;
+		constexpr int kTengen = kBoardSize / 2;
 		for (size_t y = 0; y < kBoardSize; ++y) {
 			for (size_t x = 0; x < kBoardSize; ++x) {
 				auto p = ToPosition(x, y);

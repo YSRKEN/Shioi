@@ -141,3 +141,15 @@ namespace min_max_impl {
 }
 using min_max_impl::max;
 using min_max_impl::min;
+namespace detail {
+	struct toStone_helper {
+		const char* err_message;
+	};
+	Stone operator|(const char c, toStone_helper info) {
+		constexpr const char kStoneString[] = "-*O";
+		const auto p = std::strchr(kStoneString, c);
+		if (!p) throw std::invalid_argument(info.err_message);
+		return static_cast<Stone>(p - kStoneString);
+	}
+}
+constexpr detail::toStone_helper toStone(const char* err_message) { return{ err_message }; }
