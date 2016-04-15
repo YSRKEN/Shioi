@@ -167,3 +167,4 @@ namespace detail {
 }
 constexpr detail::toStone_helper toStone(const char* err_message) { return{ err_message }; }
 template<typename T>constexpr T safe_dist(const T& a1, const T& a2) { return (a1 < a2) ? a2 - a1 : a1 - a2; }
+constexpr size_t operator "" _sz(unsigned long long n) { return static_cast<size_t>(n); }

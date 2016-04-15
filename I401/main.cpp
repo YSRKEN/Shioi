@@ -632,106 +632,106 @@ class Board {
 			//11110
 			if (MatchPatternB(pattern, position, dir, Side::Right, Stone::None)
 				&& MatchPatternB(pattern, position, dir, Side::Left, Stone::Black**3_pack)) {
-				block_position = GetPosition(1) | limit2(0U, kBoardSize * kBoardSize);
+				block_position = GetPosition(1) | limit2(0_sz, kBoardSize * kBoardSize);
 				return RenCount(0, 1, 0);
 			}
 			if (MatchPatternB(pattern, position, dir, Side::Right, Stone::Black | Stone::None)
 				&& MatchPatternB(pattern, position, dir, Side::Left, Stone::Black**2_pack)) {
-				block_position = GetPosition(2) | limit2(0U, kBoardSize * kBoardSize);
+				block_position = GetPosition(2) | limit2(0_sz, kBoardSize * kBoardSize);
 				return RenCount(0, 1, 0);
 			}
 			if (MatchPatternB(pattern, position, dir, Side::Right, Stone::Black**2_pack | Stone::None)
 				&& MatchPatternB(pattern, position, dir, Side::Left, Stone::Black)) {
-				block_position = GetPosition(3) | limit2(0U, kBoardSize * kBoardSize);
+				block_position = GetPosition(3) | limit2(0_sz, kBoardSize * kBoardSize);
 				return RenCount(0, 1, 0);
 			}
 			if (MatchPatternB(pattern, position, dir, Side::Right, Stone::Black**3_pack | Stone::None)
 				&& MatchPatternB(pattern, position, dir, Side::Left)) {
-				block_position = GetPosition(4) | limit2(0U, kBoardSize * kBoardSize);
+				block_position = GetPosition(4) | limit2(0_sz, kBoardSize * kBoardSize);
 				return RenCount(0, 1, 0);
 			}
 			//11101
 			if (MatchPatternB(pattern, position, dir, Side::Right)
 				&& MatchPatternB(pattern, position, dir, Side::Left, Stone::None | Stone::Black**3_pack)) {
-				block_position = GetPosition(-1) | limit2(0U, kBoardSize * kBoardSize);
+				block_position = GetPosition(-1) | limit2(0_sz, kBoardSize * kBoardSize);
 				return RenCount(0, 1, 0);
 			}
 			if (MatchPatternB(pattern, position, dir, Side::Right, Stone::None | Stone::Black)
 				&& MatchPatternB(pattern, position, dir, Side::Left, Stone::Black**2_pack)) {
-				block_position = GetPosition(1) | limit2(0U, kBoardSize * kBoardSize);
+				block_position = GetPosition(1) | limit2(0_sz, kBoardSize * kBoardSize);
 				return RenCount(0, 1, 0);
 			}
 			if (MatchPatternB(pattern, position, dir, Side::Right, Stone::Black | Stone::None | Stone::Black)
 				&& MatchPatternB(pattern, position, dir, Side::Left, Stone::Black)) {
-				block_position = GetPosition(2) | limit2(0U, kBoardSize * kBoardSize);
+				block_position = GetPosition(2) | limit2(0_sz, kBoardSize * kBoardSize);
 				return RenCount(0, 1, 0);
 			}
 			if (MatchPatternB(pattern, position, dir, Side::Right, Stone::Black**2_pack | Stone::None | Stone::Black)
 				&& MatchPatternB(pattern, position, dir, Side::Left)) {
-				block_position = GetPosition(3) | limit2(0U, kBoardSize * kBoardSize);
+				block_position = GetPosition(3) | limit2(0_sz, kBoardSize * kBoardSize);
 				return RenCount(0, 1, 0);
 			}
 			//11011
 			if (MatchPatternB(pattern, position, dir, Side::Right)
 				&& MatchPatternB(pattern, position, dir, Side::Left, Stone::Black | Stone::None | Stone::Black**2_pack)) {
-				block_position = GetPosition(-2) | limit2(0U, kBoardSize * kBoardSize);
+				block_position = GetPosition(-2) | limit2(0_sz, kBoardSize * kBoardSize);
 				return RenCount(0, 1, 0);
 			}
 			if (MatchPatternB(pattern, position, dir, Side::Right, Stone::Black)
 				&& MatchPatternB(pattern, position, dir, Side::Left, Stone::None | Stone::Black**2_pack)) {
-				block_position = GetPosition(-1) | limit2(0U, kBoardSize * kBoardSize);
+				block_position = GetPosition(-1) | limit2(0_sz, kBoardSize * kBoardSize);
 				return RenCount(0, 1, 0);
 			}
 			if (MatchPatternB(pattern, position, dir, Side::Left)
 				&& MatchPatternB(pattern, position, dir, Side::Right, Stone::Black | Stone::None | Stone::Black**2_pack)) {
-				block_position = GetPosition(2) | limit2(0U, kBoardSize * kBoardSize);
+				block_position = GetPosition(2) | limit2(0_sz, kBoardSize * kBoardSize);
 				return RenCount(0, 1, 0);
 			}
 			if (MatchPatternB(pattern, position, dir, Side::Left, Stone::Black)
 				&& MatchPatternB(pattern, position, dir, Side::Right, Stone::None | Stone::Black**2_pack)) {
-				block_position = GetPosition(1) | limit2(0U, kBoardSize * kBoardSize);
+				block_position = GetPosition(1) | limit2(0_sz, kBoardSize * kBoardSize);
 				return RenCount(0, 1, 0);
 			}
 			//10111
 			if (MatchPatternB(pattern, position, dir, Side::Left)
 				&& MatchPatternB(pattern, position, dir, Side::Right, Stone::None | Stone::Black**3_pack)) {
-				block_position = GetPosition(1) | limit2(0U, kBoardSize * kBoardSize);
+				block_position = GetPosition(1) | limit2(0_sz, kBoardSize * kBoardSize);
 				return RenCount(0, 1, 0);
 			}
 			if (MatchPatternB(pattern, position, dir, Side::Left, Stone::None | Stone::Black)
 				&& MatchPatternB(pattern, position, dir, Side::Right, Stone::Black**2_pack)) {
-				block_position = GetPosition(-1) | limit2(0U, kBoardSize * kBoardSize);
+				block_position = GetPosition(-1) | limit2(0_sz, kBoardSize * kBoardSize);
 				return RenCount(0, 1, 0);
 			}
 			if (MatchPatternB(pattern, position, dir, Side::Left, Stone::Black | Stone::None | Stone::Black)
 				&& MatchPatternB(pattern, position, dir, Side::Right, Stone::Black)) {
-				block_position = GetPosition(-2) | limit2(0U, kBoardSize * kBoardSize);
+				block_position = GetPosition(-2) | limit2(0_sz, kBoardSize * kBoardSize);
 				return RenCount(0, 1, 0);
 			}
 			if (MatchPatternB(pattern, position, dir, Side::Left, Stone::Black**2_pack | Stone::None | Stone::Black)
 				&& MatchPatternB(pattern, position, dir, Side::Right)) {
-				block_position = GetPosition(-3) | limit2(0U, kBoardSize * kBoardSize);
+				block_position = GetPosition(-3) | limit2(0_sz, kBoardSize * kBoardSize);
 				return RenCount(0, 1, 0);
 			}
 			//01111
 			if (MatchPatternB(pattern, position, dir, Side::Left, Stone::None)
 				&& MatchPatternB(pattern, position, dir, Side::Right, Stone::Black**3_pack)) {
-				block_position = GetPosition(-1) | limit2(0U, kBoardSize * kBoardSize);
+				block_position = GetPosition(-1) | limit2(0_sz, kBoardSize * kBoardSize);
 				return RenCount(0, 1, 0);
 			}
 			if (MatchPatternB(pattern, position, dir, Side::Left, Stone::Black | Stone::None)
 				&& MatchPatternB(pattern, position, dir, Side::Right, Stone::Black**2_pack)) {
-				block_position = GetPosition(-2) | limit2(0U, kBoardSize * kBoardSize);
+				block_position = GetPosition(-2) | limit2(0_sz, kBoardSize * kBoardSize);
 				return RenCount(0, 1, 0);
 			}
 			if (MatchPatternB(pattern, position, dir, Side::Left, Stone::Black**2_pack | Stone::None)
 				&& MatchPatternB(pattern, position, dir, Side::Right, Stone::Black)) {
-				block_position = GetPosition(-3) | limit2(0U, kBoardSize * kBoardSize);
+				block_position = GetPosition(-3) | limit2(0_sz, kBoardSize * kBoardSize);
 				return RenCount(0, 1, 0);
 			}
 			if (MatchPatternB(pattern, position, dir, Side::Left, Stone::Black**3_pack | Stone::None)
 				&& MatchPatternB(pattern, position, dir, Side::Right)) {
-				block_position = GetPosition(-4) | limit2(0U, kBoardSize * kBoardSize);
+				block_position = GetPosition(-4) | limit2(0_sz, kBoardSize * kBoardSize);
 				return RenCount(0, 1, 0);
 			}
 		}
