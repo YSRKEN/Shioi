@@ -266,7 +266,9 @@ class Board {
 		const size_t right_pattern_length = kIterateTable[position][dir][Side::Right];
 		const size_t  left_pattern_length = kIterateTable[position][dir][Side::Left ];
 		Pattern pattern;
-		pattern[Side::Right][0] = (right_pattern_length <= 0) ? Stone::None : this->board_ | Get(position, dir, 1) | Normalize();
+		size_t pre = Stone::None;
+
+		pattern[Side::Right][0] = (right_pattern_length <= 0) ? Stone::None : this->board_ | PackPattern(position, dir, 1, 1);
 		pattern[Side::Right][1] = (right_pattern_length <= 1) ? pattern[Side::Right][0] | Stone::None
 			: this->board_ | PackPattern(position, dir, 1, 2);
 		pattern[Side::Right][2] = (right_pattern_length <= 2) ? pattern[Side::Right][1] | Stone::None
@@ -276,7 +278,7 @@ class Board {
 		pattern[Side::Right][4] = (right_pattern_length <= 4) ? pattern[Side::Right][3] | Stone::None
 			: this->board_ | PackPattern(position, dir, 1, 5);
 
-		pattern[Side::Left][0] = (left_pattern_length <= 0) ? Stone::None : this->board_ | Get(position, dir, -1) | Normalize();
+		pattern[Side::Left][0] = (left_pattern_length <= 0) ? Stone::None : this->board_ | PackPattern(position, dir, -1, -1);
 		pattern[Side::Left][1] = (left_pattern_length <= 1) ? pattern[Side::Left][0] | Stone::None
 			: this->board_ | PackPattern(position, dir, -1, -2);
 		pattern[Side::Left][2] = (left_pattern_length <= 2) ? pattern[Side::Left][1] | Stone::None
@@ -721,24 +723,24 @@ class Board {
 		* 3. BBBO|B|OBBB "Souryu-no-ShiShi"
 		* 一直線上に出来る四々で、両頭の四々・長蛇の四々・双龍の四々
 		*/
-		{
+		if (
 			//BO|BBB|OB
-			if (MatchPatternW(pattern, position, dir, {{ Stone::None | Stone::White, Stone::White**2_pack | Stone::None | Stone::White }})) return RenCount(0, 2, 0);
-			if (MatchPatternW(pattern, position, dir, {{ Stone::White | Stone::None | Stone::White, Stone::White | Stone::None | Stone::White }})) return RenCount(0, 2, 0);
-			if (MatchPatternW(pattern, position, dir, {{ Stone::White**2_pack | Stone::None | Stone::White, Stone::None | Stone::White }})) return RenCount(0, 2, 0);
+			   MatchPatternW(pattern, position, dir, {{ Stone::None | Stone::White, Stone::White**2_pack | Stone::None | Stone::White }})
+			|| MatchPatternW(pattern, position, dir, {{ Stone::White | Stone::None | Stone::White, Stone::White | Stone::None | Stone::White }})
+			|| MatchPatternW(pattern, position, dir, {{ Stone::White**2_pack | Stone::None | Stone::White, Stone::None | Stone::White }})
 			//BBO|BB|OBB
-			if (MatchPatternW(pattern, position, dir, {{ Stone::None | Stone::White**2_pack, Stone::White | Stone::None | Stone::White**2_pack }})) return RenCount(0, 2, 0);
-			if (MatchPatternW(pattern, position, dir, {{ Stone::White | Stone::None | Stone::White**2_pack, Stone::None | Stone::White**2_pack }})) return RenCount(0, 2, 0);
+			|| MatchPatternW(pattern, position, dir, {{ Stone::None | Stone::White**2_pack, Stone::White | Stone::None | Stone::White**2_pack }})
+			|| MatchPatternW(pattern, position, dir, {{ Stone::White | Stone::None | Stone::White**2_pack, Stone::None | Stone::White**2_pack }})
 			//BBBO|B|OBBB
-			if (MatchPatternW(pattern, position, dir, {{ Stone::None | Stone::White**3_pack, Stone::None | Stone::White**3_pack }})) return RenCount(0, 2, 0);
-		}
+			|| MatchPatternW(pattern, position, dir, {{ Stone::None | Stone::White**3_pack, Stone::None | Stone::White**3_pack }})
+		) return RenCount(0, 2, 0);
 		// Count Shi-ren
-		{
-			if (MatchPatternW(pattern, position, dir, {{ Stone::None, Stone::White**3_pack | Stone::None }})) return RenCount(1, 0, 0);
-			if (MatchPatternW(pattern, position, dir, {{ Stone::White | Stone::None, Stone::White**2_pack | Stone::None }})) return RenCount(1, 0, 0);
-			if (MatchPatternW(pattern, position, dir, {{ Stone::White**3_pack | Stone::None, Stone::None }})) return RenCount(1, 0, 0);
-			if (MatchPatternW(pattern, position, dir, {{ Stone::White**2_pack | Stone::None, Stone::White | Stone::None }})) return RenCount(1, 0, 0);
-		}
+		if (
+			   MatchPatternW(pattern, position, dir, {{ Stone::None, Stone::White**3_pack | Stone::None }})
+			|| MatchPatternW(pattern, position, dir, {{ Stone::White | Stone::None, Stone::White**2_pack | Stone::None }})
+			|| MatchPatternW(pattern, position, dir, {{ Stone::White**3_pack | Stone::None, Stone::None }})
+			|| MatchPatternW(pattern, position, dir, {{ Stone::White**2_pack | Stone::None, Stone::White | Stone::None }})
+		) return RenCount(1, 0, 0);
 		// Count Katsu-Shi
 		{
 			auto GetPosition = [&position, &dir](int count) -> int {return position + kPositionoffset[dir] * count; };
