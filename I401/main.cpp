@@ -1818,11 +1818,11 @@ public:
 				kIterateTable[p][Direction::Column][Side::Right] = std::min(kBoardSize - y - 1, kSearchWidth);
 				kIterateTable[p][Direction::Column][Side::Left ] = std::min(y, kSearchWidth);
 				// Diagonally right(／)
-				kIterateTable[p][Direction::DiagR][Side::Right] = std::min(std::min(x, kBoardSize - y - 1), kSearchWidth);
-				kIterateTable[p][Direction::DiagR][Side::Left ] = std::min(std::min(kBoardSize - x - 1, y), kSearchWidth);
+				kIterateTable[p][Direction::DiagR][Side::Right] = std::min({ x, kBoardSize - y - 1, kSearchWidth });
+				kIterateTable[p][Direction::DiagR][Side::Left] = std::min({ kBoardSize - x - 1, y, kSearchWidth });
 				// Diagonally left(＼)
-				kIterateTable[p][Direction::DiagL][Side::Right] = std::min(std::min(kBoardSize - x - 1, kBoardSize - y - 1), kSearchWidth);
-				kIterateTable[p][Direction::DiagL][Side::Left ] = std::min(std::min(x, y), kSearchWidth);
+				kIterateTable[p][Direction::DiagL][Side::Right] = std::min({ kBoardSize - x - 1, kBoardSize - y - 1, kSearchWidth });
+				kIterateTable[p][Direction::DiagL][Side::Left] = std::min({ x, y, kSearchWidth });
 			}
 		}
 	}
