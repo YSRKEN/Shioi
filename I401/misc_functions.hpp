@@ -74,5 +74,5 @@ namespace detail {
 		return (info.min <= r && r < info.max) ? r : info.max;
 	}
 }
-template<typename T> constexpr detail::limit_helper limit(const T& min, const T& max) { return{ min, max }; }
-template<typename T> constexpr detail::limit_helper2 limit2(const T& min, const T& max) { return{ min, max }; }
+template<typename T> constexpr detail::limit_helper<T> limit(const T& min, const T& max) { return{ min, max }; }
+template<typename T> constexpr detail::limit_helper2<T> limit2(const T& min, const T& max) { return{ min, max }; }

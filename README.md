@@ -43,6 +43,7 @@ http://www.vector.co.jp/soft/win95/game/se169850.html
 ## Version History
 |Version|Information|
 |-------|-----------|
+|0.7.0|add Book(book.csv)|
 |0.6.0|rewrite CPU routine, update GUI|
 |0.5.0|Optimize computing speed|
 |0.4.0|Add support of computing next move|
@@ -102,6 +103,7 @@ http://www.vector.co.jp/soft/win95/game/se169850.html
 ## 更新履歴
 |Version|Information|
 |-------|-----------|
+|0.7.0|定石データベースを追加、参照するようにした(book.csvがそれ)
 |0.6.0|コンピューターを全面的に書き換え、GUIも改善させた|
 |0.5.0|コンピューターの思考速度を大幅に向上させた|
 |0.4.0|次の手を読む機能を追加(3手読みまで)|

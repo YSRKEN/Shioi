@@ -2,10 +2,14 @@
 #include<array>
 #include<cmath>
 #include<cstdint>
+#include<fstream>
 #include<iostream>
 #include<random>
+#include<sstream>
 #include<string>
 #include<tuple>
+#include<unordered_set>
+#include<unordered_map>
 #include<vector>
 #include<cassert>
 #include "types.hpp"
@@ -36,10 +40,117 @@ string PositionToString(const size_t p) {
 inline size_t RandInt(const size_t n) {
 	return std::uniform_int_distribution<size_t>{0, n - 1}(mt);
 }
+// Book class
+class BookDB {
+	std::unordered_map<uint64_t, std::unordered_set<size_t>> book_;
+public:
+	BookDB() {}
+	BookDB(const char *book_name) {
+		std::ifstream ifs(book_name);
+		if (ifs.fail()) throw std::exception("Book.csv not found.");
+		string str;
+		while (getline(ifs, str)){
+			// Read CSV data
+			string token;
+			std::istringstream stream(str);
+			vector<size_t> move;
+			while (getline(stream, token, ',')){
+				move.push_back(stoi(token));
+			}
+			// Set BookData
+			SetBookData(move);
+			move = RotateMove(move);
+			SetBookData(move);
+			move = RotateMove(move);
+			SetBookData(move);
+			move = RotateMove(move);
+			SetBookData(move);
+			move = RotateMove(move);
+
+			move = FlipMove(move);
+			SetBookData(move);
+			move = RotateMove(move);
+			SetBookData(move);
+			move = RotateMove(move);
+			SetBookData(move);
+			move = RotateMove(move);
+			SetBookData(move);
+		}
+		/*for (auto &it : book_[8202465179494830182]) {
+			cout << PositionToString(it) << endl;
+		}*/
+		return;
+	}
+	void PutMove(vector<size_t> &move) {
+		for (size_t i = 0; i < move.size(); ++i) {
+			cout << PositionToString(move[i]) << ",";
+		}
+		cout << endl;
+	}
+	vector<size_t> RotateMove(vector<size_t> &move) {
+		vector<size_t> temp_move;
+		for (auto &it : move) {
+			size_t x = it % kBoardSize, y = it / kBoardSize;
+			int x2 = x - 7, y2 = y - 7;
+			temp_move.push_back(ToPosition(7 + y2, 7 - x2));
+		}
+		return temp_move;
+	}
+	vector<size_t> FlipMove(vector<size_t> &move) {
+		vector<size_t> temp_move;
+		for (auto &it : move) {
+			size_t x = it % kBoardSize, y = it / kBoardSize;
+			int x2 = x - 7, y2 = y - 7;
+			temp_move.push_back(ToPosition(7 + x2, 7 - y2));
+		}
+		return temp_move;
+	}
+	void SetBookData(const vector<size_t> &move) {
+		// Move on temporary board
+		BaseBoard board;
+		std::fill(board.begin(), board.end(), Stone::None);
+		auto turn = Stone::Black;
+		for (size_t i = 0; i < move.size() - 1; ++i) {
+			board[move[i]] = turn;
+			turn = EnemyTurn(turn);
+		}
+		// Set Data
+		/*if (move[0] == 112 && move[1] == 97 && move[2] == 98 && move[3] == 113 && move[4] == 129 && move.size() == 5) {
+			for (size_t p = 0; p < kBoardSize * kBoardSize; ++p) {
+				if (board[p] != Stone::None) {
+					cout << PositionToString(p) << " " << board[p] << endl;
+				}
+			}
+			auto hash2 = GetHash(board);
+			return;
+		}*/
+		auto hash = GetHash(board);
+		if (book_.count(hash) == 0) {
+			book_[hash] = std::unordered_set<size_t>();
+		}
+		book_[hash].insert(move[move.size() - 1]);
+	}
+	vector<size_t> GetBookData(const BaseBoard &board) {
+		vector<size_t> result;
+		uint64_t hash = GetHash(board);
+		if (book_.count(hash) == 0) return result;
+		return vector<size_t>(book_[hash].begin(), book_[hash].end());
+	}
+	static uint64_t GetHash(const BaseBoard &board) {
+		uint64_t hash = 0, pow = 1;
+		for (size_t p = 0; p < kBoardSize * kBoardSize; ++p) {
+			hash += board[p] * pow;
+			pow *= 17;
+		}
+		return hash;
+	}
+};
+BookDB book;
+
 // Board class
 class Board {
 	// values
-	array<Stone, kBoardSize * kBoardSize> board_;
+	BaseBoard board_;
 	Stone turn_;
 	IterateTable kIterateTable;
 	array<size_t, kBoardSize * kBoardSize> kTenGenDist;
@@ -1113,7 +1224,10 @@ class Board {
 			return false;
 		}
 		// Find Next Shi-ren or Katsu-shi
-		for (size_t p = 0; p < kBoardSize * kBoardSize; ++p) {
+		auto range = GetRange();
+		for (size_t y = range[1]; y <= range[3]; ++y) {
+			for (size_t x = range[0]; x <= range[2]; ++x) {
+				size_t p = ToPosition(x, y);
 			if (board_[p] != Stone::None) continue;
 			if (turn == Stone::Black) {
 				bool cho_ren_flg = false;
@@ -1178,13 +1292,17 @@ class Board {
 				}
 			}
 		}
+		}
 
 		board_[block_position] = Stone::None;
 		return false;
 	}
 	Result FindShioiMove(const Stone turn, const size_t depth) {
+		auto range = GetRange();
 		if (turn == Stone::Black) {
-			for (size_t p = 0; p < kBoardSize * kBoardSize; ++p) {
+			for (size_t y = range[1]; y <= range[3]; ++y) {
+				for (size_t x = range[0]; x <= range[2]; ++x){
+					size_t p = ToPosition(x, y);
 				if (board_[p] != Stone::None) continue;
 				bool cho_ren_flg = false;
 				size_t sum_4_strong = 0, sum_4_normal = 0, sum_3 = 0;
@@ -1214,8 +1332,11 @@ class Board {
 					continue;
 				}
 			}
+			}
 		}else{
-			for (size_t p = 0; p < kBoardSize * kBoardSize; ++p) {
+			for (size_t y = range[1]; y <= range[3]; ++y) {
+				for (size_t x = range[0]; x <= range[2]; ++x) {
+					size_t p = ToPosition(x, y);
 				if (board_[p] != Stone::None) continue;
 				size_t block_position;
 				size_t sum_4_strong = 0, sum_4_normal = 0;
@@ -1242,6 +1363,7 @@ class Board {
 					continue;
 				}
 			}
+		}
 		}
 		return Result(0, false);
 	}
@@ -1304,7 +1426,7 @@ class Board {
 						}
 						else {*/
 							// Normal Score
-							score = kTenGenDist[p];
+							score = CalcScore(p, turn);
 						//}
 						if (max_score < score) {
 							max_score = score;
@@ -1343,7 +1465,7 @@ class Board {
 						}
 						else {*/
 							// Normal Score
-							score = kTenGenDist[p];
+							score = CalcScore(p, turn);
 						//}
 						if (max_score < score) {
 							max_score = score;
@@ -1430,7 +1552,7 @@ class Board {
 			std::sort(next_move2.begin(), next_move2.end(), [](const Score &a, const Score &b) {return a.second > b.second; });
 			for (auto &it : next_move2) {
 				board_[it.first] = turn;
-				auto score = -NegaMax(EnemyTurn(turn), depth - 1, -kScoreInf2, kScoreInf2);
+				auto score = -NegaMax(EnemyTurn(turn), depth - 1, -kScoreInf2, kScoreInf2) + CalcScore(it.first, turn);
 				board_[it.first] = Stone::None;
 				if (max_score < score) {
 					max_score = score;
@@ -1441,6 +1563,28 @@ class Board {
 			}
 			return max_score;
 		}
+	}
+	int CalcScore(const size_t position, const Stone turn) {
+		int score = 0;
+		size_t px = position % kBoardSize, py = position / kBoardSize;
+		array<size_t, 4> range;
+		if (px <= 2) range[0] = 0; else range[0] = px - 2;
+		if (py <= 2) range[1] = 0; else range[1] = py - 2;
+		if (px + 2 >= kBoardSize) range[2] = kBoardSize - 1; else range[2] = px + 2;
+		if (py + 2 >= kBoardSize) range[3] = kBoardSize - 1; else range[3] = py + 2;
+		for (size_t y = range[1]; y <= range[3]; ++y) {
+			for (size_t x = range[0]; x <= range[2]; ++x) {
+				size_t p = ToPosition(x, y);
+				if (board_[p] == Stone::None || p == position) continue;
+				int dist = std::max(std::abs(static_cast<int>(x) - static_cast<int>(px)), std::abs(static_cast<int>(y) - static_cast<int>(py)));
+				if (board_[p] == turn) {
+					score += (3 - dist) * 2;
+				}else{
+					score += 3 - dist;
+				}
+			}
+		}
+		return score;
 	}
 	// Find Normal move
 	Result FindNormalMove(const size_t depth, bool debug_flg = false) {
@@ -1478,7 +1622,7 @@ class Board {
 					}
 					else {
 						// Normal Score
-						score = kTenGenDist[p];
+						score = CalcScore(p, turn_);
 					}
 					if (max_score < score) {
 						max_score = score;
@@ -1515,7 +1659,7 @@ class Board {
 					}
 					else {
 						// Normal Score
-						score = kTenGenDist[p];
+						score = CalcScore(p, turn_);
 					}
 					if (max_score < score) {
 						max_score = score;
@@ -1603,7 +1747,7 @@ class Board {
 			std::sort(next_move2.begin(), next_move2.end(), [](const Score &a, const Score &b) {return a.second > b.second; });
 			for (auto &it : next_move2) {
 				board_[it.first] = turn_;
-				int score = -NegaMax(EnemyTurn(turn_), depth - 1, -kScoreInf2, kScoreInf2) + kTenGenDist[it.first];
+				int score = -NegaMax(EnemyTurn(turn_), depth - 1, -kScoreInf2, kScoreInf2) + CalcScore(it.first, turn_);
 				board_[it.first] = Stone::None;
 				if (score == kScoreInf) return Result(it.first, true);
 				if (max_score < score) {
@@ -1699,6 +1843,10 @@ public:
 		if (debug_flg) std::cerr << "Opening" << endl;
 		auto result = GetOpeningMove(turn_);
 		if (result.second) return result.first;
+		// Book move
+		if (debug_flg) std::cerr << "Book" << endl;
+		auto book_data = book.GetBookData(board_);
+		if (book_data.size() != 0) return book_data[RandInt(book_data.size())];
 		// If you can make Go-ren, you must do.
 		if (debug_flg) std::cerr << "Goren" << endl;
 		result = FindGorenMove(turn_);
@@ -1736,6 +1884,7 @@ int main(int argc, char *argv[]) {
 	}
 	try {
 		Board board(argv[1], argv[2]);
+		book = BookDB("book.csv");
 		int depth = std::stoi(argv[3]);
 		if (depth < 0) depth = 0;
 		cout << board.NextMove(depth, (argc >= 5)) << endl;
