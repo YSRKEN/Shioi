@@ -10,6 +10,7 @@ enum Stone : uint8_t {
 };
 constexpr size_t operator|(Stone l, Stone r) { return (l << 2) + r; }
 constexpr size_t operator|(size_t l, Stone r) { return (l << 2) + r; }
+constexpr size_t operator|(Stone l, size_t r) { return (l << 2) + r; }
 enum Direction : uint8_t {
 	// Row(─) R[1, 0] L[-1, 0]
 	Row,
