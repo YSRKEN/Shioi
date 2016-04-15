@@ -1,4 +1,4 @@
-#include<algorithm>
+Ôªø#include<algorithm>
 #include<array>
 #include<cmath>
 #include<cstdint>
@@ -11,70 +11,21 @@
 #include<unordered_set>
 #include<unordered_map>
 #include<vector>
-
+#include "BookDB.hpp"
 // using declaration
-using std::array;
 using std::cout;
 using std::endl;
 using std::string;
 using std::tuple;
 using std::vector;
 
-// const value declaration
-const size_t kBoardSize = 15;
-const size_t kSearchWidth = 5;
-const size_t kShioiDepth1 = 20, kShioiDepth2 = 3;
-const int kScoreInf = 1000;
-const int kScoreInf2 = kScoreInf + 1;
-const string kPositionStringX = "abcdefghijklmno";
-const string kPositionStringY = "123456789ABCDEF";
-const size_t kPositionoffset[] = {1, kBoardSize, kBoardSize - 1, kBoardSize + 1};
-enum Stone : uint8_t {
-	None,
-	Black,
-	White
-};
-enum Direction : uint8_t {
-	// Row(Ñü) R[1, 0] L[-1, 0]
-	Row,
-	// Column(Ñ†) R[0, 1] L[0, -1]
-	Column,
-	// Diagonally right(Å^) R[-1, 1] L[1, -1]
-	DiagR,
-	// Diagonally left(Å_) R[1, 1] L[-1, -1]
-	DiagL,
-	Directions
-};
-enum Side : uint8_t {
-	Right,
-	Left,
-	Sides
-};
-
 size_t node = 0;
-
-// typedef declaration
-typedef std::pair<size_t, int> Score;
-typedef std::pair<size_t, bool> Result;
-typedef array<array<size_t, 5>, 2> Pattern;
-typedef tuple<size_t, size_t, size_t> RenCount;
-typedef array<array<array<size_t, Side::Sides>, Direction::Directions>, kBoardSize * kBoardSize> IterateTable;
-typedef array<Stone, kBoardSize * kBoardSize> BaseBoard;
 
 // definition in global area
 std::random_device rd;
 std::mt19937 mt(rd());
 
 // misc function
-string PositionToString(const size_t p) {
-	return kPositionStringX.substr(p % kBoardSize, 1) + kPositionStringY.substr(p / kBoardSize, 1);
-}
-constexpr inline size_t ToPosition(const size_t x, const size_t y) {
-	return x + y * kBoardSize;
-}
-constexpr inline Stone EnemyTurn(const Stone turn) {
-	return (turn == Stone::Black ? Stone::White : Stone::Black);
-}
 inline size_t RandInt(const size_t n) {
 	return std::uniform_int_distribution<size_t>{0, n - 1}(mt);
 }
@@ -94,111 +45,6 @@ constexpr size_t PackPatternAdd(const size_t s1, const Stone s2) {
 	return (s1 << 2) + s2;
 }
 
-// Book class
-class BookDB {
-	std::unordered_map<uint64_t, std::unordered_set<size_t>> book_;
-public:
-	BookDB() {}
-	BookDB(const char *book_name) {
-		std::ifstream ifs(book_name);
-		if (ifs.fail()) throw std::exception("Book.csv not found.");
-		string str;
-		while (getline(ifs, str)){
-			// Read CSV data
-			string token;
-			std::istringstream stream(str);
-			vector<size_t> move;
-			while (getline(stream, token, ',')){
-				move.push_back(stoi(token));
-			}
-			// Set BookData
-			SetBookData(move);
-			move = RotateMove(move);
-			SetBookData(move);
-			move = RotateMove(move);
-			SetBookData(move);
-			move = RotateMove(move);
-			SetBookData(move);
-			move = RotateMove(move);
-
-			move = FlipMove(move);
-			SetBookData(move);
-			move = RotateMove(move);
-			SetBookData(move);
-			move = RotateMove(move);
-			SetBookData(move);
-			move = RotateMove(move);
-			SetBookData(move);
-		}
-		/*for (auto &it : book_[8202465179494830182]) {
-			cout << PositionToString(it) << endl;
-		}*/
-		return;
-	}
-	void PutMove(vector<size_t> &move) {
-		for (size_t i = 0; i < move.size(); ++i) {
-			cout << PositionToString(move[i]) << ",";
-		}
-		cout << endl;
-	}
-	vector<size_t> RotateMove(vector<size_t> &move) {
-		vector<size_t> temp_move;
-		for (auto &it : move) {
-			size_t x = it % kBoardSize, y = it / kBoardSize;
-			int x2 = x - 7, y2 = y - 7;
-			temp_move.push_back(ToPosition(7 + y2, 7 - x2));
-		}
-		return temp_move;
-	}
-	vector<size_t> FlipMove(vector<size_t> &move) {
-		vector<size_t> temp_move;
-		for (auto &it : move) {
-			size_t x = it % kBoardSize, y = it / kBoardSize;
-			int x2 = x - 7, y2 = y - 7;
-			temp_move.push_back(ToPosition(7 + x2, 7 - y2));
-		}
-		return temp_move;
-	}
-	void SetBookData(const vector<size_t> &move) {
-		// Move on temporary board
-		BaseBoard board;
-		std::fill(board.begin(), board.end(), Stone::None);
-		auto turn = Stone::Black;
-		for (size_t i = 0; i < move.size() - 1; ++i) {
-			board[move[i]] = turn;
-			turn = EnemyTurn(turn);
-		}
-		// Set Data
-		/*if (move[0] == 112 && move[1] == 97 && move[2] == 98 && move[3] == 113 && move[4] == 129 && move.size() == 5) {
-			for (size_t p = 0; p < kBoardSize * kBoardSize; ++p) {
-				if (board[p] != Stone::None) {
-					cout << PositionToString(p) << " " << board[p] << endl;
-				}
-			}
-			auto hash2 = GetHash(board);
-			return;
-		}*/
-		auto hash = GetHash(board);
-		if (book_.count(hash) == 0) {
-			book_[hash] = std::unordered_set<size_t>();
-		}
-		book_[hash].insert(move[move.size() - 1]);
-	}
-	vector<size_t> GetBookData(const BaseBoard &board) {
-		vector<size_t> result;
-		uint64_t hash = GetHash(board);
-		if (book_.count(hash) == 0) return result;
-		return vector<size_t>(book_[hash].begin(), book_[hash].end());
-	}
-	static uint64_t GetHash(const BaseBoard &board) {
-		uint64_t hash = 0, pow = 1;
-		for (size_t p = 0; p < kBoardSize * kBoardSize; ++p) {
-			hash += board[p] * pow;
-			pow *= 17;
-		}
-		return hash;
-	}
-};
 BookDB book;
 
 // Board class
@@ -210,7 +56,7 @@ class Board {
 	array<size_t, kBoardSize * kBoardSize> kTenGenDist;
 	// Put board
 	void PutBoard() {
-		const static string kStoneString2[] = { "Ñ©", "Åú", "Åõ" };
+		const static string kStoneString2[] = { "‚îº", "‚óè", "‚óã" };
 		for (size_t y = 0; y < kBoardSize; ++y) {
 			for (size_t x = 0; x < kBoardSize; ++x) {
 				size_t p = x + y * kBoardSize;
@@ -221,7 +67,7 @@ class Board {
 	}
 	// Check GameEnd
 	bool IsGameEnd(const Stone turn) {
-		// Row(Ñü)
+		// Row(‚îÄ)
 		for (size_t i = 0; i < kBoardSize; ++i) {
 			size_t len = 0;
 			for (size_t j = 0; j < kBoardSize; ++j) {
@@ -234,7 +80,7 @@ class Board {
 				}
 			}
 		}
-		// Column(Ñ†)
+		// Column(‚îÇ)
 		for (size_t i = 0; i < kBoardSize; ++i) {
 			size_t len = 0;
 			for (size_t j = 0; j < kBoardSize; ++j) {
@@ -248,7 +94,7 @@ class Board {
 				}
 			}
 		}
-		// Diagonally right(Å^)
+		// Diagonally right(Ôºè)
 		for (size_t i = 4; i < kBoardSize; ++i) {
 			size_t len = 0;
 			for (size_t j = 0; j <= i; ++j) {
@@ -275,7 +121,7 @@ class Board {
 				}
 			}
 		}
-		// Diagonally left(Å_)
+		// Diagonally left(Ôºº)
 		for (size_t i = 0; i < kBoardSize - 4; ++i) {
 			size_t len = 0;
 			for (size_t j = 0; j < kBoardSize - i; ++j) {
@@ -347,7 +193,7 @@ class Board {
 	}
 	// Find Go-ren move
 	Result FindGorenMove(const Stone turn) {
-		// Row(Ñü)
+		// Row(‚îÄ)
 		for (size_t i = 0; i < kBoardSize; ++i) {
 			for (size_t j = 0; j < kBoardSize; ++j) {
 				size_t p = ToPosition(j, i);
@@ -370,7 +216,7 @@ class Board {
 				}
 			}
 		}
-		// Column(Ñ†)
+		// Column(‚îÇ)
 		for (size_t i = 0; i < kBoardSize; ++i) {
 			for (size_t j = 0; j < kBoardSize; ++j) {
 				size_t p = ToPosition(i, j);
@@ -393,7 +239,7 @@ class Board {
 				}
 			}
 		}
-		// Diagonally right(Å^)
+		// Diagonally right(Ôºè)
 		for (size_t i = 4; i < kBoardSize; ++i) {
 			for (size_t j = 0; j <= i; ++j) {
 				size_t p = ToPosition(i - j, j);
@@ -438,7 +284,7 @@ class Board {
 				}
 			}
 		}
-		// Diagonally left(Å_)
+		// Diagonally left(Ôºº)
 		for (size_t i = 0; i < kBoardSize - 4; ++i) {
 			for (size_t j = 0; j < kBoardSize - i; ++j) {
 				size_t p = ToPosition(i + j, j);
@@ -605,7 +451,7 @@ class Board {
 		/* 1. BO|BBB|OB   "Ryoutou-no-ShiShi"
 		 * 2. BBO|BB|OBB  "Chouda-no-ShiShi"
 		 * 3. BBBO|B|OBBB "Souryu-no-ShiShi"
-		 * àÍíºê¸è„Ç…èoóàÇÈélÅXÇ≈ÅAóºì™ÇÃélÅXÅEí∑é÷ÇÃélÅXÅEëoó¥ÇÃélÅX
+		 * ‰∏ÄÁõ¥Á∑ö‰∏ä„Å´Âá∫Êù•„ÇãÂõõ„ÄÖ„Åß„ÄÅ‰∏°È†≠„ÅÆÂõõ„ÄÖ„ÉªÈï∑Ëõá„ÅÆÂõõ„ÄÖ„ÉªÂèåÈæç„ÅÆÂõõ„ÄÖ
 		 */
 		{
 			//BO|BBB|OB
@@ -768,7 +614,7 @@ class Board {
 		/* 1. BO|BBB|OB   "Ryoutou-no-ShiShi"
 		 * 2. BBO|BB|OBB  "Chouda-no-ShiShi"
 		 * 3. BBBO|B|OBBB "Souryu-no-ShiShi"
-		 * àÍíºê¸è„Ç…èoóàÇÈélÅXÇ≈ÅAóºì™ÇÃélÅXÅEí∑é÷ÇÃélÅXÅEëoó¥ÇÃélÅX
+		 * ‰∏ÄÁõ¥Á∑ö‰∏ä„Å´Âá∫Êù•„ÇãÂõõ„ÄÖ„Åß„ÄÅ‰∏°È†≠„ÅÆÂõõ„ÄÖ„ÉªÈï∑Ëõá„ÅÆÂõõ„ÄÖ„ÉªÂèåÈæç„ÅÆÂõõ„ÄÖ
 		 */
 		{
 			//BO|BBB|OB
@@ -877,7 +723,7 @@ class Board {
 		* 1. BO|BBB|OB   "Ryoutou-no-ShiShi"
 		* 2. BBO|BB|OBB  "Chouda-no-ShiShi"
 		* 3. BBBO|B|OBBB "Souryu-no-ShiShi"
-		* àÍíºê¸è„Ç…èoóàÇÈélÅXÇ≈ÅAóºì™ÇÃélÅXÅEí∑é÷ÇÃélÅXÅEëoó¥ÇÃélÅX
+		* ‰∏ÄÁõ¥Á∑ö‰∏ä„Å´Âá∫Êù•„ÇãÂõõ„ÄÖ„Åß„ÄÅ‰∏°È†≠„ÅÆÂõõ„ÄÖ„ÉªÈï∑Ëõá„ÅÆÂõõ„ÄÖ„ÉªÂèåÈæç„ÅÆÂõõ„ÄÖ
 		*/
 		{
 			//BO|BBB|OB
@@ -1220,7 +1066,7 @@ class Board {
 		* 1. BO|BBB|OB   "Ryoutou-no-ShiShi"
 		* 2. BBO|BB|OBB  "Chouda-no-ShiShi"
 		* 3. BBBO|B|OBBB "Souryu-no-ShiShi"
-		* àÍíºê¸è„Ç…èoóàÇÈélÅXÇ≈ÅAóºì™ÇÃélÅXÅEí∑é÷ÇÃélÅXÅEëoó¥ÇÃélÅX
+		* ‰∏ÄÁõ¥Á∑ö‰∏ä„Å´Âá∫Êù•„ÇãÂõõ„ÄÖ„Åß„ÄÅ‰∏°È†≠„ÅÆÂõõ„ÄÖ„ÉªÈï∑Ëõá„ÅÆÂõõ„ÄÖ„ÉªÂèåÈæç„ÅÆÂõõ„ÄÖ
 		*/
 		{
 			//BO|BBB|OB
@@ -1408,7 +1254,7 @@ class Board {
 						cho_ren_flg = true;
 						break;
 					}
-					auto ren_count = CountRenB(move_pattern, p, static_cast<Direction>(dir));
+					//auto ren_count = CountRenB(move_pattern, p, static_cast<Direction>(dir));
 					size_t s4s, s4n, s3;
 					std::tie(s4s, s4n, s3) = CountRenB2(move_pattern, p, static_cast<Direction>(dir), block_position2);
 					sum_4_strong += s4s;
@@ -1437,7 +1283,7 @@ class Board {
 				size_t sum_4_strong = 0, sum_4_normal = 0;
 				for (uint8_t dir = 0; dir < Direction::Directions; ++dir) {
 					auto move_pattern = GetPatternW(p, static_cast<Direction>(dir));
-					auto ren_count = CountRenW2(move_pattern, p, static_cast<Direction>(dir));
+					//auto ren_count = CountRenW2(move_pattern, p, static_cast<Direction>(dir));
 					if (IsChorenW(move_pattern)) return true;
 					size_t s4s, s4n, blk;
 					std::tie(s4s, s4n, blk) = CountRenW2(move_pattern, p, static_cast<Direction>(dir));
@@ -1511,7 +1357,7 @@ class Board {
 				size_t sum_4_strong = 0, sum_4_normal = 0;
 				for (uint8_t dir = 0; dir < Direction::Directions; ++dir) {
 					auto move_pattern = GetPatternW(p, static_cast<Direction>(dir));
-					auto ren_count = CountRenW2(move_pattern, p, static_cast<Direction>(dir));
+					//auto ren_count = CountRenW2(move_pattern, p, static_cast<Direction>(dir));
 					if (IsChorenW(move_pattern)) return Result(p, true);
 					size_t s4s, s4n, blk;
 					std::tie(s4s, s4n, blk) = CountRenW2(move_pattern, p, static_cast<Direction>(dir));
@@ -1538,7 +1384,7 @@ class Board {
 	}
 	// Get Range(for Prospective pruning)
 	array<size_t, 4> GetRange() const noexcept {
-		array<size_t, 4> range{ kBoardSize, kBoardSize, 0, 0 };
+		array<size_t, 4> range{ { kBoardSize, kBoardSize, 0, 0 } };
 		for (size_t y = 0; y < kBoardSize; ++y) {
 			for (size_t x = 0; x < kBoardSize; ++x) {
 				size_t p = x + y * kBoardSize;
@@ -1988,16 +1834,16 @@ public:
 			for (size_t x = 0; x < kBoardSize; ++x) {
 				auto p = ToPosition(x, y);
 				kTenGenDist[p] = kTengen - std::max(std::abs(static_cast<int>(x) - kTengen), std::abs(static_cast<int>(y) - kTengen));
-				// Row(Ñü)
+				// Row(‚îÄ)
 				kIterateTable[p][Direction::Row][Side::Right] = std::min(kBoardSize - x - 1, kSearchWidth);
 				kIterateTable[p][Direction::Row][Side::Left ] = std::min(x, kSearchWidth);
-				// Column(Ñ†)
+				// Column(‚îÇ)
 				kIterateTable[p][Direction::Column][Side::Right] = std::min(kBoardSize - y - 1, kSearchWidth);
 				kIterateTable[p][Direction::Column][Side::Left ] = std::min(y, kSearchWidth);
-				// Diagonally right(Å^)
+				// Diagonally right(Ôºè)
 				kIterateTable[p][Direction::DiagR][Side::Right] = std::min(std::min(x, kBoardSize - y - 1), kSearchWidth);
 				kIterateTable[p][Direction::DiagR][Side::Left ] = std::min(std::min(kBoardSize - x - 1, y), kSearchWidth);
-				// Diagonally left(Å_)
+				// Diagonally left(Ôºº)
 				kIterateTable[p][Direction::DiagL][Side::Right] = std::min(std::min(kBoardSize - x - 1, kBoardSize - y - 1), kSearchWidth);
 				kIterateTable[p][Direction::DiagL][Side::Left ] = std::min(std::min(x, y), kSearchWidth);
 			}
@@ -2066,8 +1912,8 @@ int main(int argc, char *argv[]) {
 	return 0;
 }
 
-/* êiíªÅF
-ÅEÉxÉìÉ`É}Å[ÉNñ‚ëË(63449msÅAgBÇ™ê≥íÖÇ¡Ç€Ç¢ÅH)
+/* ÈÄ≤ÊçóÔºö
+„Éª„Éô„É≥„ÉÅ„Éû„Éº„ÇØÂïèÈ°å(63449ms„ÄÅgB„ÅåÊ≠£ÁùÄ„Å£„ÅΩ„ÅÑÔºü)
 h8,i7,i9,g9,g7,f6,h7,h9,i8,g8,g6,f5,j8,j9,hA,k7,f8,fA,f9,i6,iA,jA,f7,j7,j6,h6,gA,e8,e7,d7,kA,e6,g4,**,
 ---------------------------------------------------*-------------O-------------OO*OO*--------O****OOO--------O*O***----------*OO*O----------O***O*------------------------------------------------------------------------------- O
 */
