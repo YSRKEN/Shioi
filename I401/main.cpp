@@ -1477,6 +1477,7 @@ class Board {
 	// Find Normal move
 	Result FindNormalMove(const size_t depth, bool debug_flg = false) {
 		vector<size_t> next_move;
+		next_move.reserve(kBoardSize * kBoardSize);
 		int max_score = -kScoreInf2;
 		if (depth == 0) {
 			if (turn_ == Stone::Black) {
@@ -1686,19 +1687,19 @@ public:
 		// Read board-text
 		const string board_text_str(board_text);
 		if (board_text_str.size() < kBoardSize * kBoardSize) {
-			throw std::exception("Too short board-text size!");
+			throw std::invalid_argument("Too short board-text size!");
 		}
 		for (size_t p = 0; p < kBoardSize * kBoardSize; ++p) {
 			auto stone_type = kStoneString.find_first_of(board_text[p], 0);
 			if (stone_type == string::npos) {
-				throw std::exception("Can't read board data.");
+				throw std::invalid_argument("Can't read board data.");
 			}
 			board_[p] = static_cast<Stone>(stone_type);
 		}
 		// Read turn-text
 		auto turn_type = kStoneString.find_first_of(turn_text[0], 0);
 		if (turn_type == string::npos) {
-			throw std::exception("Can't read turn data.");
+			throw std::invalid_argument("Can't read turn data.");
 		}
 		turn_ = static_cast<Stone>(turn_type);
 		// Initialize IterateTable
