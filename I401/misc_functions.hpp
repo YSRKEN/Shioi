@@ -54,8 +54,6 @@ using detail::Normalize;
 constexpr detail::PackPattern_helper PackPattern(size_t position, Direction dir, int start, int stop) {
 	return{ start, stop, position, dir };
 }
-constexpr size_t operator|(Stone l, Stone r) { return (l << 2) + r; }
-constexpr size_t operator|(size_t l, Stone r) { return (l << 2) + r; }
 namespace detail {
 	constexpr size_t PackPattern_n_impl(const size_t tmp, const Stone s, const size_t rest_count) {
 		return (rest_count - 1) ? PackPattern_n_impl((tmp << 2) + s, s, rest_count - 1) : (tmp << 2) + s;
