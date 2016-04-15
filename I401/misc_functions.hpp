@@ -62,8 +62,23 @@ namespace detail {
 	}
 }
 constexpr size_t PackPattern_n(const Stone s, size_t n) {
-	return (n * 2 > sizeof(size_t)) ? std::numeric_limits<size_t>::max() : detail::PackPattern_n_impl(0U, s, n);
+	return (n * 2 > sizeof(size_t) * CHAR_BIT) ? std::numeric_limits<size_t>::max() : detail::PackPattern_n_impl(0U, s, n);
 }
+namespace detail {
+	struct PackPattern_n_operator_helper {
+		struct Impl {
+			size_t n;
+		};
+		Impl p;
+		constexpr Impl operator*() {
+			return p;
+		}
+	};
+	constexpr size_t operator*(const Stone s, PackPattern_n_operator_helper::Impl n) {
+		return PackPattern_n(s, n.n);
+	}
+}
+constexpr detail::PackPattern_n_operator_helper operator "" _pack(unsigned long long n) { return{ n }; }
 namespace detail {
 	template<typename T>struct limit_helper {
 		T min, max;
