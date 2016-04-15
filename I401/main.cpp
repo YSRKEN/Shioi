@@ -99,7 +99,7 @@ namespace detail {
 	constexpr StoneNormalizer_helper Normalize() { return{}; }
 	size_t operator| (const array<Stone, kBoardSize * kBoardSize>& board, const PackPattern_helper& info) {
 		using std::abs;
-		if (abs(info.start) < abs(info.stop)) return 0;
+		if (abs(info.stop) < abs(info.start)) return 0;
 		size_t re = 0;
 		int i;
 		for (i = info.start; abs(i) <= abs(info.stop) - 1; i += (i > 0) ? 1 : -1, re <<= 2U) re += board | Get(info.pos, info.direction, i);
@@ -386,12 +386,7 @@ class Board {
 		const size_t right_pattern_length = kIterateTable[position][dir][Side::Right];
 		const size_t  left_pattern_length = kIterateTable[position][dir][Side::Left ];
 		Pattern pattern;
-		auto GetBoardValue = [this](size_t position, Direction dir, int count) -> Stone {return board_[position + kPositionoffset[dir] * count]; };
-		auto GetBoardValue2 = [&GetBoardValue](size_t position, Direction dir, int count) -> Stone {
-			auto value = GetBoardValue(position, dir, count);
-			return (value != Stone::White ? value : Stone::None);
-		};
-		pattern[Side::Right][0] = (right_pattern_length <= 0 ? Stone::None : GetBoardValue2(position, dir, 1));
+		pattern[Side::Right][0] = (right_pattern_length <= 0) ? Stone::None : this->board_ | Get(position, dir, 1) | Normalize();
 		pattern[Side::Right][1] = (right_pattern_length <= 1) ? pattern[Side::Right][0] | Stone::None
 			: this->board_ | PackPattern(position, dir, 1, 2);
 		pattern[Side::Right][2] = (right_pattern_length <= 2) ? pattern[Side::Right][1] | Stone::None
@@ -401,7 +396,7 @@ class Board {
 		pattern[Side::Right][4] = (right_pattern_length <= 4) ? pattern[Side::Right][3] | Stone::None
 			: this->board_ | PackPattern(position, dir, 1, 5);
 
-		pattern[Side::Left][0] = (left_pattern_length <= 0 ? Stone::None : GetBoardValue2(position, dir, -1));
+		pattern[Side::Left][0] = (left_pattern_length <= 0) ? Stone::None : this->board_ | Get(position, dir, -1) | Normalize();
 		pattern[Side::Left][1] = (left_pattern_length <= 1) ? pattern[Side::Left][0] | Stone::None
 			: this->board_ | PackPattern(position, dir, -1, -2);
 		pattern[Side::Left][2] = (left_pattern_length <= 2) ? pattern[Side::Left][1] | Stone::None
@@ -416,9 +411,7 @@ class Board {
 		const size_t right_pattern_length = kIterateTable[position][dir][Side::Right];
 		const size_t  left_pattern_length = kIterateTable[position][dir][Side::Left];
 		Pattern pattern;
-		auto GetBoardValue = [this](size_t position, Direction dir, int count) -> Stone {return board_[position + kPositionoffset[dir] * count]; };
-		pattern[Side::Right][0] = (right_pattern_length <= 0 ? Stone::None
-			: GetBoardValue(position, dir, 1));
+		pattern[Side::Right][0] = (right_pattern_length <= 0 ? Stone::None : this->board_ | Get(position, dir, 1));
 		pattern[Side::Right][1] = (right_pattern_length <= 1) ? pattern[Side::Right][0] | Stone::None
 			: this->board_ | PackPattern(position, dir, 1, 2);
 		pattern[Side::Right][2] = (right_pattern_length <= 2) ? pattern[Side::Right][1] | Stone::None
@@ -426,8 +419,7 @@ class Board {
 		pattern[Side::Right][3] = (right_pattern_length <= 3) ? pattern[Side::Right][2] | Stone::None
 			: this->board_ | PackPattern(position, dir, 1, 4);
 
-		pattern[Side::Left][0] = (left_pattern_length <= 0 ? Stone::None
-			: GetBoardValue(position, dir, -1));
+		pattern[Side::Left][0] = (left_pattern_length <= 0 ? Stone::None : this->board_ | Get(position, dir, -1));
 		pattern[Side::Left][1] = (left_pattern_length <= 1) ? pattern[Side::Left][0] | Stone::None
 			: this->board_ | PackPattern(position, dir, -1, -2);
 		pattern[Side::Left][2] = (left_pattern_length <= 2) ? pattern[Side::Left][1] | Stone::None
