@@ -1715,11 +1715,11 @@ public:
 				kIterateTable[p][Direction::Column][Side::Right] = std::min(kBoardSize - y - 1, kSearchWidth);
 				kIterateTable[p][Direction::Column][Side::Left ] = std::min(y, kSearchWidth);
 				// Diagonally right(／)
-				kIterateTable[p][Direction::DiagR][Side::Right] = std::min({ x, kBoardSize - y - 1, kSearchWidth });
-				kIterateTable[p][Direction::DiagR][Side::Left] = std::min({ kBoardSize - x - 1, y, kSearchWidth });
+				kIterateTable[p][Direction::DiagR][Side::Right] = min(x, kBoardSize - y - 1, kSearchWidth);
+				kIterateTable[p][Direction::DiagR][Side::Left] = min(kBoardSize - x - 1, y, kSearchWidth);
 				// Diagonally left(＼)
-				kIterateTable[p][Direction::DiagL][Side::Right] = std::min({ kBoardSize - x - 1, kBoardSize - y - 1, kSearchWidth });
-				kIterateTable[p][Direction::DiagL][Side::Left] = std::min({ x, y, kSearchWidth });
+				kIterateTable[p][Direction::DiagL][Side::Right] = min(kBoardSize - x - 1, kBoardSize - y - 1, kSearchWidth);
+				kIterateTable[p][Direction::DiagL][Side::Left] = min(x, y, kSearchWidth);
 			}
 		}
 	}
@@ -1774,8 +1774,7 @@ int main(int argc, char *argv[]) {
 	try {
 		Board board(argv[1], argv[2]);
 		book = BookDB("book.csv");
-		int depth = std::stoi(argv[3]);
-		if (depth < 0) depth = 0;
+		const int depth = argv[3] | to_i() | max(0);
 		cout << board.NextMove(depth, (argc >= 5)) << endl;
 	}
 	catch (const std::exception& er) {

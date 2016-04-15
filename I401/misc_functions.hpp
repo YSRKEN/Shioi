@@ -3,6 +3,8 @@
 #include "constant.hpp"
 #include <array>
 #include <string>
+#include <cerrno>
+#include <stdexcept>
 using std::array;
 using std::size_t;
 std::string PositionToString(const size_t p) {
@@ -69,14 +71,73 @@ namespace detail {
 	template<typename T>struct limit_helper2 {
 		T min, max;
 	};
-	template<typename Result, typename T, std::enable_if_t<std::is_arithmetic_v<Result> && std::is_arithmetic_v<T>, std::nullptr_t> = nullptr>
+	template<typename Result, typename T, std::enable_if_t<std::is_arithmetic<Result>::value && std::is_arithmetic<T>::value, std::nullptr_t> = nullptr>
 	constexpr Result operator|(const Result& r, const limit_helper<T>& info) {
 		return (info.min <= r) ? (r <= info.max) ? r : info.max : info.min;
 	}
-	template<typename Result, typename T, std::enable_if_t<std::is_arithmetic_v<Result> && std::is_arithmetic_v<T>, std::nullptr_t> = nullptr>
+	template<typename Result, typename T, std::enable_if_t<std::is_arithmetic<Result>::value && std::is_arithmetic<T>::value, std::nullptr_t> = nullptr>
 	constexpr Result operator|(const Result& r, const limit_helper2<T>& info) {
 		return (info.min <= r && r < info.max) ? r : info.max;
 	}
 }
 template<typename T> constexpr detail::limit_helper<T> limit(const T& min, const T& max) { return{ min, max }; }
 template<typename T> constexpr detail::limit_helper2<T> limit2(const T& min, const T& max) { return{ min, max }; }
+namespace detail {
+	template<typename T>struct min_helper { T min; };
+	template<typename Result, typename T, std::enable_if_t<std::is_arithmetic<Result>::value && std::is_arithmetic<T>::value, std::nullptr_t> = nullptr>
+	constexpr Result operator|(const Result& r, const min_helper<T>& info) {
+		return std::min(r, info.min);
+	}
+}
+template<typename T> constexpr detail::min_helper<T> min(const T& min) { return{ min }; }
+namespace detail {
+	template<typename T>struct max_helper { T max; };
+	template<typename Result, typename T, std::enable_if_t<std::is_arithmetic<Result>::value && std::is_arithmetic<T>::value, std::nullptr_t> = nullptr>
+	constexpr Result operator|(const Result& r, const max_helper<T>& info) {
+		return std::max(r, info.max);
+	}
+}
+template<typename T> constexpr detail::max_helper<T> max(const T& max) { return{ max }; }
+
+namespace detail {
+	struct to_i_helper {};
+	template<typename CharType>
+	int operator|(const std::basic_string<CharType>& s, to_i_helper) { return std::stoi(s); }
+	int operator|(const char* s, to_i_helper) { 
+		errno = 0;
+		const auto r = std::strtol(s, nullptr, 10);
+		if (0 != errno) throw std::out_of_range("");
+		static_assert(sizeof(int) == sizeof(long), "check function int operator|(const char*, to_i_helper)");
+		return static_cast<int>(r);
+	}
+	int operator|(const wchar_t* s, to_i_helper) {
+		errno = 0;
+		const auto r = std::wcstol(s, nullptr, 10);
+		if (0 != errno) throw std::out_of_range("");
+		static_assert(sizeof(int) == sizeof(long), "check function int operator|(const char*, to_i_helper)");
+		return static_cast<int>(r);
+	}
+}
+constexpr detail::to_i_helper to_i() { return{}; }
+namespace min_max_impl {
+	using std::min;
+	template<typename T>
+	constexpr T& min(const T& a1, const T& a2, const T& a3) {
+		return std::min(std::min(a1, a2), a3);
+	}
+	template<typename T, typename ...Rest>
+	constexpr T& min(const T& a1, const T& a2, const Rest&... args) {
+		return min(std::min(a1, a2), args...);
+	}
+	using std::max;
+	template<typename T>
+	constexpr T& max(const T& a1, const T& a2, const T& a3) {
+		return std::max(std::max(a1, a2), a3);
+	}
+	template<typename T, typename ...Rest>
+	constexpr T& max(const T& a1, const T& a2, const Rest&... args) {
+		return max(std::max(a1, a2), args...);
+	}
+}
+using min_max_impl::max;
+using min_max_impl::min;
