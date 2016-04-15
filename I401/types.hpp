@@ -22,8 +22,8 @@ enum Direction : uint8_t {
 	Directions
 };
 enum Side : uint8_t {
-	Right,
 	Left,
+	Right,
 	Sides
 };
 using std::array;
