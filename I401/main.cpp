@@ -1397,11 +1397,11 @@ class Board {
 						board_[p] = Stone::None;
 						if (result.second) {
 							// Don't block Shioi
-							next_move2.push_back(Score(p, -kScoreInf));
+							next_move2.emplace_back(p, -kScoreInf);
 						}
 						else {*/
 							// Normal Score
-							next_move2.push_back(Score(p, kTenGenDist[p]));
+							next_move2.emplace_back(p, kTenGenDist[p]);
 						//}
 					}
 				}
@@ -1428,11 +1428,11 @@ class Board {
 						board_[p] = Stone::None;
 						if (result.second) {
 							// Don't block Shioi
-							next_move2.push_back(Score(p, -kScoreInf));
+							next_move2.emplace_back(p, -kScoreInf);
 						}
 						else {*/
 							// Normal Score
-							next_move2.push_back(Score(p, kTenGenDist[p]));
+							next_move2.emplace_back(p, kTenGenDist[p]);
 						//}
 					}
 				}
@@ -1592,11 +1592,11 @@ class Board {
 						board_[p] = Stone::None;
 						if (result.second) {
 							// Don't block Shioi
-							next_move2.push_back(Score(p, -kScoreInf));
+							next_move2.emplace_back(p, -kScoreInf);
 						}
 						else {
 							// Normal Score
-							next_move2.push_back(Score(p, kTenGenDist[p]));
+							next_move2.emplace_back(p, kTenGenDist[p]);
 						}
 					}
 				}
@@ -1623,11 +1623,11 @@ class Board {
 						board_[p] = Stone::None;
 						if (result.second) {
 							// Don't block Shioi
-							next_move2.push_back(Score(p, -kScoreInf));
+							next_move2.emplace_back(p, -kScoreInf);
 						}
 						else {
 							// Normal Score
-							next_move2.push_back(Score(p, kTenGenDist[p]));
+							next_move2.emplace_back(p, kTenGenDist[p]);
 						}
 					}
 				}
@@ -1674,7 +1674,7 @@ class Board {
 				}
 				if (cho_ren_flg || sum_4_strong + sum_4_normal >= 2 || sum_3 >= 2) continue;
 			}
-			position_list.push_back(Score(p, 0));
+			position_list.emplace_back(p, 0);
 		}
 		if (position_list.size() > 0) return Result(position_list[RandInt(position_list.size())].first, true);
 		return Result(0, false);
