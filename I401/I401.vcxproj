@@ -35,7 +35,7 @@
     <ConfigurationType>Application</ConfigurationType>
     <UseDebugLibraries>false</UseDebugLibraries>
     <PlatformToolset>v140</PlatformToolset>
-    <WholeProgramOptimization>PGOptimize</WholeProgramOptimization>
+    <WholeProgramOptimization>true</WholeProgramOptimization>
     <CharacterSet>Unicode</CharacterSet>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'" Label="Configuration">
@@ -153,6 +153,7 @@
     <ClInclude Include="Board_helper.hpp" />
     <ClInclude Include="BookDB.hpp" />
     <ClInclude Include="constant.hpp" />
+    <ClInclude Include="constant_range_loop.hpp" />
     <ClInclude Include="misc_functions.hpp" />
     <ClInclude Include="types.hpp" />
   </ItemGroup>

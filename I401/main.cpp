@@ -15,6 +15,7 @@
 #include "types.hpp"
 #include "Board_helper.hpp"
 #include "BookDB.hpp"
+#include "constant_range_loop.hpp"
 // using declaration
 using std::cout;
 using std::endl;
@@ -45,8 +46,8 @@ class Board {
 	// Put board
 	void PutBoard() {
 		const static string kStoneString2[] = { "┼", "●", "○" };
-		for (size_t y = 0; y < kBoardSize; ++y) {
-			for (size_t x = 0; x < kBoardSize; ++x) {
+		for (size_t y : rep(kBoardSize)) {
+			for (size_t x : rep(kBoardSize)) {
 				size_t p = x + y * kBoardSize;
 				cout << kStoneString2[board_[p]];
 			}
@@ -55,12 +56,12 @@ class Board {
 	}
 	bool IsGameEndImpl(const Stone turn, Direction d) {
 		const auto outer_loop_max = Board_helper::CalcOuterLoopMaxByDirection(d);
-		for (size_t c = 0; c < outer_loop_max.second; ++c) {
-			for (size_t i = 0; i < outer_loop_max.first[c]; ++i) {
+		for (size_t c : rep(outer_loop_max.second)) {
+			for (size_t i : rep(outer_loop_max.first[c])) {
 				size_t len = 0;
 				const auto inner_loop_max = Board_helper::CalcInnerLoopMaxByDirection(d, i);
 				assert(inner_loop_max.second == outer_loop_max.second);
-				for (size_t j = 0; j < inner_loop_max.first[c]; ++j) {
+				for (size_t j : rep(inner_loop_max.first[c])) {
 					const auto ps = Board_helper::ToPositionByDirection(d, i, j);
 					assert(ps.second == outer_loop_max.second);
 					const size_t p = ps.first[c];
@@ -91,7 +92,7 @@ class Board {
 	// Count stone
 	size_t CountStone() {
 		size_t sum = 0;
-		for (size_t p = 0; p < kBoardSize * kBoardSize; ++p) {
+		for (size_t p : rep(kBoardSize * kBoardSize)) {
 			if (board_[p] != Stone::None) ++sum;
 		}
 		return sum;
@@ -124,8 +125,8 @@ class Board {
 	// Find Go-ren move
 	Result FindGorenMove(const Stone turn) {
 		// Row(─)
-		for (size_t i = 0; i < kBoardSize; ++i) {
-			for (size_t j = 0; j < kBoardSize; ++j) {
+		for (size_t i : rep(kBoardSize)) {
+			for (size_t j : rep(kBoardSize)) {
 				size_t p = ToPosition(j, i);
 				if (board_[p] != Stone::None) continue;
 				size_t rlengh = 0;
@@ -134,7 +135,7 @@ class Board {
 					++rlengh;
 				}
 				size_t llengh = 0;
-				for (size_t k = j + 1; k < kBoardSize; ++k) {
+				for (size_t k : rep(j + 1, kBoardSize)) {
 					if (board_[ToPosition(k, i)] != turn) break;
 					++llengh;
 				}
@@ -147,8 +148,8 @@ class Board {
 			}
 		}
 		// Column(│)
-		for (size_t i = 0; i < kBoardSize; ++i) {
-			for (size_t j = 0; j < kBoardSize; ++j) {
+		for (size_t i : rep(kBoardSize)) {
+			for (size_t j : rep(kBoardSize)) {
 				size_t p = ToPosition(i, j);
 				if (board_[p] != Stone::None) continue;
 				size_t rlengh = 0;
@@ -157,7 +158,7 @@ class Board {
 					++rlengh;
 				}
 				size_t llengh = 0;
-				for (size_t k = j + 1; k < kBoardSize; ++k) {
+				for (size_t k : rep(j + 1, kBoardSize)) {
 					if (board_[ToPosition(i, k)] != turn) break;
 					++llengh;
 				}
@@ -170,8 +171,8 @@ class Board {
 			}
 		}
 		// Diagonally right(／)
-		for (size_t i = 4; i < kBoardSize; ++i) {
-			for (size_t j = 0; j <= i; ++j) {
+		for (size_t i : rep(4_sz, kBoardSize)) {
+			for (size_t j : rep(i)) {
 				size_t p = ToPosition(i - j, j);
 				if (board_[p] != Stone::None) continue;
 				size_t rlengh = 0;
@@ -192,8 +193,8 @@ class Board {
 				}
 			}
 		}
-		for (size_t i = 1; i < kBoardSize - 4; ++i) {
-			for (size_t j = 0; j < kBoardSize - i; ++j) {
+		for (size_t i : rep(1_sz, kBoardSize - 4_sz)) {
+			for (size_t j : rep(kBoardSize - i)) {
 				size_t p = ToPosition(kBoardSize - 1 - j, i + j);
 				if (board_[p] != Stone::None) continue;
 				size_t rlengh = 0;
@@ -202,7 +203,7 @@ class Board {
 					++rlengh;
 				}
 				size_t llengh = 0;
-				for (size_t k = j + 1; k < kBoardSize - i; ++k) {
+				for (size_t k : rep(j + 1, kBoardSize - i)) {
 					if (board_[ToPosition(kBoardSize - 1 - k, i + k)] != turn) break;
 					++llengh;
 				}
@@ -215,8 +216,8 @@ class Board {
 			}
 		}
 		// Diagonally left(＼)
-		for (size_t i = 0; i < kBoardSize - 4; ++i) {
-			for (size_t j = 0; j < kBoardSize - i; ++j) {
+		for (size_t i : rep(kBoardSize - 4_sz)) {
+			for (size_t j : rep(kBoardSize - i)) {
 				size_t p = ToPosition(i + j, j);
 				if (board_[p] != Stone::None) continue;
 				size_t rlengh = 0;
@@ -225,7 +226,7 @@ class Board {
 					++rlengh;
 				}
 				size_t llengh = 0;
-				for (size_t k = j + 1; k < kBoardSize - i; ++k) {
+				for (size_t k : rep(j + 1, kBoardSize - i)) {
 					if (board_[ToPosition(i + k, k)] != turn) break;
 					++llengh;
 				}
@@ -237,8 +238,8 @@ class Board {
 				}
 			}
 		}
-		for (size_t i = 1; i < kBoardSize - 4; ++i) {
-			for (size_t j = 0; j < kBoardSize - i; ++j) {
+		for (size_t i : rep(1_sz, kBoardSize - 4_sz)) {
+			for (size_t j : rep(kBoardSize - i)) {
 				size_t p = ToPosition(j, i + j);
 				if (board_[p] != Stone::None) continue;
 				size_t rlengh = 0;
@@ -247,7 +248,7 @@ class Board {
 					++rlengh;
 				}
 				size_t llengh = 0;
-				for (size_t k = j + 1; k < kBoardSize - i; ++k) {
+				for (size_t k : rep(j + 1, kBoardSize - i)) {
 					if (board_[ToPosition(k, i + k)] != turn) break;
 					++llengh;
 				}
@@ -853,8 +854,8 @@ class Board {
 		}
 		// Find Next Shi-ren or Katsu-shi
 		auto range = GetRange();
-		for (size_t y = range[1]; y <= range[3]; ++y) {
-			for (size_t x = range[0]; x <= range[2]; ++x) {
+		for (size_t y : rep(range[1], range[3])) {
+			for (size_t x : rep(range[0], range[2])) {
 				size_t p = ToPosition(x, y);
 			if (board_[p] != Stone::None) continue;
 			if (turn == Stone::Black) {
@@ -928,8 +929,8 @@ class Board {
 	Result FindShioiMove(const Stone turn, const size_t depth) {
 		auto range = GetRange();
 		if (turn == Stone::Black) {
-			for (size_t y = range[1]; y <= range[3]; ++y) {
-				for (size_t x = range[0]; x <= range[2]; ++x){
+			for (size_t y : rep(range[1], range[3])) {
+				for (size_t x : rep(range[0], range[2])){
 					size_t p = ToPosition(x, y);
 				if (board_[p] != Stone::None) continue;
 				bool cho_ren_flg = false;
@@ -962,8 +963,8 @@ class Board {
 			}
 			}
 		}else{
-			for (size_t y = range[1]; y <= range[3]; ++y) {
-				for (size_t x = range[0]; x <= range[2]; ++x) {
+			for (size_t y : rep(range[1], range[3])) {
+				for (size_t x : rep(range[0], range[2])) {
 					size_t p = ToPosition(x, y);
 				if (board_[p] != Stone::None) continue;
 				size_t block_position;
@@ -1000,8 +1001,8 @@ class Board {
 		//                        left,       top,    right, bottom
 		array<size_t, 4> range{ { kBoardSize, kBoardSize, 0, 0 } };
 		//外接四角形を求める
-		for (size_t y = 0; y < kBoardSize; ++y) {
-			for (size_t x = 0; x < kBoardSize; ++x) {
+		for (size_t y : rep(kBoardSize)) {
+			for (size_t x : rep(kBoardSize)) {
 				size_t p = x + y * kBoardSize;
 				if (board_[p] == Stone::None) continue;
 				range[0] = std::min(range[0], x);
@@ -1026,8 +1027,8 @@ class Board {
 			// Find enemy's Shioi(Pre-search)
 			if (turn == Stone::Black) {
 				auto range = GetRange();
-				for (size_t y = range[1]; y <= range[3]; ++y) {
-					for (size_t x = range[0]; x <= range[2]; ++x) {
+				for (size_t y : rep(range[1], range[3])) {
+					for (size_t x : rep(range[0], range[2])) {
 						size_t p = ToPosition(x, y);
 						if (board_[p] != Stone::None) continue;
 						// Judge valid move
@@ -1071,8 +1072,8 @@ class Board {
 			}
 			else {
 				auto range = GetRange();
-				for (size_t y = range[1]; y <= range[3]; ++y) {
-					for (size_t x = range[0]; x <= range[2]; ++x) {
+				for (size_t y : rep(range[1], range[3])) {
+					for (size_t x : rep(range[0], range[2])) {
 						size_t p = ToPosition(x, y);
 						if (board_[p] != Stone::None) continue;
 						size_t sum_4_strong = 0, sum_4_normal = 0, sum_3 = 0;
@@ -1114,8 +1115,8 @@ class Board {
 			vector<Score> next_move2;
 			auto range = GetRange();
 			if (turn == Stone::Black) {
-				for (size_t y = range[1]; y <= range[3]; ++y) {
-					for (size_t x = range[0]; x <= range[2]; ++x) {
+				for (size_t y : rep(range[1], range[3])) {
+					for (size_t x : rep(range[0], range[2])) {
 						size_t p = ToPosition(x, y);
 						if (board_[p] != Stone::None) continue;
 						// Judge valid move
@@ -1151,8 +1152,8 @@ class Board {
 				}
 			}
 			else {
-				for (size_t y = range[1]; y <= range[3]; ++y) {
-					for (size_t x = range[0]; x <= range[2]; ++x) {
+				for (size_t y : rep(range[1], range[3])) {
+					for (size_t x : rep(range[0], range[2])) {
 						size_t p = ToPosition(x, y);
 						if (board_[p] != Stone::None) continue;
 						size_t sum_4_strong = 0, sum_4_normal = 0, sum_3 = 0;
@@ -1204,8 +1205,8 @@ class Board {
 		if (py <= 2) range[1] = 0; else range[1] = py - 2;
 		if (px + 2 >= kBoardSize) range[2] = kBoardSize - 1; else range[2] = px + 2;
 		if (py + 2 >= kBoardSize) range[3] = kBoardSize - 1; else range[3] = py + 2;
-		for (size_t y = range[1]; y <= range[3]; ++y) {
-			for (size_t x = range[0]; x <= range[2]; ++x) {
+		for (size_t y : rep(range[1], range[3])) {
+			for (size_t x : rep(range[0], range[2])) {
 				size_t p = ToPosition(x, y);
 				if (board_[p] == Stone::None || p == position) continue;
 				int dist = std::max(std::abs(static_cast<int>(x) - static_cast<int>(px)), std::abs(static_cast<int>(y) - static_cast<int>(py)));
@@ -1225,7 +1226,7 @@ class Board {
 		int max_score = -kScoreInf2;
 		if (depth == 0) {
 			if (turn_ == Stone::Black) {
-				for (size_t p = 0; p < kBoardSize * kBoardSize; ++p) {
+				for (size_t p : rep(kBoardSize * kBoardSize)) {
 					if (board_[p] != Stone::None) continue;
 					// Judge valid move
 					bool cho_ren_flg = false;
@@ -1268,7 +1269,7 @@ class Board {
 					}
 				}
 			}else{
-				for (size_t p = 0; p < kBoardSize * kBoardSize; ++p) {
+				for (size_t p : rep(kBoardSize * kBoardSize)) {
 					if (board_[p] != Stone::None) continue;
 					size_t sum_4_strong = 0, sum_4_normal = 0, sum_3 = 0;
 					for (uint8_t dir = 0; dir < Direction::Directions; ++dir) {
@@ -1303,8 +1304,8 @@ class Board {
 			vector<Score> next_move2;
 			auto range = GetRange();
 			if (turn_ == Stone::Black) {
-				for (size_t y = range[1]; y <= range[3]; ++y) {
-					for (size_t x = range[0]; x <= range[2]; ++x) {
+				for (size_t y : rep(range[1], range[3])) {
+					for (size_t x : rep(range[0], range[2])) {
 						size_t p = ToPosition(x, y);
 						if (board_[p] != Stone::None) continue;
 						// Judge valid move
@@ -1340,8 +1341,8 @@ class Board {
 				}
 			}
 			else {
-				for (size_t y = range[1]; y <= range[3]; ++y) {
-					for (size_t x = range[0]; x <= range[2]; ++x) {
+				for (size_t y : rep(range[1], range[3])) {
+					for (size_t x : rep(range[0], range[2])) {
 						size_t p = ToPosition(x, y);
 						if (board_[p] != Stone::None) continue;
 						size_t sum_4_strong = 0, sum_4_normal = 0, sum_3 = 0;
@@ -1393,7 +1394,7 @@ class Board {
 	// Find Random tsume
 	Result FindRandomMove(const Stone turn) {
 		vector<Score> position_list;
-		for (size_t p = 0; p < kBoardSize * kBoardSize; ++p) {
+		for (size_t p : rep(kBoardSize * kBoardSize)) {
 			if (board_[p] != Stone::None) continue;
 			if (turn_ == Stone::Black) {
 				bool cho_ren_flg = false;
@@ -1428,13 +1429,13 @@ public:
 		if (strlen(board_text) < kBoardSize * kBoardSize) {
 			throw std::invalid_argument("Too short board-text size!");
 		}
-		for (size_t p = 0; p < kBoardSize * kBoardSize; ++p) {
+		for (size_t p : rep(kBoardSize * kBoardSize)) {
 			board_[p] = board_text[p] | toStone("Can't read board data.");
 		}
 		// Initialize IterateTable
 		constexpr size_t kTengen = kBoardSize / 2;
-		for (size_t y = 0; y < kBoardSize; ++y) {
-			for (size_t x = 0; x < kBoardSize; ++x) {
+		for (size_t y : rep(kBoardSize)) {
+			for (size_t x : rep(kBoardSize)) {
 				const auto p = ToPosition(x, y);
 				kTenGenDist[p] = kTengen - std::max(safe_dist(x, kTengen), safe_dist(y, kTengen));
 				// Row(─)
