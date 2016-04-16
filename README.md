@@ -1,3 +1,7 @@
+CAUTION:
+Newest origin/master commit(5a217512edb4541ca8f90e76df6b5b88a9923066) has bugs.
+So you should use old commit(4b3927d0b2150f57901469c6ac1d3fbe47c3e620) which has "master(provisional)" tag if you want stable version.
+
 # Shioi
 
 ## Abstract
