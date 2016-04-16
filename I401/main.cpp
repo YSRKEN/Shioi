@@ -1,4 +1,4 @@
-#include<algorithm>
+Ôªø#include<algorithm>
 #include<array>
 #include<cmath>
 #include<cstdint>
@@ -35,13 +35,13 @@ enum Stone : uint8_t {
 	White
 };
 enum Direction : uint8_t {
-	// Row(Ñü) R[1, 0] L[-1, 0]
+	// Row(‚îÄ) R[1, 0] L[-1, 0]
 	Row,
-	// Column(Ñ†) R[0, 1] L[0, -1]
+	// Column(‚îÇ) R[0, 1] L[0, -1]
 	Column,
-	// Diagonally right(Å^) R[-1, 1] L[1, -1]
+	// Diagonally right(Ôºè) R[-1, 1] L[1, -1]
 	DiagR,
-	// Diagonally left(Å_) R[1, 1] L[-1, -1]
+	// Diagonally left(Ôºº) R[1, 1] L[-1, -1]
 	DiagL,
 	Directions
 };
@@ -210,7 +210,7 @@ class Board {
 	array<size_t, kBoardSize * kBoardSize> kTenGenDist;
 	// Put board
 	void PutBoard() {
-		const static string kStoneString2[] = { "Ñ©", "Åú", "Åõ" };
+		const static string kStoneString2[] = { "‚îº", "‚óè", "‚óã" };
 		for (size_t y = 0; y < kBoardSize; ++y) {
 			for (size_t x = 0; x < kBoardSize; ++x) {
 				size_t p = x + y * kBoardSize;
@@ -221,7 +221,7 @@ class Board {
 	}
 	// Check GameEnd
 	bool IsGameEnd(const Stone turn) {
-		// Row(Ñü)
+		// Row(‚îÄ)
 		for (size_t i = 0; i < kBoardSize; ++i) {
 			size_t len = 0;
 			for (size_t j = 0; j < kBoardSize; ++j) {
@@ -234,7 +234,7 @@ class Board {
 				}
 			}
 		}
-		// Column(Ñ†)
+		// Column(‚îÇ)
 		for (size_t i = 0; i < kBoardSize; ++i) {
 			size_t len = 0;
 			for (size_t j = 0; j < kBoardSize; ++j) {
@@ -248,7 +248,7 @@ class Board {
 				}
 			}
 		}
-		// Diagonally right(Å^)
+		// Diagonally right(Ôºè)
 		for (size_t i = 4; i < kBoardSize; ++i) {
 			size_t len = 0;
 			for (size_t j = 0; j <= i; ++j) {
@@ -275,7 +275,7 @@ class Board {
 				}
 			}
 		}
-		// Diagonally left(Å_)
+		// Diagonally left(Ôºº)
 		for (size_t i = 0; i < kBoardSize - 4; ++i) {
 			size_t len = 0;
 			for (size_t j = 0; j < kBoardSize - i; ++j) {
@@ -347,7 +347,7 @@ class Board {
 	}
 	// Find Go-ren move
 	Result FindGorenMove(const Stone turn) {
-		// Row(Ñü)
+		// Row(‚îÄ)
 		for (size_t i = 0; i < kBoardSize; ++i) {
 			for (size_t j = 0; j < kBoardSize; ++j) {
 				size_t p = ToPosition(j, i);
@@ -370,7 +370,7 @@ class Board {
 				}
 			}
 		}
-		// Column(Ñ†)
+		// Column(‚îÇ)
 		for (size_t i = 0; i < kBoardSize; ++i) {
 			for (size_t j = 0; j < kBoardSize; ++j) {
 				size_t p = ToPosition(i, j);
@@ -393,7 +393,7 @@ class Board {
 				}
 			}
 		}
-		// Diagonally right(Å^)
+		// Diagonally right(Ôºè)
 		for (size_t i = 4; i < kBoardSize; ++i) {
 			for (size_t j = 0; j <= i; ++j) {
 				size_t p = ToPosition(i - j, j);
@@ -438,7 +438,7 @@ class Board {
 				}
 			}
 		}
-		// Diagonally left(Å_)
+		// Diagonally left(Ôºº)
 		for (size_t i = 0; i < kBoardSize - 4; ++i) {
 			for (size_t j = 0; j < kBoardSize - i; ++j) {
 				size_t p = ToPosition(i + j, j);
@@ -490,9 +490,9 @@ class Board {
 		const size_t right_pattern_length = kIterateTable[position][dir][Side::Right];
 		const size_t  left_pattern_length = kIterateTable[position][dir][Side::Left ];
 		Pattern pattern;
-		auto GetBoardValue = [this](size_t position, Direction dir, int count) -> Stone {return board_[position + kPositionoffset[dir] * count]; };
-		auto GetBoardValue2 = [&GetBoardValue](size_t position, Direction dir, int count) -> Stone {
-			auto value = GetBoardValue(position, dir, count);
+		auto GetBoardValue = [this](size_t position, Direction dir, int count) {return board_[position + kPositionoffset[dir] * count]; };
+		auto GetBoardValue2 = [&GetBoardValue](size_t position, Direction dir, int count) {
+			const auto value = GetBoardValue(position, dir, count);
 			return (value != Stone::White ? value : Stone::None);
 		};
 		pattern[Side::Right][0] = (right_pattern_length <= 0 ? Stone::None : GetBoardValue2(position, dir, 1));
@@ -605,7 +605,7 @@ class Board {
 		/* 1. BO|BBB|OB   "Ryoutou-no-ShiShi"
 		 * 2. BBO|BB|OBB  "Chouda-no-ShiShi"
 		 * 3. BBBO|B|OBBB "Souryu-no-ShiShi"
-		 * àÍíºê¸è„Ç…èoóàÇÈélÅXÇ≈ÅAóºì™ÇÃélÅXÅEí∑é÷ÇÃélÅXÅEëoó¥ÇÃélÅX
+		 * ‰∏ÄÁõ¥Á∑ö‰∏ä„Å´Âá∫Êù•„ÇãÂõõ„ÄÖ„Åß„ÄÅ‰∏°È†≠„ÅÆÂõõ„ÄÖ„ÉªÈï∑Ëõá„ÅÆÂõõ„ÄÖ„ÉªÂèåÈæç„ÅÆÂõõ„ÄÖ
 		 */
 		{
 			//BO|BBB|OB
@@ -768,7 +768,7 @@ class Board {
 		/* 1. BO|BBB|OB   "Ryoutou-no-ShiShi"
 		 * 2. BBO|BB|OBB  "Chouda-no-ShiShi"
 		 * 3. BBBO|B|OBBB "Souryu-no-ShiShi"
-		 * àÍíºê¸è„Ç…èoóàÇÈélÅXÇ≈ÅAóºì™ÇÃélÅXÅEí∑é÷ÇÃélÅXÅEëoó¥ÇÃélÅX
+		 * ‰∏ÄÁõ¥Á∑ö‰∏ä„Å´Âá∫Êù•„ÇãÂõõ„ÄÖ„Åß„ÄÅ‰∏°È†≠„ÅÆÂõõ„ÄÖ„ÉªÈï∑Ëõá„ÅÆÂõõ„ÄÖ„ÉªÂèåÈæç„ÅÆÂõõ„ÄÖ
 		 */
 		{
 			//BO|BBB|OB
@@ -877,7 +877,7 @@ class Board {
 		* 1. BO|BBB|OB   "Ryoutou-no-ShiShi"
 		* 2. BBO|BB|OBB  "Chouda-no-ShiShi"
 		* 3. BBBO|B|OBBB "Souryu-no-ShiShi"
-		* àÍíºê¸è„Ç…èoóàÇÈélÅXÇ≈ÅAóºì™ÇÃélÅXÅEí∑é÷ÇÃélÅXÅEëoó¥ÇÃélÅX
+		* ‰∏ÄÁõ¥Á∑ö‰∏ä„Å´Âá∫Êù•„ÇãÂõõ„ÄÖ„Åß„ÄÅ‰∏°È†≠„ÅÆÂõõ„ÄÖ„ÉªÈï∑Ëõá„ÅÆÂõõ„ÄÖ„ÉªÂèåÈæç„ÅÆÂõõ„ÄÖ
 		*/
 		{
 			//BO|BBB|OB
@@ -1220,7 +1220,7 @@ class Board {
 		* 1. BO|BBB|OB   "Ryoutou-no-ShiShi"
 		* 2. BBO|BB|OBB  "Chouda-no-ShiShi"
 		* 3. BBBO|B|OBBB "Souryu-no-ShiShi"
-		* àÍíºê¸è„Ç…èoóàÇÈélÅXÇ≈ÅAóºì™ÇÃélÅXÅEí∑é÷ÇÃélÅXÅEëoó¥ÇÃélÅX
+		* ‰∏ÄÁõ¥Á∑ö‰∏ä„Å´Âá∫Êù•„ÇãÂõõ„ÄÖ„Åß„ÄÅ‰∏°È†≠„ÅÆÂõõ„ÄÖ„ÉªÈï∑Ëõá„ÅÆÂõõ„ÄÖ„ÉªÂèåÈæç„ÅÆÂõõ„ÄÖ
 		*/
 		{
 			//BO|BBB|OB
@@ -1988,16 +1988,16 @@ public:
 			for (size_t x = 0; x < kBoardSize; ++x) {
 				auto p = ToPosition(x, y);
 				kTenGenDist[p] = kTengen - std::max(std::abs(static_cast<int>(x) - kTengen), std::abs(static_cast<int>(y) - kTengen));
-				// Row(Ñü)
+				// Row(‚îÄ)
 				kIterateTable[p][Direction::Row][Side::Right] = std::min(kBoardSize - x - 1, kSearchWidth);
 				kIterateTable[p][Direction::Row][Side::Left ] = std::min(x, kSearchWidth);
-				// Column(Ñ†)
+				// Column(‚îÇ)
 				kIterateTable[p][Direction::Column][Side::Right] = std::min(kBoardSize - y - 1, kSearchWidth);
 				kIterateTable[p][Direction::Column][Side::Left ] = std::min(y, kSearchWidth);
-				// Diagonally right(Å^)
+				// Diagonally right(Ôºè)
 				kIterateTable[p][Direction::DiagR][Side::Right] = std::min(std::min(x, kBoardSize - y - 1), kSearchWidth);
 				kIterateTable[p][Direction::DiagR][Side::Left ] = std::min(std::min(kBoardSize - x - 1, y), kSearchWidth);
-				// Diagonally left(Å_)
+				// Diagonally left(Ôºº)
 				kIterateTable[p][Direction::DiagL][Side::Right] = std::min(std::min(kBoardSize - x - 1, kBoardSize - y - 1), kSearchWidth);
 				kIterateTable[p][Direction::DiagL][Side::Left ] = std::min(std::min(x, y), kSearchWidth);
 			}
@@ -2066,8 +2066,8 @@ int main(int argc, char *argv[]) {
 	return 0;
 }
 
-/* êiíªÅF
-ÅEÉxÉìÉ`É}Å[ÉNñ‚ëË(63449msÅAgBÇ™ê≥íÖÇ¡Ç€Ç¢ÅH)
+/* ÈÄ≤ÊçóÔºö
+„Éª„Éô„É≥„ÉÅ„Éû„Éº„ÇØÂïèÈ°å(63449ms„ÄÅgB„ÅåÊ≠£ÁùÄ„Å£„ÅΩ„ÅÑÔºü)
 h8,i7,i9,g9,g7,f6,h7,h9,i8,g8,g6,f5,j8,j9,hA,k7,f8,fA,f9,i6,iA,jA,f7,j7,j6,h6,gA,e8,e7,d7,kA,e6,g4,**,
 ---------------------------------------------------*-------------O-------------OO*OO*--------O****OOO--------O*O***----------*OO*O----------O***O*------------------------------------------------------------------------------- O
 */
