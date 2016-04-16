@@ -70,15 +70,15 @@ public:
 	using value_type = std::remove_cv_t<T>;
 	using iterator = counter_iterator<value_type>;
 private:
-	value_type first_, last_;
+	value_type begin_, end_;
 public:
-	constexpr nth_loop(T n) : first_(0), last_(n) {}
-	constexpr nth_loop(T first, T last) : first_(first), last_(last) {}
+	constexpr nth_loop(T n) : begin_(0), end_(n) {}
+	constexpr nth_loop(T begin, T end) : begin_(begin), end_(end) {}
 	constexpr iterator begin() const noexcept {
-		return{ first_ };
+		return{ begin_ };
 	}
 	constexpr iterator end() const noexcept {
-		return{ last_ };
+		return{ end_ };
 	}
 };
 
@@ -87,6 +87,6 @@ constexpr nth_loop<T> rep(T n) noexcept {
 	return{ n };
 }
 template<typename T, std::enable_if_t<std::is_arithmetic<T>::value, std::nullptr_t> = nullptr>
-constexpr nth_loop<T> rep(const T& first, const T& last) noexcept {
-	return{ first, last };
+constexpr nth_loop<T> rep(const T& begin, const T& end) noexcept {
+	return{ begin, end };
 }

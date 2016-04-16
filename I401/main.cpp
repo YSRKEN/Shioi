@@ -264,51 +264,33 @@ class Board {
 	}
 	// Get right and left pattern
 	Pattern GetPatternB(const size_t position, const Direction dir) {
-		const size_t right_pattern_length = kIterateTable[position][dir][Side::Right];
-		const size_t  left_pattern_length = kIterateTable[position][dir][Side::Left ];
+		const auto& pattern_length = kIterateTable[position][dir];
 		Pattern pattern;
 		size_t pre = Stone::None;
-
-		pattern[Side::Right][0] = (right_pattern_length <= 0) ? Stone::None : this->board_ | PackPattern(position, dir, 1, 1);
-		pattern[Side::Right][1] = (right_pattern_length <= 1) ? pattern[Side::Right][0] | Stone::None
-			: this->board_ | PackPattern(position, dir, 1, 2);
-		pattern[Side::Right][2] = (right_pattern_length <= 2) ? pattern[Side::Right][1] | Stone::None
-			: this->board_ | PackPattern(position, dir, 1, 3);
-		pattern[Side::Right][3] = (right_pattern_length <= 3) ? pattern[Side::Right][2] | Stone::None
-			: this->board_ | PackPattern(position, dir, 1, 4);
-		pattern[Side::Right][4] = (right_pattern_length <= 4) ? pattern[Side::Right][3] | Stone::None
-			: this->board_ | PackPattern(position, dir, 1, 5);
-
-		pattern[Side::Left][0] = (left_pattern_length <= 0) ? Stone::None : this->board_ | PackPattern(position, dir, -1, -1);
-		pattern[Side::Left][1] = (left_pattern_length <= 1) ? pattern[Side::Left][0] | Stone::None
-			: this->board_ | PackPattern(position, dir, -1, -2);
-		pattern[Side::Left][2] = (left_pattern_length <= 2) ? pattern[Side::Left][1] | Stone::None
-			: this->board_ | PackPattern(position, dir, -1, -3);
-		pattern[Side::Left][3] = (left_pattern_length <= 3) ? pattern[Side::Left][2] | Stone::None
-			: this->board_ | PackPattern(position, dir, -1, -4);
-		pattern[Side::Left][4] = (left_pattern_length <= 4) ? pattern[Side::Left][3] | Stone::None
-			: this->board_ | PackPattern(position, dir, -1, -4);
+		static_assert(Stone::None == 0, "operation pre | Stone::None will cause unexpected behavior.");
+		for (auto s : { Side::Left, Side::Right }) {
+			for (size_t i : rep(4)) {
+				const int sign = (s == Side::Right) ? 1 : -1;
+				pattern[s][i] = (pattern_length[s] <= i) 
+					? ((i) ? pattern[s][i - 1U] | Stone::None : Stone::None) | Stone::None 
+					: this->board_ | PackPattern(position, dir, sign, sign * (i + 1)) | Normalize();
+			}
+		}
 		return pattern;
 	}
 	Pattern GetPatternW(const size_t position, const Direction dir) {
+		const auto& pattern_length = kIterateTable[position][dir];
 		const size_t right_pattern_length = kIterateTable[position][dir][Side::Right];
 		const size_t  left_pattern_length = kIterateTable[position][dir][Side::Left];
 		Pattern pattern;
-		pattern[Side::Right][0] = (right_pattern_length <= 0 ? Stone::None : this->board_ | Get(position, dir, 1));
-		pattern[Side::Right][1] = (right_pattern_length <= 1) ? pattern[Side::Right][0] | Stone::None
-			: this->board_ | PackPattern(position, dir, 1, 2);
-		pattern[Side::Right][2] = (right_pattern_length <= 2) ? pattern[Side::Right][1] | Stone::None
-			: this->board_ | PackPattern(position, dir, 1, 3);
-		pattern[Side::Right][3] = (right_pattern_length <= 3) ? pattern[Side::Right][2] | Stone::None
-			: this->board_ | PackPattern(position, dir, 1, 4);
-
-		pattern[Side::Left][0] = (left_pattern_length <= 0 ? Stone::None : this->board_ | Get(position, dir, -1));
-		pattern[Side::Left][1] = (left_pattern_length <= 1) ? pattern[Side::Left][0] | Stone::None
-			: this->board_ | PackPattern(position, dir, -1, -2);
-		pattern[Side::Left][2] = (left_pattern_length <= 2) ? pattern[Side::Left][1] | Stone::None
-			: this->board_ | PackPattern(position, dir, -1, -3);
-		pattern[Side::Left][3] = (left_pattern_length <= 3) ? pattern[Side::Left][2] | Stone::None
-			: this->board_ | PackPattern(position, dir, -1, -4);
+		for (auto s : { Side::Left, Side::Right }) {
+			for (size_t i : rep(4)) {
+				const int sign = (s == Side::Right) ? 1 : -1;
+				pattern[s][i] = (pattern_length[s] <= i) 
+					? ((i) ? pattern[s][i - 1U] | Stone::None : Stone::None) | Stone::None 
+					: this->board_ | PackPattern(position, dir, sign, sign * (i + 1));
+			}
+		}
 		return pattern;
 	}
 	// Matching Pattern

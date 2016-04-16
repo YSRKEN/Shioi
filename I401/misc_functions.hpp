@@ -28,7 +28,7 @@ namespace detail {
 	}
 	struct StoneNormalizer_helper {};
 	constexpr Stone operator| (Stone value, StoneNormalizer_helper) {
-		return (value != Stone::White) ? value : Stone::None;
+		return ((0b11U & value) != Stone::White) ? value : Stone::None;//pickup 2bit and compare.
 	}
 	struct PackPattern_helper {
 		int start;
@@ -40,14 +40,13 @@ namespace detail {
 		return{ position, dir, count };
 	}
 	constexpr StoneNormalizer_helper Normalize() { return{}; }
-	size_t operator| (const array<Stone, kBoardSize * kBoardSize>& board, const PackPattern_helper& info) {
+	Stone operator| (const array<Stone, kBoardSize * kBoardSize>& board, const PackPattern_helper& info) {
 		using std::abs;
-		if (abs(info.stop) < abs(info.start)) return 0;
+		if (abs(info.stop) < abs(info.start)) return{};
 		size_t re = 0;
 		int i;
-		for (i = info.start; abs(i) <= abs(info.stop) - 1; i += (i > 0) ? 1 : -1, re <<= 2U) re += board | Get(info.pos, info.direction, i);
-		re += board | Get(info.pos, info.direction, i) | Normalize();
-		return re;
+		for (i = info.start; abs(i) <= abs(info.stop); i += (i > 0) ? 1 : -1, re <<= 2U) re += board | Get(info.pos, info.direction, i);
+		return static_cast<Stone>(re);
 	}
 }
 using detail::Get;
