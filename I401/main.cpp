@@ -956,6 +956,17 @@ class Board {
 					}
 					if (sum_4_strong > 0) return Result(p, true);
 					if (sum_4_normal > 1) return Result(p, true);
+					/*if (p == 6 * 15 + 5) {
+						PutBoard();
+						auto move_pattern = GetPatternW(p, Direction::Column);
+						for (auto &it : move_pattern) {
+							for (auto &it2 : it) {
+								cout << it2 << " ";
+							}
+							cout << endl;
+						}
+						throw std::exception("hoge");
+					}*/
 					if (sum_4_normal == 1) {
 						auto move_pattern = GetPatternW(p, Direction::DiagR);
 						board_[p] = Stone::White;
@@ -1482,7 +1493,10 @@ int main(int argc, char *argv[]) {
 }
 
 /* 進捗：
-・ベンチマーク問題(63449ms、gBが正着っぽい？)
-h8,i7,i9,g9,g7,f6,h7,h9,i8,g8,g6,f5,j8,j9,hA,k7,f8,fA,f9,i6,iA,jA,f7,j7,j6,h6,gA,e8,e7,d7,kA,e6,g4,**,
----------------------------------------------------*-------------O-------------OO*OO*--------O****OOO--------O*O***----------*OO*O----------O***O*------------------------------------------------------------------------------- O
+棋譜：h8,g8,g9,f8,i9,fA,g7,f6,g6,i6,h6,j6,f5,jA,i7,j8,i8,h7,**,
+活三を直接防ぐにはj5(69)かf9(125)しかないが、
+直後に四々か四三が生じるので黒は勝てない。したがって投了するのが最善。
+(I401.exeの返り値が-2だと投了を表す)
+しかし、上書きバグがあると、i6(83)やg8(111)などに打ってしまう。
+-----------------------------------------------------------------*--------------O**OO-----------*O*-----------OO**O-----------*-*-----------O---O-------------------------------------------------------------------------------- *
 */
