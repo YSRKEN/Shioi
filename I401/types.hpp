@@ -8,9 +8,6 @@ enum Stone : size_t {
 	Black,
 	White
 };
-constexpr Stone operator|(Stone l, Stone r) { return static_cast<Stone>((l << 2) + r); }
-constexpr Stone operator|(size_t l, Stone r) { return static_cast<Stone>((l << 2) + r); }
-constexpr Stone operator|(Stone l, size_t r) { return static_cast<Stone>((l << 2) + r); }
 enum Direction : uint8_t {
 	// Row(─) R[1, 0] L[-1, 0]
 	Row,
