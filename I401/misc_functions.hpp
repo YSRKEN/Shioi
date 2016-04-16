@@ -55,29 +55,6 @@ constexpr detail::PackPattern_helper PackPattern(size_t position, Direction dir,
 	return{ start, stop, position, dir };
 }
 namespace detail {
-	constexpr size_t PackPattern_n_impl(const size_t tmp, const Stone s, const size_t rest_count) {
-		return (rest_count - 1) ? PackPattern_n_impl((tmp << 2) + s, s, rest_count - 1) : (tmp << 2) + s;
-	}
-}
-constexpr size_t PackPattern_n(const Stone s, size_t n) {
-	return (n * 2 > sizeof(size_t) * CHAR_BIT) ? std::numeric_limits<size_t>::max() : detail::PackPattern_n_impl(0U, s, n);
-}
-namespace detail {
-	struct PackPattern_n_operator_helper {
-		struct Impl {
-			size_t n;
-		};
-		Impl p;
-		constexpr Impl operator*() const {
-			return p;
-		}
-	};
-	constexpr size_t operator*(const Stone s, PackPattern_n_operator_helper::Impl n) {
-		return PackPattern_n(s, n.n);
-	}
-}
-constexpr detail::PackPattern_n_operator_helper operator "" _pack(unsigned long long n) { return{ { static_cast<size_t>(n) } }; }
-namespace detail {
 	template<typename T>struct limit_helper {
 		T min, max;
 	};

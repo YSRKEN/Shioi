@@ -16,6 +16,7 @@
 #include "Board_helper.hpp"
 #include "BookDB.hpp"
 #include "constant_range_loop.hpp"
+#include "PackedStone.hpp"
 // using declaration
 using std::cout;
 using std::endl;

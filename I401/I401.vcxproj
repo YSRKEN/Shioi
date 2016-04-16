@@ -155,6 +155,7 @@
     <ClInclude Include="constant.hpp" />
     <ClInclude Include="constant_range_loop.hpp" />
     <ClInclude Include="misc_functions.hpp" />
+    <ClInclude Include="PackedStone.hpp" />
     <ClInclude Include="types.hpp" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
