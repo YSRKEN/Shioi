@@ -13,9 +13,9 @@ namespace Board_helper {
 				? std::pair<array<size_t, 2>, size_t>{ { { ToPosition(j, i), 0 }}, 1U }// Row(─)
 				: std::pair<array<size_t, 2>, size_t>{ { { ToPosition(i, j), 0 } }, 1U }// Column(│)
 			: (d == DiagR)
-				? std::pair<array<size_t, 2>, size_t>{ { { ToPosition(i - j, j), ToPosition(kBoardSize - 1 - j, i + j)}}, 2U }// Diagonally right(／)
+				? std::pair<array<size_t, 2>, size_t>{ { { ToPosition(i - j + 4, j), ToPosition(kBoardSize - 1 - j, i + j + 1)}}, 2U }// Diagonally right(／)
 				: (d == DiagL) 
-					? std::pair<array<size_t, 2>, size_t>{ { { ToPosition(i + j, j), ToPosition(j, i + j) } }, 2U }// Diagonally left(＼)
+					? std::pair<array<size_t, 2>, size_t>{ { { ToPosition(i + j, j), ToPosition(j, i + j + 1) } }, 2U }// Diagonally left(＼)
 					: std::pair<array<size_t, 2>, size_t>{};
 	}
 	constexpr std::pair<array<size_t, 2>, size_t> CalcOuterLoopMaxByDirection(const Direction d) {
@@ -23,9 +23,9 @@ namespace Board_helper {
 		return (d < DiagR)
 			? std::pair<array<size_t, 2>, size_t>{ { { kBoardSize, 0 }}, 1U }// Row(─) Column(│)
 			: (d == DiagR)
-				? std::pair<array<size_t, 2>, size_t>{ { { kBoardSize, kBoardSize - 4}}, 2U }// Diagonally right(／)
+				? std::pair<array<size_t, 2>, size_t>{ { { kBoardSize - 4, kBoardSize - 5}}, 2U }// Diagonally right(／)
 				: (d == DiagL) 
-					? std::pair<array<size_t, 2>, size_t>{ { { kBoardSize - 4, kBoardSize - 4 } }, 2U }// Diagonally left(＼)
+					? std::pair<array<size_t, 2>, size_t>{ { { kBoardSize - 4, kBoardSize - 5}}, 2U }// Diagonally left(＼)
 					: std::pair<array<size_t, 2>, size_t>{};
 	}
 	constexpr std::pair<array<size_t, 2>, size_t> CalcInnerLoopMaxByDirection(const Direction d, const size_t i) {
@@ -33,9 +33,9 @@ namespace Board_helper {
 		return (d < DiagR)
 			? std::pair<array<size_t, 2>, size_t>{ { { kBoardSize, 0 }}, 1U }// Row(─) Column(│)
 			: (d == DiagR)
-				? std::pair<array<size_t, 2>, size_t>{ { { i + 1, kBoardSize}}, 2U }// Diagonally right(／)
+				? std::pair<array<size_t, 2>, size_t>{ { { i + 5, kBoardSize - i - 1}}, 2U }// Diagonally right(／)
 				: (d == DiagL) 
-					? std::pair<array<size_t, 2>, size_t>{ { { kBoardSize, kBoardSize } }, 2U }// Diagonally left(＼)
+					? std::pair<array<size_t, 2>, size_t>{ { { kBoardSize - i, kBoardSize - i - 1} }, 2U }// Diagonally left(＼)
 					: std::pair<array<size_t, 2>, size_t>{};
 	}
 	// Check Cho-ren
