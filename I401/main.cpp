@@ -1226,18 +1226,11 @@ class Board {
 					if (cho_ren_flg || sum_4_strong + sum_4_normal >= 2 || sum_3 >= 2) continue;
 					if (sum_4_strong == 1) return Result(p, true);
 					// Find enemy's Shioi
-					int score;
 					board_[p] = turn_;
 					auto result = FindShioiMove(EnemyTurn(turn_), kShioiDepth2);
 					board_[p] = Stone::None;
-					if (result.second) {
-						// Don't block Shioi
-						score = -kScoreInf;
-					}
-					else {
-						// Normal Score
-						score = CalcScore(p, turn_);
-					}
+					// Don't block Shioi : Normal Score
+					const int score = (result.second) ? -kScoreInf : CalcScore(p, turn_);
 					if (max_score < score) {
 						max_score = score;
 						if (debug_flg) std::cerr << endl << "  " << score << " : ";
@@ -1266,7 +1259,7 @@ class Board {
 					board_[p] = turn_;
 					auto result = FindShioiMove(EnemyTurn(turn_), kShioiDepth2);
 					board_[p] = Stone::None;
-					//                           Don't block Shioi : Normal Score
+					// Don't block Shioi : Normal Score
 					const int score = (result.second) ? -kScoreInf : CalcScore(p, turn_);
 					if (max_score < score) {
 						max_score = score;
