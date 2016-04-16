@@ -266,8 +266,6 @@ class Board {
 	Pattern GetPatternB(const size_t position, const Direction dir) {
 		const auto& pattern_length = kIterateTable[position][dir];
 		Pattern pattern;
-		size_t pre = Stone::None;
-		static_assert(Stone::None == 0, "operation pre | Stone::None will cause unexpected behavior.");
 		for (auto s : { Side::Left, Side::Right }) {
 			for (size_t i : rep(4)) {
 				const int sign = (s == Side::Right) ? 1 : -1;
