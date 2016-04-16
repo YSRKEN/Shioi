@@ -271,7 +271,7 @@ class Board {
 				const int sign = (s == Side::Right) ? 1 : -1;
 				pattern[s][i] = (pattern_length[s] <= i) 
 					? ((i) ? pattern[s][i - 1U] | Stone::None : Stone::None) | Stone::None 
-					: this->board_ | PackPattern(position, dir, sign, sign * (i + 1)) | Normalize();
+					: (this->board_ | PackPattern(position, dir, sign, sign * (i + 1)) | Normalize()) >> 2U;
 			}
 		}
 		return pattern;
@@ -957,6 +957,7 @@ class Board {
 					if (sum_4_strong > 0) return Result(p, true);
 					if (sum_4_normal > 1) return Result(p, true);
 					if (sum_4_normal == 1) {
+						auto move_pattern = GetPatternW(p, Direction::DiagR);
 						board_[p] = Stone::White;
 						auto score = IsShioiMove(Stone::White, block_position, depth);
 						board_[p] = Stone::None;

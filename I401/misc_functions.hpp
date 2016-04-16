@@ -46,7 +46,7 @@ namespace detail {
 		size_t re = 0;
 		int i;
 		for (i = info.start; abs(i) <= abs(info.stop); i += (i > 0) ? 1 : -1, re <<= 2U) re += board | Get(info.pos, info.direction, i);
-		return static_cast<Stone>(re >> 2U);
+		return static_cast<Stone>(re);
 	}
 }
 using detail::Get;
