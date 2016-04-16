@@ -267,7 +267,7 @@ class Board {
 		const auto& pattern_length = kIterateTable[position][dir];
 		Pattern pattern;
 		for (auto s : { Side::Left, Side::Right }) {
-			for (size_t i : rep(4)) {
+			for (size_t i : rep(5)) {
 				const int sign = (s == Side::Right) ? 1 : -1;
 				pattern[s][i] = (pattern_length[s] <= i) 
 					? ((i) ? pattern[s][i - 1U] | Stone::None : Stone::None) | Stone::None 
@@ -278,8 +278,6 @@ class Board {
 	}
 	Pattern GetPatternW(const size_t position, const Direction dir) {
 		const auto& pattern_length = kIterateTable[position][dir];
-		const size_t right_pattern_length = kIterateTable[position][dir][Side::Right];
-		const size_t  left_pattern_length = kIterateTable[position][dir][Side::Left];
 		Pattern pattern;
 		for (auto s : { Side::Left, Side::Right }) {
 			for (size_t i : rep(4)) {
@@ -912,67 +910,64 @@ class Board {
 			for (size_t y : rep(range[1], range[3])) {
 				for (size_t x : rep(range[0], range[2])){
 					size_t p = ToPosition(x, y);
-				if (board_[p] != Stone::None) continue;
-				bool cho_ren_flg = false;
-				size_t sum_4_strong = 0, sum_4_normal = 0, sum_3 = 0;
-				size_t block_position;
-				for (uint8_t dir = 0; dir < Direction::Directions; ++dir) {
-					auto move_pattern = GetPatternB(p, static_cast<Direction>(dir));
-					if (Board_helper::IsChorenB(move_pattern)) {
-						cho_ren_flg = true;
-						break;
+					if (board_[p] != Stone::None) continue;
+					bool cho_ren_flg = false;
+					size_t sum_4_strong = 0, sum_4_normal = 0, sum_3 = 0;
+					size_t block_position;
+					for (uint8_t dir = 0; dir < Direction::Directions; ++dir) {
+						auto move_pattern = GetPatternB(p, static_cast<Direction>(dir));
+						if (Board_helper::IsChorenB(move_pattern)) {
+							cho_ren_flg = true;
+							break;
+						}
+						size_t s4s, s4n, s3;
+						std::tie(s4s, s4n, s3) = CountRenB2(move_pattern, p, static_cast<Direction>(dir), block_position);
+						sum_4_strong += s4s;
+						sum_4_normal += s4n;
+						sum_3 += s3;
 					}
-					size_t s4s, s4n, s3;
-					std::tie(s4s, s4n, s3) = CountRenB2(move_pattern, p, static_cast<Direction>(dir), block_position);
-					sum_4_strong += s4s;
-					sum_4_normal += s4n;
-					sum_3 += s3;
+					if (cho_ren_flg || sum_4_strong + sum_4_normal >= 2 || sum_3 >= 2) continue;
+					if (sum_4_strong > 0) return Result(p, true);
+					if (sum_4_normal == 1) {
+						board_[p] = Stone::Black;
+						auto score = IsShioiMove(Stone::Black, block_position, depth);
+						board_[p] = Stone::None;
+						if (score) return Result(p, true);
+						continue;
+					}
 				}
-				/*if (sum_4_strong + sum_4_normal > 0) {
-				cout << PositionToString(p) << " " << sum_4_strong << " " << sum_4_normal << endl;
-				}*/
-				if (cho_ren_flg || sum_4_strong + sum_4_normal >= 2 || sum_3 >= 2) continue;
-				if (sum_4_strong > 0) return Result(p, true);
-				if (sum_4_normal == 1) {
-					board_[p] = Stone::Black;
-					auto score = IsShioiMove(Stone::Black, block_position, depth);
-					board_[p] = Stone::None;
-					if (score) return Result(p, true);
-					continue;
-				}
-			}
 			}
 		}else{
 			for (size_t y : rep(range[1], range[3])) {
 				for (size_t x : rep(range[0], range[2])) {
 					size_t p = ToPosition(x, y);
-				if (board_[p] != Stone::None) continue;
-				size_t block_position;
-				size_t sum_4_strong = 0, sum_4_normal = 0;
-				for (uint8_t dir = 0; dir < Direction::Directions; ++dir) {
-					auto move_pattern = GetPatternW(p, static_cast<Direction>(dir));
-					//auto ren_count = CountRenW2(move_pattern, p, static_cast<Direction>(dir));
-					if (Board_helper::IsChorenW(move_pattern)) return Result(p, true);
-					size_t s4s, s4n, blk;
-					std::tie(s4s, s4n, blk) = CountRenW2(move_pattern, p, static_cast<Direction>(dir));
-					sum_4_strong += s4s;
-					sum_4_normal += s4n;
-					if (s4n) block_position = blk;
-				}
-				/*if (sum_4_strong + sum_4_normal >= 1) {
-				cout << PositionToString(p) << " " << sum_4_strong << " " << sum_4_normal << endl;
-				}*/
-				if (sum_4_strong > 0) return Result(p, true);
-				if (sum_4_normal > 1) return Result(p, true);
-				if (sum_4_normal == 1) {
-					board_[p] = Stone::White;
-					auto score = IsShioiMove(Stone::White, block_position, depth);
-					board_[p] = Stone::None;
-					if (score) return Result(p, true);
-					continue;
+					if (board_[p] != Stone::None) continue;
+					size_t block_position;
+					size_t sum_4_strong = 0, sum_4_normal = 0;
+					for (uint8_t dir = 0; dir < Direction::Directions; ++dir) {
+						auto move_pattern = GetPatternW(p, static_cast<Direction>(dir));
+						//auto ren_count = CountRenW2(move_pattern, p, static_cast<Direction>(dir));
+						if (Board_helper::IsChorenW(move_pattern)) return Result(p, true);
+						size_t s4s, s4n, blk;
+						std::tie(s4s, s4n, blk) = CountRenW2(move_pattern, p, static_cast<Direction>(dir));
+						sum_4_strong += s4s;
+						sum_4_normal += s4n;
+						if (s4n) block_position = blk;
+					}
+					/*if (sum_4_strong + sum_4_normal >= 1) {
+					cout << PositionToString(p) << " " << sum_4_strong << " " << sum_4_normal << endl;
+					}*/
+					if (sum_4_strong > 0) return Result(p, true);
+					if (sum_4_normal > 1) return Result(p, true);
+					if (sum_4_normal == 1) {
+						board_[p] = Stone::White;
+						auto score = IsShioiMove(Stone::White, block_position, depth);
+						board_[p] = Stone::None;
+						if (score) return Result(p, true);
+						continue;
+					}
 				}
 			}
-		}
 		}
 		return Result(0, false);
 	}
