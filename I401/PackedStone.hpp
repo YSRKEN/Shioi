@@ -246,10 +246,10 @@ namespace detail {
 		}
 	};
 	constexpr PackedStone operator*(const Stone s, PackPattern_n_operator_helper::Impl n) {
-		return PackPattern_n(s, n.n);
+		return (n.n) ? PackPattern_n(s, n.n) : PackedStone{};//size==0対策
 	}
 }
-constexpr detail::PackPattern_n_operator_helper operator "" _pack(unsigned long long n) { return{ { static_cast<size_t>(n) } }; }
+constexpr detail::PackPattern_n_operator_helper operator "" _pack(unsigned long long n) { return{ { static_cast<size_t>((n < PackedStone::cap) ? n : 0) } }; }
 
 
 typedef array<array<PackedStone, 5>, 2> Pattern;
