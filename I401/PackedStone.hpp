@@ -2,6 +2,7 @@
 #include <cstddef>
 #include <cstdint>
 #include "types.hpp"
+//基本方針：packできない時は変更を加えない
 class PackedStone
 {
 public:
@@ -47,7 +48,9 @@ public:
 	constexpr PackedStone back(Stone s) const noexcept { 
 		return{ (this->value_ & ~mask) | s, this->size_ };
 	}
-	constexpr PackedStone pop_front() const noexcept { 
+	constexpr PackedStone push_front(Stone s) const noexcept { return{ s, *this }; }
+	constexpr PackedStone push_back(Stone s) const noexcept { return{ *this, s }; }
+	constexpr PackedStone pop_front() const noexcept {
 		return (this->size_) ? PackedStone{ this->value_ & (mask << lshift_num_to_get_front()), this->size_ - 1 } : *this;
 	}
 	constexpr PackedStone pop_back() const noexcept { return (this->size_) ? PackedStone{ this->value_ >> bit, this->size_ - 1 } : *this; }
@@ -59,7 +62,9 @@ public:
 	constexpr PackedStone operator|(PackedStone r) const noexcept {
 		return (cap < this->size_ + r.size_) ? *this : PackedStone{(*this << r.size()).value_ + r.value_, this->size_ + r.size_};
 	}
-
+	constexpr PackedStone operator|(Stone r) const noexcept {
+		return{ *this, r };
+	}
 };
 constexpr bool operator==(PackedStone l, PackedStone r) noexcept {
 	return l.size() == r.size() && l.data() == r.data();
@@ -68,7 +73,6 @@ constexpr bool operator!=(PackedStone l, PackedStone r) noexcept {
 	return !(l == r);
 }
 constexpr PackedStone operator|(Stone l, Stone r) noexcept { return{ l, r }; }
-constexpr PackedStone operator|(PackedStone l, Stone r) noexcept { return{ l, r }; }
 constexpr PackedStone operator|(Stone l, PackedStone r) noexcept { return{ l, r }; }
 namespace detail {
 	constexpr PackedStone PackPattern_n_impl(const PackedStone tmp, const Stone s, const size_t rest_count) {
