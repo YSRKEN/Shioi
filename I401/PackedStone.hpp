@@ -79,7 +79,7 @@ public:
 	\~english	@brief Store first argument and push front second argument. When it is failed, store first argument.
 	*/
 	constexpr PackedStone(const Stone s, const PackedStone& o) noexcept
-		: value_((o.is_packable()) ? s : (static_cast<hold_type>(s) << (o.size_ * 2)) | o.value_), size_((o.is_packable()) ? 1 : o.size_ + 1) {}
+		: value_((o.is_packable()) ? s : (static_cast<hold_type>(s) << (o.size_ * bit)) | o.value_), size_((o.is_packable()) ? 1 : o.size_ + 1) {}
 	/**
 	\~japanese	@brief 容量を取得します。
 	\~english	@brief Get capacity
@@ -174,7 +174,7 @@ private:
 	\~japanese	@brief 左シフトビット演算子
 	\~english	@brief left shift bitwise operator
 	*/
-	constexpr PackedStone operator<<(std::size_t n) const noexcept { return (is_packable()) ? PackedStone{ value_ << (2 * n), size_ } : *this; }
+	constexpr PackedStone operator<<(std::size_t n) const noexcept { return (is_packable()) ? PackedStone{ value_ << (bit * n), size_ } : *this; }
 public:
 	/**
 	\~japanese	@brief 左シフトビット演算子
