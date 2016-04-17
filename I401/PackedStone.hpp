@@ -57,25 +57,29 @@ public:
 	constexpr PackedStone(Stone s1, Stone s2) noexcept : value_((static_cast<hold_type>(s1) << bit) + s2), size_(2) {}
 
 	constexpr PackedStone(const PackedStone& o) noexcept : value_(o.value_), size_(o.size_) {}
-	PackedStone(PackedStone&& o) = delete;
+	constexpr PackedStone(PackedStone&& o) noexcept : value_(o.value_), size_(o.size_) {}
 	PackedStone& operator=(const PackedStone& o) noexcept {
 		this->value_ = o.value_;
 		this->size_  = o.size_;
 		return *this;
 	}
-	PackedStone& operator=(PackedStone&& o) = delete;
+	PackedStone& operator=(PackedStone&& o) noexcept {
+		this->value_ = o.value_;
+		this->size_ = o.size_;
+		return *this;
+	}
 	/**
 	\~japanese	@brief 第一引数のPackedStoneの後ろに新たにStoneを追加して格納します。格納できない場合は第一引数のPackedStoneをそのまま格納します
-	\~english	@brief Store first argument and push back second argument. When it is failed, Store first argument.
+	\~english	@brief Store first argument and push back second argument. When it is failed, store first argument.
 	*/
 	constexpr PackedStone(const PackedStone& o, const Stone s) noexcept
-		: value_((o.is_packable()) ? o.value_ : (o.value_ << bit) + s), size_((o.is_packable()) ? o.size_ : o.size_ + 1) {}
+		: value_((o.is_packable()) ? o.value_ : (o.value_ << bit) | static_cast<hold_type>(s)), size_((o.is_packable()) ? o.size_ : o.size_ + 1) {}
 	/**
-	\~japanese	@brief 第一引数のPackedStoneの前に新たにStoneを追加して格納します。格納できない場合は第一引数のPackedStoneをそのまま格納します
-	\~english	@brief Store first argument and push front second argument. When it is failed, Store first argument.
+	\~japanese	@brief 第一引数のPackedStoneの前に新たにStoneを追加して格納します。格納できない場合は第一引数のStoneをそのまま格納します
+	\~english	@brief Store first argument and push front second argument. When it is failed, store first argument.
 	*/
 	constexpr PackedStone(const Stone s, const PackedStone& o) noexcept
-		: value_((o.is_packable()) ? s : (static_cast<hold_type>(s) << bit) + o.value_), size_((o.is_packable()) ? 1 : o.size_ + 1) {}
+		: value_((o.is_packable()) ? s : (static_cast<hold_type>(s) << bit) | o.value_), size_((o.is_packable()) ? 1 : o.size_ + 1) {}
 	/**
 	\~japanese	@brief 容量を取得します。
 	\~english	@brief Get capacity
@@ -96,7 +100,7 @@ public:
 	\~english	@brief Check 
 	*/
 	//@brief 
-	constexpr bool is_packable() const noexcept { return size_ < cap; }
+	constexpr bool is_packable() const noexcept { return (size_ < cap); }
 private:
 	/**
 	\~japanese	@brief 要素だけをand演算で取り出すためのmask
@@ -142,31 +146,83 @@ public:
 	constexpr PackedStone back(Stone s) const noexcept { 
 		return{ (this->value_ & ~mask) | s, this->size_ };
 	}
+	/**
+	\~japanese	@brief 第一引数のPackedStoneの前に新たにStoneを追加して返却します。格納できない場合は第一引数のStoneをそのまま格納します
+	\~english	@brief push front second argument and return. When it is failed, return first argument.
+	*/
 	constexpr PackedStone push_front(Stone s) const noexcept { return{ s, *this }; }
+	/**
+	\~japanese	@brief 第一引数のPackedStoneの後ろに新たにStoneを追加して返却します。格納できない場合は第一引数のPackedStoneをそのまま格納します
+	\~english	@brief push back second argument and return. When it is failed, return first argument.
+	*/
 	constexpr PackedStone push_back(Stone s) const noexcept { return{ *this, s }; }
+	/**
+	\~japanese	@brief 先頭要素を削除したものを返却します
+	\~english	@brief return this object which first element is removed
+	*/
 	constexpr PackedStone pop_front() const noexcept {
 		return (this->size_) ? PackedStone{ this->value_ & (mask << lshift_num_to_get_front()), this->size_ - 1 } : *this;
 	}
+	/**
+	\~japanese	@brief 末尾要素を削除したものを返却します
+	\~english	@brief return this object which last element is removed
+	*/
 	constexpr PackedStone pop_back() const noexcept { return (this->size_) ? PackedStone{ this->value_ >> bit, this->size_ - 1 } : *this; }
 private:
 	constexpr PackedStone(hold_type n, size_type s) noexcept : value_(n), size_(s) {}
+	/**
+	\~japanese	@brief 左シフトビット演算子
+	\~english	@brief left shift bitwise operator
+	*/
 	constexpr PackedStone operator<<(std::size_t n) const noexcept { return (is_packable()) ? PackedStone{ value_ << (2 * n), size_ } : *this; }
 public:
+	/**
+	\~japanese	@brief 左シフトビット演算子
+	\~english	@brief left shift bitwise operator
+	*/
 	constexpr PackedStone operator<<(std::uint8_t n) const noexcept { return *this << n; }
+	/**
+	\~japanese	@brief 第一引数のPackedStoneの後ろに新たにPackedStoneを追加して返却します。格納できない場合は第一引数のPackedStoneをそのまま格納します
+	\~english	@brief push back second argument and return. When it is failed, return first argument.
+	*/
 	constexpr PackedStone operator|(PackedStone r) const noexcept {
 		return (cap < this->size_ + r.size_) ? *this : PackedStone{(*this << r.size()).value_ + r.value_, this->size_ + r.size_};
 	}
+	/**
+	\~japanese	@brief 第一引数のPackedStoneの後ろに新たにStoneを追加して返却します。格納できない場合は第一引数のPackedStoneをそのまま格納します
+	\~english	@brief push back second argument and return. When it is failed, return first argument.
+	*/
 	constexpr PackedStone operator|(Stone r) const noexcept {
 		return{ *this, r };
 	}
 };
+/**
+@relates PackedStone
+\~japanese	@brief	二項演算子==のオーバーロード。厳密な比較が行われます
+\~english	@brief	Overload of binary operator ==. This operator compares strict difference
+*/
 constexpr bool operator==(PackedStone l, PackedStone r) noexcept {
 	return l.size() == r.size() && l.data() == r.data();
 }
+/**
+@relates PackedStone
+\~japanese	@brief	二項演算子!=のオーバーロード。厳密な比較が行われます
+\~english	@brief	Overload of binary operator !=. This operator compares strict difference
+*/
 constexpr bool operator!=(PackedStone l, PackedStone r) noexcept {
 	return !(l == r);
 }
+/**
+@relates PackedStone
+\~japanese	@brief Stone型を2つ格納します
+\~english	@brief holds two Stone object
+*/
 constexpr PackedStone operator|(Stone l, Stone r) noexcept { return{ l, r }; }
+/**
+@relates PackedStone
+\~japanese	@brief 第一引数のPackedStoneの前に新たにStoneを追加して格納します。格納できない場合は第一引数のStoneをそのまま格納します
+\~english	@brief Store first argument and push front second argument. When it is failed, store first argument.
+*/
 constexpr PackedStone operator|(Stone l, PackedStone r) noexcept { return{ l, r }; }
 namespace detail {
 	constexpr PackedStone PackPattern_n_impl(const PackedStone tmp, const Stone s, const size_t rest_count) {
