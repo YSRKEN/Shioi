@@ -47,7 +47,7 @@ namespace detail {
 		int i;
 		for (i = info.start; abs(i) <= abs(info.stop); i += (i > 0) ? 1 : -1) {
 			re <<= 2U;
-			re += board | Get(info.pos, info.direction, i);
+			re += (board | Get(info.pos, info.direction, i));
 		}
 		return static_cast<Stone>(re);
 	}

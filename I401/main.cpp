@@ -295,27 +295,27 @@ class Board {
 	}
 	bool MatchPatternB(const Pattern &pattern, const size_t position, const Direction dir, const array<size_t, 2>& s1, const array<size_t, 2>& pattern_length) const noexcept {
 		return (
-			   kIterateTable[position][dir][Side::Left]  >= 1 && pattern[Side::Left][pattern_length[Side::Left]]  == (s1[Side::Left]  | Stone::None)
-			&& kIterateTable[position][dir][Side::Right] >= 1 && pattern[Side::Right][pattern_length[Side::Right]] == (s1[Side::Right] | Stone::None)
+			   kIterateTable[position][dir][Side::Left]  >= pattern_length[Side::Left] && pattern[Side::Left][pattern_length[Side::Left]]  == (s1[Side::Left]  | Stone::None)
+			&& kIterateTable[position][dir][Side::Right] >= pattern_length[Side::Right] && pattern[Side::Right][pattern_length[Side::Right]] == (s1[Side::Right] | Stone::None)
 		);
 	}
 	bool MatchPatternB(const Pattern &pattern, const size_t position, const Direction dir, const Side side, const array<size_t, 1>& s1, size_t pattern_length) const noexcept {
 		return (
-			   kIterateTable[position][dir][side]  >= 1 && pattern[side][pattern_length]  == (s1[0] | Stone::None)
+			   kIterateTable[position][dir][side]  >= pattern_length && pattern[side][pattern_length]  == (s1[0] | Stone::None)
 			&& kIterateTable[position][dir][!side] >= 1 && pattern[!side][0] == Stone::None
 		);
 	}
 	bool MatchPatternB(const Pattern &pattern, const size_t position, const Direction dir, const Side side, const size_t s1, size_t pattern_length) const noexcept {
-		return (kIterateTable[position][dir][side] >= 1 && pattern[side][pattern_length] == (s1 | Stone::None));
+		return (kIterateTable[position][dir][side] >= pattern_length && pattern[side][pattern_length] == (s1 | Stone::None));
 	}
 	bool MatchPatternW(const Pattern &pattern, const size_t position, const Direction dir, const array<size_t, 2>& s1, const array<size_t, 2>& pattern_length) const noexcept {
 		return (
-			   kIterateTable[position][dir][Side::Left]  >= 1 && pattern[Side::Left][pattern_length[Side::Left] - 1]  == (s1[Side::Left])
-			&& kIterateTable[position][dir][Side::Right] >= 1 && pattern[Side::Right][pattern_length[Side::Right] - 1] == (s1[Side::Right])
+			   kIterateTable[position][dir][Side::Left]  >= pattern_length[Side::Left] && pattern[Side::Left][pattern_length[Side::Left] - 1]  == (s1[Side::Left])
+			&& kIterateTable[position][dir][Side::Right] >= pattern_length[Side::Right] && pattern[Side::Right][pattern_length[Side::Right] - 1] == (s1[Side::Right])
 			);
 	}
 	bool MatchPatternW(const Pattern &pattern, const size_t position, const Direction dir, const Side side, const size_t s1, size_t pattern_length) const noexcept {
-		return (kIterateTable[position][dir][side] >= 1 && pattern[side][pattern_length - 1] == s1);
+		return (kIterateTable[position][dir][side] >= pattern_length && pattern[side][pattern_length - 1] == s1);
 	}
 	// Count Ren
 	RenCount CountRenB(const Pattern &pattern, const size_t position, const Direction dir) {
@@ -956,17 +956,22 @@ class Board {
 					}
 					if (sum_4_strong > 0) return Result(p, true);
 					if (sum_4_normal > 1) return Result(p, true);
-					/*if (p == 6 * 15 + 5) {
+					if (p == 3 * 15 + 10) {
 						PutBoard();
-						auto move_pattern = GetPatternW(p, Direction::Column);
+						auto move_pattern = GetPatternW(p, Direction::DiagR);
 						for (auto &it : move_pattern) {
 							for (auto &it2 : it) {
 								cout << it2 << " ";
 							}
 							cout << endl;
 						}
+						cout << sum_4_strong << " " << sum_4_normal << " " << block_position << endl;
+						board_[p] = Stone::White;
+						auto score = IsShioiMove(Stone::White, block_position, depth);
+						board_[p] = Stone::None;
+						PutBoard();
 						throw std::exception("hoge");
-					}*/
+					}
 					if (sum_4_normal == 1) {
 						auto move_pattern = GetPatternW(p, Direction::DiagR);
 						board_[p] = Stone::White;
