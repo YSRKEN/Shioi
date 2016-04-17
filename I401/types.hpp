@@ -3,14 +3,11 @@
 #include <tuple>
 #include "constant.hpp"
 using std::uint8_t;
-enum Stone : size_t {
+enum Stone : uint8_t {
 	None,
 	Black,
 	White
 };
-constexpr Stone operator|(Stone l, Stone r) { return static_cast<Stone>((l << 2) + r); }
-constexpr Stone operator|(size_t l, Stone r) { return static_cast<Stone>((l << 2) + r); }
-constexpr Stone operator|(Stone l, size_t r) { return static_cast<Stone>((l << 2) + r); }
 enum Direction : uint8_t {
 	// Row(─) R[1, 0] L[-1, 0]
 	Row,
@@ -33,7 +30,6 @@ constexpr Side operator!(Side s) {
 using std::array;
 typedef std::pair<size_t, int> Score;
 typedef std::pair<size_t, bool> Result;
-typedef array<array<size_t, 5>, 2> Pattern;
 typedef std::tuple<size_t, size_t, size_t> RenCount;
 typedef array<array<array<size_t, Side::Sides>, Direction::Directions>, kBoardSize * kBoardSize> IterateTable;
 typedef array<Stone, kBoardSize * kBoardSize> BaseBoard;
