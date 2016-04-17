@@ -4,6 +4,7 @@
 #include "types.hpp"
 #include "misc_functions.hpp"
 #include "constant.hpp"
+#include "PackedStone.hpp"
 using std::array;
 namespace Board_helper {
 	constexpr std::pair<array<size_t, 2>, size_t> ToPositionByDirection(const Direction d, const size_t i, const size_t j) {

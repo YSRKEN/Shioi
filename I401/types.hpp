@@ -30,7 +30,6 @@ constexpr Side operator!(Side s) {
 using std::array;
 typedef std::pair<size_t, int> Score;
 typedef std::pair<size_t, bool> Result;
-typedef array<array<size_t, 5>, 2> Pattern;
 typedef std::tuple<size_t, size_t, size_t> RenCount;
 typedef array<array<array<size_t, Side::Sides>, Direction::Directions>, kBoardSize * kBoardSize> IterateTable;
 typedef array<Stone, kBoardSize * kBoardSize> BaseBoard;
