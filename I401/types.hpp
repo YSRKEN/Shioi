@@ -3,7 +3,7 @@
 #include <tuple>
 #include "constant.hpp"
 using std::uint8_t;
-enum Stone : size_t {
+enum Stone : uint8_t {
 	None,
 	Black,
 	White

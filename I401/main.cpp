@@ -328,7 +328,7 @@ class Board {
 		 */
 		{
 			//BO|BBB|OB
-			if (MatchPatternB(pattern, position, dir, {{ Stone::None | Stone::Black, Stone::Black**2_pack | Stone::None | Stone::Black } })) return RenCount(0, 2, 0);
+			if (MatchPatternB(pattern, position, dir, {{ Stone::None | Stone::Black, Stone::Black**2_pack | Stone::None | Stone::Black }})) return RenCount(0, 2, 0);
 			if (MatchPatternB(pattern, position, dir, {{ Stone::Black | Stone::None | Stone::Black, Stone::Black | Stone::None | Stone::Black }})) return RenCount(0, 2, 0);
 			if (MatchPatternB(pattern, position, dir, {{ Stone::Black**2_pack | Stone::None | Stone::Black, Stone::None | Stone::Black }})) return RenCount(0, 2, 0);
 			//BBO|BB|OBB
@@ -984,7 +984,7 @@ class Board {
 	// Get Range(for Prospective pruning)
 	array<size_t, 4> GetRange() const noexcept {
 		//                        left,       top,    right, bottom
-		array<size_t, 4> range{{ kBoardSize, kBoardSize, 0, 0 } };
+		array<size_t, 4> range{{ kBoardSize, kBoardSize, 0, 0 }};
 		//外接四角形を求める
 		for (size_t y : rep(kBoardSize)) {
 			for (size_t x : rep(kBoardSize)) {

@@ -39,7 +39,7 @@ private:
 public:
 	constexpr PackedStone front(Stone s) const noexcept { 
 		//                      ************* bit mask *************
-		return{ (this->value_ & ~(mask << lshift_num_to_get_front())) | (s << lshift_num_to_get_front()), this->size_ };
+		return{ (this->value_ & ~(mask << lshift_num_to_get_front())) | (static_cast<hold_type>(s) << lshift_num_to_get_front()), this->size_ };
 	}
 	constexpr Stone back() const noexcept {
 		return static_cast<Stone>(this->value_ & mask);
