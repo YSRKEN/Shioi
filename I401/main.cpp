@@ -959,7 +959,7 @@ class Board {
 					if (sum_4_normal > 1) return Result(p, true);
 					if (p == 3 * 15 + 10) {
 						PutBoard();
-						auto move_pattern = GetPatternW(p, Direction::DiagR);
+						//auto move_pattern = GetPatternW(p, Direction::DiagR);
 						/*for (auto &it : move_pattern) {
 							for (auto &it2 : it) {
 								cout << it2 << " ";
@@ -968,7 +968,7 @@ class Board {
 						}*/
 						cout << sum_4_strong << " " << sum_4_normal << " " << block_position << endl;
 						board_[p] = Stone::White;
-						auto score = IsShioiMove(Stone::White, block_position, depth);
+						//auto score = IsShioiMove(Stone::White, block_position, depth);
 						board_[p] = Stone::None;
 						PutBoard();
 						throw std::exception("hoge");
@@ -1225,10 +1225,10 @@ class Board {
 						auto move_pattern = GetPatternB(p, static_cast<Direction>(dir));
 						if (Board_helper::IsChorenB(move_pattern)) {
 							cho_ren_flg = true;
-							auto p5 = PackPattern_n(Stone::Black, 5);
-							auto p4 = PackPattern_n(Stone::Black, 4);
-							auto p3 = PackPattern_n(Stone::Black, 3);
-							auto p2 = PackPattern_n(Stone::Black, 2);
+							//auto p5 = Stone::Black**5_pack;
+							//auto p4 = Stone::Black**4_pack;
+							//auto p3 = Stone::Black**3_pack;
+							//auto p2 = Stone::Black**2_pack;
 							auto q5 = move_pattern[Side::Right][4];
 							auto q4 = move_pattern[Side::Right][3];
 							auto q3 = move_pattern[Side::Right][2];

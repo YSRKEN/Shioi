@@ -22,6 +22,7 @@ class PackedStone
 public:
 	typedef std::size_t size_type;
 	typedef std::uint64_t hold_type;
+	typedef Stone value_type;
 	/**
 	\~japanese	@brief 一要素あたりの消費bit数
 	\~english	@brief number of bit-consumption per 1 element.
@@ -174,13 +175,13 @@ private:
 	\~japanese	@brief 左シフトビット演算子
 	\~english	@brief left shift bitwise operator
 	*/
-	constexpr PackedStone operator<<(std::size_t n) const noexcept { return (is_packable()) ? PackedStone{ value_ << (bit * n), size_ } : *this; }
+	constexpr PackedStone operator<<(size_type n) const noexcept { return (is_packable()) ? PackedStone{ value_ << (bit * n), size_ } : *this; }
 public:
 	/**
 	\~japanese	@brief 左シフトビット演算子
 	\~english	@brief left shift bitwise operator
 	*/
-	constexpr PackedStone operator<<(std::uint8_t n) const noexcept { return *this << n; }
+	constexpr PackedStone operator<<(std::uint8_t n) const noexcept { return *this << static_cast<size_type>(n); }
 	/**
 	\~japanese	@brief 第一引数のPackedStoneの後ろに新たにPackedStoneを追加して返却します。格納できない場合は第一引数のPackedStoneをそのまま格納します
 	\~english	@brief push back second argument and return. When it is failed, return first argument.
@@ -194,6 +195,18 @@ public:
 	*/
 	constexpr PackedStone operator|(Stone r) const noexcept {
 		return{ *this, r };
+	}
+private:
+	static constexpr PackedStone pack_n(const PackedStone tmp, const Stone s, const size_type rest_count) noexcept {
+		return (rest_count - 1) ? pack_n(tmp | s, s, rest_count - 1) : tmp | s;
+	}
+	static constexpr PackedStone pack_n(const Stone s, const size_t rest_count) noexcept {
+		return (rest_count - 1) ? pack_n(s, s, rest_count - 1) : s;
+	}
+public:
+	constexpr PackedStone(size_type n, const Stone val) : PackedStone(pack_n(val, n)) {}
+	constexpr PackedStone assign(size_type n, const Stone val) const noexcept {
+		return pack_n(val, n);
 	}
 };
 /**
@@ -225,17 +238,6 @@ constexpr PackedStone operator|(Stone l, Stone r) noexcept { return{ l, r }; }
 */
 constexpr PackedStone operator|(Stone l, PackedStone r) noexcept { return{ l, r }; }
 namespace detail {
-	constexpr PackedStone PackPattern_n_impl(const PackedStone tmp, const Stone s, const size_t rest_count) {
-		return (rest_count - 1) ? PackPattern_n_impl(tmp | s, s, rest_count - 1) : tmp | s;
-	}
-	constexpr PackedStone PackPattern_n_impl(const Stone s, const size_t rest_count) {
-		return (rest_count - 1) ? PackPattern_n_impl(s, s, rest_count - 1) : s;
-	}
-}
-constexpr PackedStone PackPattern_n(const Stone s, size_t n) {
-	return (n < PackedStone::cap) ? PackedStone{} : detail::PackPattern_n_impl(s, n);
-}
-namespace detail {
 	struct PackPattern_n_operator_helper {
 		struct Impl {
 			size_t n;
@@ -246,7 +248,7 @@ namespace detail {
 		}
 	};
 	constexpr PackedStone operator*(const Stone s, PackPattern_n_operator_helper::Impl n) {
-		return (n.n) ? PackPattern_n(s, n.n) : PackedStone{};//size==0対策
+		return (n.n) ? PackedStone(n.n, s) : PackedStone{};//size==0対策
 	}
 }
 constexpr detail::PackPattern_n_operator_helper operator "" _pack(unsigned long long n) { return{ { static_cast<size_t>((n < PackedStone::cap) ? n : 0) } }; }
