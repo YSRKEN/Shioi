@@ -100,7 +100,6 @@ public:
 	\~japanese	@brief Stoneをさらに格納できるか調べます
 	\~english	@brief Check 
 	*/
-	//@brief 
 	constexpr bool is_packable() const noexcept { return (size_ < cap); }
 private:
 	/**
