@@ -198,10 +198,10 @@ public:
 	}
 private:
 	static constexpr PackedStone pack_n(const PackedStone tmp, const Stone s, const size_type rest_count) noexcept {
-		return (rest_count - 1) ? pack_n(tmp | s, s, rest_count - 1) : tmp | s;
+		return (0 == rest_count) ? PackedStone{} : (rest_count - 1) ? pack_n(tmp | s, s, rest_count - 1) : tmp | s;
 	}
 	static constexpr PackedStone pack_n(const Stone s, const size_t rest_count) noexcept {
-		return (rest_count - 1) ? pack_n(s, s, rest_count - 1) : s;
+		return (0 == rest_count) ? PackedStone{} : (rest_count - 1) ? pack_n(s, s, rest_count - 1) : s;
 	}
 public:
 	constexpr PackedStone(size_type n, const Stone val) : PackedStone(pack_n(val, n)) {}
@@ -248,7 +248,7 @@ namespace detail {
 		}
 	};
 	constexpr PackedStone operator*(const Stone s, PackPattern_n_operator_helper::Impl n) {
-		return (n.n) ? PackedStone(n.n, s) : PackedStone{};//size==0対策
+		return { n.n, s };
 	}
 }
 constexpr detail::PackPattern_n_operator_helper operator "" _pack(unsigned long long n) { return{ { static_cast<size_t>((n < PackedStone::cap) ? n : 0) } }; }
