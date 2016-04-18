@@ -74,13 +74,13 @@ public:
 	\~english	@brief Store first argument and push back second argument. When it is failed, store first argument.
 	*/
 	constexpr PackedStone(const PackedStone& o, const Stone s) noexcept
-		: value_((o.is_packable()) ? o.value_ : (o.value_ << bit) | static_cast<hold_type>(s)), size_((o.is_packable()) ? o.size_ : o.size_ + 1) {}
+		: value_((!o.is_packable()) ? o.value_ : (o.value_ << bit) | static_cast<hold_type>(s)), size_((!o.is_packable()) ? o.size_ : o.size_ + 1) {}
 	/**
 	\~japanese	@brief 第一引数のPackedStoneの前に新たにStoneを追加して格納します。格納できない場合は第一引数のStoneをそのまま格納します
 	\~english	@brief Store first argument and push front second argument. When it is failed, store first argument.
 	*/
 	constexpr PackedStone(const Stone s, const PackedStone& o) noexcept
-		: value_((o.is_packable()) ? s : (static_cast<hold_type>(s) << (o.size_ * bit)) | o.value_), size_((o.is_packable()) ? 1 : o.size_ + 1) {}
+		: value_((!o.is_packable()) ? s : (static_cast<hold_type>(s) << (o.size_ * bit)) | o.value_), size_((!o.is_packable()) ? 1 : o.size_ + 1) {}
 	/**
 	\~japanese	@brief 容量を取得します。
 	\~english	@brief Get capacity
