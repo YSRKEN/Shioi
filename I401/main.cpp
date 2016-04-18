@@ -270,6 +270,13 @@ class Board {
 		for (auto s : { Side::Left, Side::Right }) {
 			for (size_t i : rep(5)) {
 				const int sign = (s == Side::Right) ? 1 : -1;
+/*				if (s == Side::Right) {
+					auto temp1 = PackPattern(position, dir, sign, sign * (i + 1));
+					auto temp2 = this->board_ | temp1;
+					auto temp3 = temp2 | Normalize();
+					auto temp4 = temp3.pop_back();
+					continue;
+				}*/
 				pattern[s][i] = (pattern_length[s] <= i) 
 					? ((i) ? pattern[s][i - 1U] | Stone::None : Stone::None) | Stone::None 
 					: (this->board_ | PackPattern(position, dir, sign, sign * (i + 1)) | Normalize()).pop_back();
@@ -856,7 +863,6 @@ class Board {
 				}
 				if (cho_ren_flg || sum_4_strong + sum_4_normal >= 2 || sum_3 >= 2) continue;
 				if (sum_4_strong > 0) {
-					//PutBoard();
 					board_[block_position] = Stone::None;
 					return true;
 				}
@@ -927,6 +933,11 @@ class Board {
 						sum_4_normal += s4n;
 						sum_3 += s3;
 					}
+					/*if (p == 8 * 15 + 6) {
+						auto move_pattern2 = GetPatternB(p, Direction::Row);
+						PutBoard();
+						continue;
+					}*/
 					if (cho_ren_flg || sum_4_strong + sum_4_normal >= 2 || sum_3 >= 2) continue;
 					if (sum_4_strong > 0) return Result(p, true);
 					if (sum_4_normal == 1) {
@@ -957,22 +968,6 @@ class Board {
 					}
 					if (sum_4_strong > 0) return Result(p, true);
 					if (sum_4_normal > 1) return Result(p, true);
-					if (p == 3 * 15 + 10) {
-						PutBoard();
-						//auto move_pattern = GetPatternW(p, Direction::DiagR);
-						/*for (auto &it : move_pattern) {
-							for (auto &it2 : it) {
-								cout << it2 << " ";
-							}
-							cout << endl;
-						}*/
-						cout << sum_4_strong << " " << sum_4_normal << " " << block_position << endl;
-						board_[p] = Stone::White;
-						//auto score = IsShioiMove(Stone::White, block_position, depth);
-						board_[p] = Stone::None;
-						PutBoard();
-						throw std::exception("hoge");
-					}
 					if (sum_4_normal == 1) {
 						//auto move_pattern = GetPatternW(p, Direction::DiagR);
 						board_[p] = Stone::White;
@@ -1496,7 +1491,9 @@ int main(int argc, char *argv[]) {
 		Board board(argv[1], argv[2]);
 //		book = BookDB("book.csv");
 		const int depth = argv[3] | to_i() | max(0);
-		cout << board.NextMove(depth, (argc >= 5)) << endl;
+		auto move = board.NextMove(depth, (argc >= 5));
+		cout << move << endl;
+//		cout << PositionToString(move) << endl;
 	}
 	catch (const std::exception& er) {
 		std::cerr << er.what() << endl;

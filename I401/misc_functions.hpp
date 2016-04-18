@@ -45,7 +45,10 @@ namespace detail {
 		using std::abs;
 		if (abs(info.stop) < abs(info.start)) return{};
 		PackedStone re{};
-		for (int i = info.start; abs(i) <= abs(info.stop); i += (i > 0) ? 1 : -1) re = re | (board | Get(info.pos, info.direction, i));
+		for (int i = info.start; abs(i) <= abs(info.stop); i += (i > 0) ? 1 : -1) {
+	//		auto hoge = (board | Get(info.pos, info.direction, i));
+			re = re | (board | Get(info.pos, info.direction, i));
+		}
 		return re;
 	}
 }
