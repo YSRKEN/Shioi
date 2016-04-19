@@ -99,7 +99,7 @@ class Board {
 		return sum;
 	}
 	// Get Opening move
-	Result GetOpeningMove(const Stone turn) {
+	Result GetOpeningMove(const Stone /*turn*/) {
 		size_t count = CountStone();
 		if (count == 0) {
 			return{ ToPosition(7, 7), true };
@@ -298,7 +298,7 @@ class Board {
 		return pattern;
 	}
 	// Matching Pattern
-	bool MatchPatternB(const Pattern &pattern, const size_t position, const Direction dir, const Side side) const noexcept {
+	bool MatchPatternB(const Pattern &pattern, const size_t /*position*/, const Direction /*dir*/, const Side side) const noexcept {
 		return (pattern[side][0] == Stone::None);
 	}
 	bool MatchPatternB(const Pattern &pattern, const size_t position, const Direction dir, const array<PackedStone, 2>& s1) const noexcept {
@@ -428,7 +428,7 @@ class Board {
 			auto GetPosition = [&position, &dir](int count) -> int {return position + kPositionoffset[dir] * count; };
 			if (offset2 != 0) {
 				int next_pos = GetPosition(offset2);
-				if (next_pos >= 0 && next_pos < kBoardSize * kBoardSize) {
+				if (next_pos >= 0 && static_cast<std::size_t>(next_pos) < kBoardSize * kBoardSize) {
 					board_[position] = Stone::Black;
 					auto valid_flg = IsValidMove(next_pos);
 					board_[position] = Stone::None;
@@ -437,7 +437,7 @@ class Board {
 			}
 			if (offset1 != 0) {
 				int next_pos = GetPosition(offset1);
-				if (next_pos >= 0 && next_pos < kBoardSize * kBoardSize) {
+				if (next_pos >= 0 && static_cast<std::size_t>(next_pos) < kBoardSize * kBoardSize) {
 					board_[position] = Stone::Black;
 					auto valid_flg = IsValidMove(next_pos);
 					board_[position] = Stone::None;
@@ -684,7 +684,7 @@ class Board {
 			}
 			if (offset2 != 0) {
 				int next_pos = GetPosition(offset2);
-				if (next_pos >= 0 && next_pos < kBoardSize * kBoardSize) {
+				if (next_pos >= 0 && static_cast<std::size_t>(next_pos) < kBoardSize * kBoardSize) {
 					board_[position] = Stone::Black;
 					auto valid_flg = IsValidMove(next_pos);
 					board_[position] = Stone::None;
@@ -693,7 +693,7 @@ class Board {
 			}
 			if (offset1 != 0) {
 				int next_pos = GetPosition(offset1);
-				if (next_pos >= 0 && next_pos < kBoardSize * kBoardSize) {
+				if (next_pos >= 0 && static_cast<std::size_t>(next_pos) < kBoardSize * kBoardSize) {
 					board_[position] = Stone::Black;
 					auto valid_flg = IsValidMove(next_pos);
 					board_[position] = Stone::None;
@@ -1005,7 +1005,7 @@ class Board {
 		return range;
 	}
 	// AlphaBeta Method
-	int NegaMax(const Stone turn, const size_t depth, int alpha, int beta) {
+	int NegaMax(const Stone turn, const size_t depth, int /*alpha*/, int beta) {
 		if (FindGorenMove(turn).second) return beta;
 		int max_score = -kScoreInf2;
 		if (depth == 0) {
@@ -1224,11 +1224,11 @@ class Board {
 							//auto p4 = Stone::Black**4_pack;
 							//auto p3 = Stone::Black**3_pack;
 							//auto p2 = Stone::Black**2_pack;
-							auto q5 = move_pattern[Side::Right][4];
-							auto q4 = move_pattern[Side::Right][3];
-							auto q3 = move_pattern[Side::Right][2];
-							auto q2 = move_pattern[Side::Right][1];
-							auto q1 = move_pattern[Side::Right][0];
+							//auto q5 = move_pattern[Side::Right][4];
+							//auto q4 = move_pattern[Side::Right][3];
+							//auto q3 = move_pattern[Side::Right][2];
+							//auto q2 = move_pattern[Side::Right][1];
+							//auto q1 = move_pattern[Side::Right][0];
 							break;
 						}
 						size_t s4s, s4n, s3;
@@ -1379,7 +1379,7 @@ class Board {
 		return (next_move.size() == 0 ? Result(0, false) : Result(next_move[RandInt(next_move.size())], true));
 	}
 	// Find Random tsume
-	Result FindRandomMove(const Stone turn) {
+	Result FindRandomMove(const Stone /*turn*/) {
 		vector<Score> position_list;
 		for (size_t p : rep(kBoardSize * kBoardSize)) {
 			if (board_[p] != Stone::None) continue;

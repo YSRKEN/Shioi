@@ -3,6 +3,7 @@
 #include "constant.hpp"
 #include <array>
 #include <string>
+#include <cstring>
 #include <cerrno>
 #include <stdexcept>
 #include <type_traits>
