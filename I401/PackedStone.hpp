@@ -80,7 +80,7 @@ public:
 	\~english	@brief Store first argument and push front second argument. When it is failed, store first argument.
 	*/
 	constexpr PackedStone(const Stone s, const PackedStone& o) noexcept
-		: value_((!o.is_packable()) ? s : (static_cast<hold_type>(s) << (o.size_ * bit)) | o.value_), size_((!o.is_packable()) ? 1 : o.size_ + 1) {}
+		: value_((!o.is_packable()) ? static_cast<hold_type>(s) : (static_cast<hold_type>(s) << (o.size_ * bit)) | o.value_), size_((!o.is_packable()) ? 1 : o.size_ + 1) {}
 	/**
 	\~japanese	@brief 容量を取得します。
 	\~english	@brief Get capacity
