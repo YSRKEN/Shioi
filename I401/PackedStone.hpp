@@ -161,7 +161,7 @@ public:
 	\~english	@brief return this object which first element is removed
 	*/
 	constexpr PackedStone pop_front() const noexcept {
-		return (this->size_) ? PackedStone{ this->value_ & (mask << lshift_num_to_get_front()), this->size_ - 1 } : *this;
+		return (this->size_) ? PackedStone{ this->value_ & ~(mask << lshift_num_to_get_front()), this->size_ - 1 } : *this;
 	}
 	/**
 	\~japanese	@brief 末尾要素を削除したものを返却します
