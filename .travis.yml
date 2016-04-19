@@ -1,6 +1,8 @@
 compiler:
   - clang
   - gcc
+cache:
+  apt: true
 addons:
   apt:
     sources:
