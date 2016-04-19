@@ -32,4 +32,4 @@ $(TARGET): $(SRCS)
 # make clean
 .PHONY: clean
 clean:
-	$(RM) -f *.exe
+	$(RM) -f *.out
