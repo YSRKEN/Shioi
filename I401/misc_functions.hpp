@@ -156,7 +156,7 @@ namespace detail {
 		}
 	};
 	template<> struct range_check<true> {
-		constexpr bool operator()(long n) noexcept {
+		constexpr bool operator()(long) noexcept {
 			return true;
 		}
 	};
