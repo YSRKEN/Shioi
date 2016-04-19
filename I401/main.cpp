@@ -1411,7 +1411,6 @@ public:
 		: turn_(turn_text[0] | toStone("Can't read turn data."))
 	{
 		// Read board-text
-		const string board_text_str(board_text);
 		if (strlen(board_text) < kBoardSize * kBoardSize) {
 			throw std::invalid_argument("Too short board-text size!");
 		}

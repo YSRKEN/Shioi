@@ -150,13 +150,13 @@ template<typename T> constexpr detail::max_helper<T> max(const T& max) { return{
 
 namespace detail {
 	template<bool int_and_long_are_same> struct range_check {
-		constexpr bool operator()(long n) noexcept {
+		constexpr bool operator()(long n) const noexcept {
 			using lim = std::numeric_limits<int>;
 			return (lim::min() <= n && n <= lim::max());
 		}
 	};
 	template<> struct range_check<true> {
-		constexpr bool operator()(long) noexcept {
+		constexpr bool operator()(long) const noexcept {
 			return true;
 		}
 	};
