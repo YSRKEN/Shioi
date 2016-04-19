@@ -270,15 +270,8 @@ class Board {
 		for (auto s : { Side::Left, Side::Right }) {
 			for (size_t i : rep(5)) {
 				const int sign = (s == Side::Right) ? 1 : -1;
-/*				if (s == Side::Right) {
-					auto temp1 = PackPattern(position, dir, sign, sign * (i + 1));
-					auto temp2 = this->board_ | temp1;
-					auto temp3 = temp2 | Normalize();
-					auto temp4 = temp3.pop_back();
-					continue;
-				}*/
 				pattern[s][i] = (pattern_length[s] <= i) 
-					? ((i) ? pattern[s][i - 1U] | Stone::None : Stone::None) | Stone::None 
+					? ((i) ? pattern[s][i - 1U] | Stone::None : Stone::None)/* | Stone::None */
 					: (this->board_ | PackPattern(position, dir, sign, sign * (i + 1)) | Normalize()).pop_back();
 			}
 		}
@@ -291,7 +284,7 @@ class Board {
 			for (size_t i : rep(4)) {
 				const int sign = (s == Side::Right) ? 1 : -1;
 				pattern[s][i] = (pattern_length[s] <= i) 
-					? ((i) ? pattern[s][i - 1U] | Stone::None : Stone::None) | Stone::None 
+					? ((i) ? pattern[s][i - 1U] | Stone::None : Stone::None)/* | Stone::None */
 					: this->board_ | PackPattern(position, dir, sign, sign * (i + 1));
 			}
 		}
@@ -299,31 +292,28 @@ class Board {
 	}
 	// Matching Pattern
 	bool MatchPatternB(const Pattern &pattern, const size_t /*position*/, const Direction /*dir*/, const Side side) const noexcept {
-		return (pattern[side][0] == Stone::None);
+		return (pattern[side][0].data() == Stone::None);
 	}
 	bool MatchPatternB(const Pattern &pattern, const size_t position, const Direction dir, const array<PackedStone, 2>& s1) const noexcept {
 		return (
-			   kIterateTable[position][dir][Side::Left]  >= s1[Side::Left].size() && pattern[Side::Left][s1[Side::Left].size()]  == (s1[Side::Left]  | Stone::None)
-			&& kIterateTable[position][dir][Side::Right] >= s1[Side::Right].size() && pattern[Side::Right][s1[Side::Right].size()] == (s1[Side::Right] | Stone::None)
+			kIterateTable[position][dir][Side::Left] >= s1[Side::Left].size() && pattern[Side::Left][s1[Side::Left].size()].data() == (s1[Side::Left]).data()
+			&& kIterateTable[position][dir][Side::Right] >= s1[Side::Right].size() && pattern[Side::Right][s1[Side::Right].size()].data() == (s1[Side::Right]).data()
 		);
 	}
 	bool MatchPatternB(const Pattern &pattern, const size_t position, const Direction dir, const Side side, const array<PackedStone, 1>& s1) const noexcept {
 		return (
-			kIterateTable[position][dir][side] >= s1[0].size() && pattern[side][s1[0].size()] == (s1[0] | Stone::None)
+			kIterateTable[position][dir][side] >= s1[0].size() && pattern[side][s1[0].size()].data() == (s1[0] | Stone::None).data()
 			&& kIterateTable[position][dir][!side] >= 1 && pattern[!side][0] == Stone::None
 			);
 	}
-	//bool MatchPatternB(const Pattern &pattern, const size_t position, const Direction dir, const Side side, const PackedStone s1) const noexcept {
-	//	return (kIterateTable[position][dir][side] >= s1.size() && pattern[side][s1.size()] == (s1 | Stone::None));
-	//}
 	bool MatchPatternW(const Pattern &pattern, const size_t position, const Direction dir, const array<PackedStone, 2>& s1) const noexcept {
 		return (
-			kIterateTable[position][dir][Side::Left] >= s1[Side::Left].size() && pattern[Side::Left][s1[Side::Left].size() - 1] == (s1[Side::Left])
-			&& kIterateTable[position][dir][Side::Right] >= s1[Side::Right].size() && pattern[Side::Right][s1[Side::Right].size() - 1] == (s1[Side::Right])
+			kIterateTable[position][dir][Side::Left] >= s1[Side::Left].size() && pattern[Side::Left][s1[Side::Left].size() - 1].data() == (s1[Side::Left].data())
+			&& kIterateTable[position][dir][Side::Right] >= s1[Side::Right].size() && pattern[Side::Right][s1[Side::Right].size() - 1].data() == (s1[Side::Right].data())
 			);
 	}
 	bool MatchPatternW(const Pattern &pattern, const size_t position, const Direction dir, const Side side, const PackedStone s1) const noexcept {
-		return (kIterateTable[position][dir][side] >= s1.size() && pattern[side][s1.size() - 1] == s1);
+		return (kIterateTable[position][dir][side] >= s1.size() && pattern[side][s1.size()].data() == s1.data());
 	}
 	// Count Ren
 	RenCount CountRenB(const Pattern &pattern, const size_t position, const Direction dir) {
@@ -933,15 +923,13 @@ class Board {
 						sum_4_normal += s4n;
 						sum_3 += s3;
 					}
-					if (p == 6 * 15 + 6) {
-						/* 棋譜：h8,h7,i7,i8,j7,j8,i9,j9,kA,k9,jA,**,
-						 * 活三を直接防ぐにはg7()かkB()しかないが、そのどちらとも打ってくれない。
-						 * そこで、黒がg7(96)に打った際の挙動を調べている
-						*/
+					/*if (p == 4) {
+						// 棋譜：b1,f5,c1,c5,d1,**,
 						auto move_pattern2 = GetPatternB(p, Direction::Row);
 						PutBoard();
+						auto hoge = CountRenB2(move_pattern2, p, Direction::Row, block_position);
 						continue;
-					}
+					}*/
 					if (cho_ren_flg || sum_4_strong + sum_4_normal >= 2 || sum_3 >= 2) continue;
 					if (sum_4_strong > 0) return Result(p, true);
 					if (sum_4_normal == 1) {
