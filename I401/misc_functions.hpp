@@ -5,6 +5,7 @@
 #include <string>
 #include <cstring>
 #include <cerrno>
+#include <limits>
 #include <stdexcept>
 #include <type_traits>
 #include "PackedStone.hpp"
@@ -148,6 +149,17 @@ namespace detail {
 template<typename T> constexpr detail::max_helper<T> max(const T& max) { return{ max }; }
 
 namespace detail {
+	template<bool int_and_long_are_same> struct range_check {
+		constexpr bool operator()(long n) noexcept {
+			using lim = std::numeric_limits<int>;
+			return (lim::min() <= n && n <= lim::max());
+		}
+	};
+	template<> struct range_check<true> {
+		constexpr bool operator()(long n) noexcept {
+			return true;
+		}
+	};
 	struct to_i_helper {};
 	template<typename CharType>
 	int operator|(const std::basic_string<CharType>& s, to_i_helper) { return std::stoi(s); }
@@ -155,14 +167,14 @@ namespace detail {
 		errno = 0;
 		const auto r = std::strtol(s, nullptr, 10);
 		if (0 != errno) throw std::out_of_range("");
-		static_assert(sizeof(int) == sizeof(long), "check function int operator|(const char*, to_i_helper)");
+		if (!range_check<sizeof(int) == sizeof(long)>()(r)) throw std::out_of_range("");
 		return static_cast<int>(r);
 	}
 	int operator|(const wchar_t* s, to_i_helper) {
 		errno = 0;
 		const auto r = std::wcstol(s, nullptr, 10);
 		if (0 != errno) throw std::out_of_range("");
-		static_assert(sizeof(int) == sizeof(long), "check function int operator|(const char*, to_i_helper)");
+		if (!range_check<sizeof(int) == sizeof(long)>()(r)) throw std::out_of_range("");
 		return static_cast<int>(r);
 	}
 }
