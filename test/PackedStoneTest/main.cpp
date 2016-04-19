@@ -7,4 +7,6 @@ int main() {
 	static_assert((Stone::Black | Stone::White | Stone::Black | Stone::White).back() == Stone::White, "error");
 	static_assert((Stone::Black | Stone::White | Stone::Black | Stone::White).pop_front().front() == Stone::White, "error");
 	static_assert((Stone::Black | Stone::White | Stone::Black | Stone::White).pop_back().back() == Stone::Black, "error");
+	static_assert((Stone::Black | Stone::White | Stone::Black | Stone::White).size() == 4, "error");
+	static_assert(Stone::Black**4_pack != (Stone::White | Stone::Black | Stone::Black | Stone::Black), "error");
 }

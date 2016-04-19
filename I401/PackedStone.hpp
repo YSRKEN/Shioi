@@ -111,7 +111,7 @@ private:
 	\~japanese	@brief 要素bitを先頭に移動させるための左シフトの数を計算する
 	\~english	@brief calc how many bit is needed to shift elem-bit to front-elem-bits
 	*/
-	constexpr std::uint8_t lshift_num_to_get_front() const noexcept { return static_cast<std::uint8_t>(this->size_ - 1) * 2; };
+	constexpr std::uint8_t lshift_num_to_get_front() const noexcept { return static_cast<std::uint8_t>(this->size_ - 1) * bit; };
 public:
 	/**
 	\~japanese	@brief Getter: 先頭要素を取得する
