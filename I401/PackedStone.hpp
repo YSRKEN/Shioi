@@ -176,12 +176,12 @@ private:
 	\~english	@brief left shift bitwise operator
 	*/
 	constexpr PackedStone operator<<(size_type n) const noexcept { return (is_packable()) ? PackedStone{ value_ << (bit * n), size_ } : *this; }
-public:
 	/**
 	\~japanese	@brief 左シフトビット演算子
 	\~english	@brief left shift bitwise operator
 	*/
 	constexpr PackedStone operator<<(std::uint8_t n) const noexcept { return *this << static_cast<size_type>(n); }
+public:
 	/**
 	\~japanese	@brief 第一引数のPackedStoneの後ろに新たにPackedStoneを追加して返却します。格納できない場合は第一引数のPackedStoneをそのまま格納します
 	\~english	@brief push back second argument and return. When it is failed, return first argument.
