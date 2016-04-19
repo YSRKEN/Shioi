@@ -1,6 +1,7 @@
 ﻿#pragma once
 #include <cstddef>
 #include <cstdint>
+#include <climits>//for `CHAR_BIT`
 #include "types.hpp"
 //基本方針：packできない時は変更を加えない
 /**
