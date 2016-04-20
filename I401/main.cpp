@@ -1480,11 +1480,12 @@ public:
 int main(int argc, char *argv[]) {
 	// Read arguments
 	if (argc < 4) {
-		cout << "Usage: I401 board_text turn_text depth" << endl
+		cout << "Usage: I401 board_text turn_text depth [Debug]" << endl
 			<< endl
 			<< "board_text     : board data of stone or blank" << endl
 			<< "turn_text      : turn data of stone or blank" << endl
 			<< "depth          : depth of thinking" << endl
+			<< "Debug          : put debug info to std::err if this string is \"Debug\"" << endl
 			<< "stone or blank : black(*), white(O), blank(-)" << endl
 			<< "return value   : [move] >=0 | [can't move] -1 | [give up] -2" << endl;
 		return -1;
@@ -1494,7 +1495,7 @@ int main(int argc, char *argv[]) {
 //		board.Test();
 		book = BookDB("book.csv");
 		const int depth = argv[3] | to_i() | max(0);
-		auto move = board.NextMove(depth, (argc >= 5));
+		auto move = board.NextMove(depth, (5 <= argc && 0 == std::strcmp("Debug", argv[4])));
 		cout << move << endl;
 		if (5 == argc && 0 == std::strcmp("--debug", argv[4])) return move;
 //		cout << PositionToString(move) << endl;
