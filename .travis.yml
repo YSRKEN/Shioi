@@ -18,5 +18,4 @@ install:
   - if [ "$CXX" = "clang++" ]; then export CXX="clang++-3.8" CC="clang-3.7"; fi
 language: cpp
 script:
-  - $(CXX) --version
   - make Debug CXX="${CXX}" && ./test/I401_test.sh
