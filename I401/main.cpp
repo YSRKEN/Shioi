@@ -1484,6 +1484,7 @@ int main(int argc, char *argv[]) {
 		const int depth = argv[3] | to_i() | max(0);
 		auto move = board.NextMove(depth, (argc >= 5));
 		cout << move << endl;
+		if (5 == argc && 0 == std::strcmp("--debug", argv[4])) return move;
 //		cout << PositionToString(move) << endl;
 	}
 	catch (const std::exception& er) {
