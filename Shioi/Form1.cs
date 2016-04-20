@@ -330,7 +330,7 @@ namespace Shioi {
 				}
 			}
 			if(DebugModeMenuItem.CheckState == CheckState.Checked) {
-				psInfo.Arguments += " Debug";
+				psInfo.Arguments += " --debug";
 			}
 			psInfo.RedirectStandardOutput = true;
 			psInfo.RedirectStandardError = true;
@@ -338,12 +338,11 @@ namespace Shioi {
 			var sw = new System.Diagnostics.Stopwatch();
 			sw.Start();
 			Process process = Process.Start(psInfo);
-			var output = process.StandardOutput.ReadToEnd();
 			var output_error = process.StandardError.ReadToEnd();
 			sw.Stop();
 			this.Text = SoftName;
 			ElapsedTimeStatusLabel.Text = "Time : " + sw.ElapsedMilliseconds.ToString() + "[ms]";
-			var nextMove = int.Parse(output);
+			var nextMove = process.ExitCode;
 			if(nextMove >= 0) {
 				FormRenju.SetMove(nextMove);
 				DrawBoard();
