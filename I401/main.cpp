@@ -558,7 +558,7 @@ class Board {
 				return RenCount(0, 1, 0);
 			}
 			//11101
-			if (MatchPatternB(pattern, position, dir, Side::Right, {{ Stone::None | Stone::Black**3_pack }})) {
+			if (MatchPatternB(pattern, position, dir, Side::Left, {{ Stone::None | Stone::Black**3_pack }})) {
 				block_position = GetPosition(-1) | limit2(0_sz, kBoardSize * kBoardSize);
 				return RenCount(0, 1, 0);
 			}
@@ -576,7 +576,11 @@ class Board {
 			}
 			//11011
 			if (MatchPatternB(pattern, position, dir, Side::Right, {{ Stone::Black | Stone::None | Stone::Black**2_pack }})) {
-				block_position = GetPosition(-2) | limit2(0_sz, kBoardSize * kBoardSize);
+				block_position = GetPosition(2) | limit2(0_sz, kBoardSize * kBoardSize);
+				return RenCount(0, 1, 0);
+			}
+			if (MatchPatternB(pattern, position, dir, { { Stone::Black, Stone::None | Stone::Black**2_pack } })) {
+				block_position = GetPosition(1) | limit2(0_sz, kBoardSize * kBoardSize);
 				return RenCount(0, 1, 0);
 			}
 			if (MatchPatternB(pattern, position, dir, {{ Stone::None | Stone::Black**2_pack, Stone::Black }})) {
@@ -584,15 +588,11 @@ class Board {
 				return RenCount(0, 1, 0);
 			}
 			if (MatchPatternB(pattern, position, dir, Side::Left, {{ Stone::Black | Stone::None | Stone::Black**2_pack }})) {
-				block_position = GetPosition(2) | limit2(0_sz, kBoardSize * kBoardSize);
-				return RenCount(0, 1, 0);
-			}
-			if (MatchPatternB(pattern, position, dir, {{ Stone::Black, Stone::None | Stone::Black**2_pack }})) {
-				block_position = GetPosition(1) | limit2(0_sz, kBoardSize * kBoardSize);
+				block_position = GetPosition(-2) | limit2(0_sz, kBoardSize * kBoardSize);
 				return RenCount(0, 1, 0);
 			}
 			//10111
-			if (MatchPatternB(pattern, position, dir, Side::Left, {{ Stone::None | Stone::Black**3_pack }})) {
+			if (MatchPatternB(pattern, position, dir, Side::Right, {{ Stone::None | Stone::Black**3_pack }})) {
 				block_position = GetPosition(1) | limit2(0_sz, kBoardSize * kBoardSize);
 				return RenCount(0, 1, 0);
 			}
@@ -853,6 +853,7 @@ class Board {
 				}
 				if (cho_ren_flg || sum_4_strong + sum_4_normal >= 2 || sum_3 >= 2) continue;
 				if (sum_4_strong > 0) {
+					//PutBoard();
 					board_[block_position] = Stone::None;
 					return true;
 				}
@@ -861,6 +862,7 @@ class Board {
 					auto score = IsShioiMove(Stone::Black, block_position2, depth - 1);
 					board_[p] = Stone::None;
 					if (score) {
+						//PutBoard();
 						board_[block_position] = Stone::None;
 						return true;
 					}
@@ -881,6 +883,7 @@ class Board {
 					if (s4n) block_position2 = blk;
 				}
 				if (sum_4_strong > 0 || sum_4_normal > 1) {
+					//PutBoard();
 					board_[block_position] = Stone::None;
 					return true;
 				}
@@ -889,6 +892,7 @@ class Board {
 					auto score = IsShioiMove(Stone::White, block_position2, depth - 1);
 					board_[p] = Stone::None;
 					if (score) {
+						//PutBoard();
 						board_[block_position] = Stone::None;
 						return true;
 					}
@@ -1440,9 +1444,9 @@ public:
 		auto result = GetOpeningMove(turn_);
 		if (result.second) return result.first;
 		// Book move
-/*		if (debug_flg) std::cerr << "Book" << endl;
+		if (debug_flg) std::cerr << "Book" << endl;
 		auto book_data = book.GetBookData(board_);
-		if (book_data.size() != 0) return book_data[RandInt(book_data.size())];*/
+		if (book_data.size() != 0) return book_data[RandInt(book_data.size())];
 		// If you can make Go-ren, you must do.
 		if (debug_flg) std::cerr << "Goren" << endl;
 		result = FindGorenMove(turn_);
@@ -1464,6 +1468,13 @@ public:
 		if (result.first >= kBoardSize * kBoardSize) return -2;
 		return -1;
 	}
+	// Test Code
+	void Test() {
+		size_t p1 = StringToPosition("dA"), p2 = StringToPosition("eA");
+		auto result = FindShioiMove(turn_, kShioiDepth1);
+		int x = 1;
+		return;
+	}
 };
 
 int main(int argc, char *argv[]) {
@@ -1480,7 +1491,8 @@ int main(int argc, char *argv[]) {
 	}
 	try {
 		Board board(argv[1], argv[2]);
-//		book = BookDB("book.csv");
+//		board.Test();
+		book = BookDB("book.csv");
 		const int depth = argv[3] | to_i() | max(0);
 		auto move = board.NextMove(depth, (argc >= 5));
 		cout << move << endl;

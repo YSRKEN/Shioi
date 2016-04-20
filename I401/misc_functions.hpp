@@ -11,11 +11,19 @@
 #include "PackedStone.hpp"
 using std::array;
 using std::size_t;
-std::string PositionToString(const size_t p) {
+using std::string;
+string PositionToString(const size_t p) {
 	return std::string(1, kPositionStringX[p % kBoardSize]) + std::string(1, kPositionStringY[p / kBoardSize]);
 }
 constexpr size_t ToPosition(const size_t x, const size_t y) {
 	return x + y * kBoardSize;
+}
+size_t StringToPosition(const string str) {
+	const auto kPSX = string(kPositionStringX);
+	const auto kPSY = string(kPositionStringY);
+	auto x = kPSX.find(str[0]);
+	auto y = kPSY.find(str[1]);
+	return ToPosition(x, y);
 }
 constexpr Stone EnemyTurn(const Stone turn) {
 	return (turn == Stone::Black ? Stone::White : Stone::Black);
