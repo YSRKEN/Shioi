@@ -16,6 +16,7 @@ function simple_test(){
 
 pwd
 ls
+cp book.csv I401
 cd I401
 pwd
 ls
