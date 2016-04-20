@@ -342,8 +342,8 @@ namespace Shioi {
 			sw.Stop();
 			this.Text = SoftName;
 			ElapsedTimeStatusLabel.Text = "Time : " + sw.ElapsedMilliseconds.ToString() + "[ms]";
-			var nextMove = process.ExitCode;
-			if(nextMove >= 0) {
+			var nextMove = process.ExitCode;//int.Parse(process.StandardOutput.ReadToEnd());
+			if (nextMove >= 0) {
 				FormRenju.SetMove(nextMove);
 				DrawBoard();
 			} else {
