@@ -206,7 +206,7 @@ namespace detail {
 		const char* err_message;
 	};
 	Stone operator|(const char c, toStone_helper info) {
-		constexpr const char kStoneString[] = "-*O";
+		constexpr const char kStoneString[] = "NBW";
 		const auto p = std::strchr(kStoneString, c);
 		if (!p) throw std::invalid_argument(info.err_message);
 		return static_cast<Stone>(p - kStoneString);
