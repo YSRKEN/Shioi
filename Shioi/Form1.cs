@@ -1037,7 +1037,7 @@ namespace Shioi {
 			}
 			// make string for I401.exe
 			public string GetArgumentString() {
-				var BoardStringArray = new List<string> { "-", "*", "O" };
+				var BoardStringArray = new List<string> { "N", "B", "W" };
 				string boardText = "";
 				for(int y = 0; y < BoardSize; ++y) {
 					for(int x = 0; x < BoardSize; ++x) {
