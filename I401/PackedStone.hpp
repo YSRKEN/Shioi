@@ -254,7 +254,7 @@ constexpr bool operator==(PackedStone l, Stone r) noexcept {
 \~japanese	@brief	二項演算子!=のオーバーロード。厳密な比較が行われます
 \~english	@brief	Overload of binary operator !=. This operator compares strict difference
 */
-constexpr bool operator!=(PackedStone l, PackedStone r) noexcept {
+constexpr bool operator!=(PackedStone l, Stone r) noexcept {
 	return !(l == r);
 }
 /**
