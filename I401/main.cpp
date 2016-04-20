@@ -292,7 +292,7 @@ class Board {
 	}
 	// Matching Pattern
 	bool MatchPatternB(const Pattern &pattern, const size_t /*position*/, const Direction /*dir*/, const Side side) const noexcept {
-		return (pattern[side][0].data() == Stone::None);
+		return (pattern[side][0] == Stone::None);
 	}
 	bool MatchPatternB(const Pattern &pattern, const size_t position, const Direction dir, const array<PackedStone, 2>& s1) const noexcept {
 		return (
@@ -303,7 +303,7 @@ class Board {
 	bool MatchPatternB(const Pattern &pattern, const size_t position, const Direction dir, const Side side, const array<PackedStone, 1>& s1) const noexcept {
 		return (
 			kIterateTable[position][dir][side] >= s1[0].size() && pattern[side][s1[0].size()] == (s1[0] | Stone::None)
-			&& /*kIterateTable[position][dir][!side] >= 1 &&*/ pattern[!side][0].data() == Stone::None
+			&& /*kIterateTable[position][dir][!side] >= 1 &&*/ pattern[!side][0] == Stone::None
 			);
 	}
 	bool MatchPatternW(const Pattern &pattern, const size_t position, const Direction dir, const array<PackedStone, 2>& s1) const noexcept {

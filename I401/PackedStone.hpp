@@ -227,6 +227,38 @@ constexpr bool operator!=(PackedStone l, PackedStone r) noexcept {
 }
 /**
 @relates PackedStone
+\~japanese	@brief	二項演算子==のオーバーロード。厳密な比較が行われます
+\~english	@brief	Overload of binary operator ==. This operator compares strict difference
+*/
+constexpr bool operator==(Stone l, PackedStone r) noexcept {
+	return 1 == r.size() && l == r.data();
+}
+/**
+@relates PackedStone
+\~japanese	@brief	二項演算子!=のオーバーロード。厳密な比較が行われます
+\~english	@brief	Overload of binary operator !=. This operator compares strict difference
+*/
+constexpr bool operator!=(Stone l, PackedStone r) noexcept {
+	return !(l == r);
+}
+/**
+@relates PackedStone
+\~japanese	@brief	二項演算子==のオーバーロード。厳密な比較が行われます
+\~english	@brief	Overload of binary operator ==. This operator compares strict difference
+*/
+constexpr bool operator==(PackedStone l, Stone r) noexcept {
+	return r == l;
+}
+/**
+@relates PackedStone
+\~japanese	@brief	二項演算子!=のオーバーロード。厳密な比較が行われます
+\~english	@brief	Overload of binary operator !=. This operator compares strict difference
+*/
+constexpr bool operator!=(PackedStone l, PackedStone r) noexcept {
+	return !(l == r);
+}
+/**
+@relates PackedStone
 \~japanese	@brief Stone型を2つ格納します
 \~english	@brief holds two Stone object
 */
