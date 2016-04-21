@@ -330,7 +330,7 @@ namespace Shioi {
 				}
 			}
 			if(DebugModeMenuItem.CheckState == CheckState.Checked) {
-				psInfo.Arguments += " Debug";
+				psInfo.Arguments += " --debug";
 			}
 			psInfo.RedirectStandardOutput = true;
 			psInfo.RedirectStandardError = true;
@@ -338,13 +338,12 @@ namespace Shioi {
 			var sw = new System.Diagnostics.Stopwatch();
 			sw.Start();
 			Process process = Process.Start(psInfo);
-			var output = process.StandardOutput.ReadToEnd();
 			var output_error = process.StandardError.ReadToEnd();
 			sw.Stop();
 			this.Text = SoftName;
 			ElapsedTimeStatusLabel.Text = "Time : " + sw.ElapsedMilliseconds.ToString() + "[ms]";
-			var nextMove = int.Parse(output);
-			if(nextMove >= 0) {
+			var nextMove = process.ExitCode;//int.Parse(process.StandardOutput.ReadToEnd());
+			if (nextMove >= 0) {
 				FormRenju.SetMove(nextMove);
 				DrawBoard();
 			} else {
@@ -1037,7 +1036,7 @@ namespace Shioi {
 			}
 			// make string for I401.exe
 			public string GetArgumentString() {
-				var BoardStringArray = new List<string> { "-", "*", "O" };
+				var BoardStringArray = new List<string> { "N", "B", "W" };
 				string boardText = "";
 				for(int y = 0; y < BoardSize; ++y) {
 					for(int x = 0; x < BoardSize; ++x) {

@@ -16,6 +16,7 @@
 #include "Board_helper.hpp"
 #include "BookDB.hpp"
 #include "constant_range_loop.hpp"
+#include "PackedStone.hpp"
 // using declaration
 using std::cout;
 using std::endl;
@@ -98,7 +99,7 @@ class Board {
 		return sum;
 	}
 	// Get Opening move
-	Result GetOpeningMove(const Stone turn) {
+	Result GetOpeningMove(const Stone /*turn*/) {
 		size_t count = CountStone();
 		if (count == 0) {
 			return{ ToPosition(7, 7), true };
@@ -270,8 +271,8 @@ class Board {
 			for (size_t i : rep(5)) {
 				const int sign = (s == Side::Right) ? 1 : -1;
 				pattern[s][i] = (pattern_length[s] <= i) 
-					? ((i) ? pattern[s][i - 1U] | Stone::None : Stone::None) | Stone::None 
-					: this->board_ | PackPattern(position, dir, sign, sign * (i + 1)) | Normalize();
+					? ((i) ? pattern[s][i - 1U] | Stone::None : Stone::None)/* | Stone::None */
+					: (this->board_ | PackPattern(position, dir, sign, sign * (i + 1)) | Normalize())/*.pop_back()*/;
 			}
 		}
 		return pattern;
@@ -283,39 +284,36 @@ class Board {
 			for (size_t i : rep(4)) {
 				const int sign = (s == Side::Right) ? 1 : -1;
 				pattern[s][i] = (pattern_length[s] <= i) 
-					? ((i) ? pattern[s][i - 1U] | Stone::None : Stone::None) | Stone::None 
+					? ((i) ? pattern[s][i - 1U] | Stone::None : Stone::None)/* | Stone::None */
 					: this->board_ | PackPattern(position, dir, sign, sign * (i + 1));
 			}
 		}
 		return pattern;
 	}
 	// Matching Pattern
-	bool MatchPatternB(const Pattern &pattern, const size_t position, const Direction dir, const Side side) const noexcept {
+	bool MatchPatternB(const Pattern &pattern, const size_t /*position*/, const Direction /*dir*/, const Side side) const noexcept {
 		return (pattern[side][0] == Stone::None);
 	}
-	bool MatchPatternB(const Pattern &pattern, const size_t position, const Direction dir, const array<size_t, 2>& s1) const noexcept {
+	bool MatchPatternB(const Pattern &pattern, const size_t position, const Direction dir, const array<PackedStone, 2>& s1) const noexcept {
 		return (
-			   kIterateTable[position][dir][Side::Left]  >= 1 && pattern[Side::Left][1]  == (s1[Side::Left]  | Stone::None)
-			&& kIterateTable[position][dir][Side::Right] >= 1 && pattern[Side::Right][1] == (s1[Side::Right] | Stone::None)
+			kIterateTable[position][dir][Side::Left] >= s1[Side::Left].size() && pattern[Side::Left][s1[Side::Left].size()] == (s1[Side::Left] | Stone::None)
+			&& kIterateTable[position][dir][Side::Right] >= s1[Side::Right].size() && pattern[Side::Right][s1[Side::Right].size()] == (s1[Side::Right] | Stone::None)
 		);
 	}
-	bool MatchPatternB(const Pattern &pattern, const size_t position, const Direction dir, const Side side, const array<size_t, 1>& s1) const noexcept {
+	bool MatchPatternB(const Pattern &pattern, const size_t position, const Direction dir, const Side side, const array<PackedStone, 1>& s1) const noexcept {
 		return (
-			   kIterateTable[position][dir][side]  >= 1 && pattern[side][1]  == (s1[0] | Stone::None)
-			&& kIterateTable[position][dir][!side] >= 1 && pattern[!side][1] == Stone::None
-		);
-	}
-	bool MatchPatternB(const Pattern &pattern, const size_t position, const Direction dir, const Side side, const size_t s1) const noexcept {
-		return (kIterateTable[position][dir][side] >= 1 && pattern[side][1] == (s1 | Stone::None));
-	}
-	bool MatchPatternW(const Pattern &pattern, const size_t position, const Direction dir, const array<size_t, 2>& s1) const noexcept {
-		return (
-			   kIterateTable[position][dir][Side::Left]  >= 1 && pattern[Side::Left][1]  == (s1[Side::Left])
-			&& kIterateTable[position][dir][Side::Right] >= 1 && pattern[Side::Right][1] == (s1[Side::Right])
+			kIterateTable[position][dir][side] >= s1[0].size() && pattern[side][s1[0].size()] == (s1[0] | Stone::None)
+			&& /*kIterateTable[position][dir][!side] >= 1 &&*/ pattern[!side][0] == Stone::None
 			);
 	}
-	bool MatchPatternW(const Pattern &pattern, const size_t position, const Direction dir, const Side side, const size_t s1) const noexcept {
-		return (kIterateTable[position][dir][side] >= 1 && pattern[side][0] == s1);
+	bool MatchPatternW(const Pattern &pattern, const size_t position, const Direction dir, const array<PackedStone, 2>& s1) const noexcept {
+		return (
+			kIterateTable[position][dir][Side::Left] >= s1[Side::Left].size() && pattern[Side::Left][s1[Side::Left].size() - 1] == (s1[Side::Left])
+			&& kIterateTable[position][dir][Side::Right] >= s1[Side::Right].size() && pattern[Side::Right][s1[Side::Right].size() - 1] == (s1[Side::Right])
+			);
+	}
+	bool MatchPatternW(const Pattern &pattern, const size_t position, const Direction dir, const Side side, const PackedStone s1) const noexcept {
+		return (kIterateTable[position][dir][side] >= s1.size() && pattern[side][s1.size() - 1] == s1);
 	}
 	// Count Ren
 	RenCount CountRenB(const Pattern &pattern, const size_t position, const Direction dir) {
@@ -420,7 +418,7 @@ class Board {
 			auto GetPosition = [&position, &dir](int count) -> int {return position + kPositionoffset[dir] * count; };
 			if (offset2 != 0) {
 				int next_pos = GetPosition(offset2);
-				if (next_pos >= 0 && next_pos < kBoardSize * kBoardSize) {
+				if (next_pos >= 0 && static_cast<std::size_t>(next_pos) < kBoardSize * kBoardSize) {
 					board_[position] = Stone::Black;
 					auto valid_flg = IsValidMove(next_pos);
 					board_[position] = Stone::None;
@@ -429,7 +427,7 @@ class Board {
 			}
 			if (offset1 != 0) {
 				int next_pos = GetPosition(offset1);
-				if (next_pos >= 0 && next_pos < kBoardSize * kBoardSize) {
+				if (next_pos >= 0 && static_cast<std::size_t>(next_pos) < kBoardSize * kBoardSize) {
 					board_[position] = Stone::Black;
 					auto valid_flg = IsValidMove(next_pos);
 					board_[position] = Stone::None;
@@ -534,7 +532,7 @@ class Board {
 		}
 		// Count Shi-ren
 		{
-			if(MatchPatternB(pattern, position, dir, {{ Stone::None, Stone::Black**3_pack | Stone::None }})) return RenCount(1, 0, 0);
+			if (MatchPatternB(pattern, position, dir, {{ Stone::None, Stone::Black**3_pack | Stone::None }})) return RenCount(1, 0, 0);
 			if (MatchPatternB(pattern, position, dir, {{ Stone::Black | Stone::None, Stone::Black**2_pack | Stone::None }})) return RenCount(1, 0, 0);
 			if (MatchPatternB(pattern, position, dir, {{ Stone::Black**3_pack | Stone::None, Stone::None }})) return RenCount(1, 0, 0);
 			if (MatchPatternB(pattern, position, dir, {{ Stone::Black**2_pack | Stone::None, Stone::Black | Stone::None }})) return RenCount(1, 0, 0);
@@ -560,7 +558,7 @@ class Board {
 				return RenCount(0, 1, 0);
 			}
 			//11101
-			if (MatchPatternB(pattern, position, dir, Side::Right, {{ Stone::None | Stone::Black**3_pack }})) {
+			if (MatchPatternB(pattern, position, dir, Side::Left, {{ Stone::None | Stone::Black**3_pack }})) {
 				block_position = GetPosition(-1) | limit2(0_sz, kBoardSize * kBoardSize);
 				return RenCount(0, 1, 0);
 			}
@@ -578,7 +576,11 @@ class Board {
 			}
 			//11011
 			if (MatchPatternB(pattern, position, dir, Side::Right, {{ Stone::Black | Stone::None | Stone::Black**2_pack }})) {
-				block_position = GetPosition(-2) | limit2(0_sz, kBoardSize * kBoardSize);
+				block_position = GetPosition(2) | limit2(0_sz, kBoardSize * kBoardSize);
+				return RenCount(0, 1, 0);
+			}
+			if (MatchPatternB(pattern, position, dir, { { Stone::Black, Stone::None | Stone::Black**2_pack } })) {
+				block_position = GetPosition(1) | limit2(0_sz, kBoardSize * kBoardSize);
 				return RenCount(0, 1, 0);
 			}
 			if (MatchPatternB(pattern, position, dir, {{ Stone::None | Stone::Black**2_pack, Stone::Black }})) {
@@ -586,15 +588,11 @@ class Board {
 				return RenCount(0, 1, 0);
 			}
 			if (MatchPatternB(pattern, position, dir, Side::Left, {{ Stone::Black | Stone::None | Stone::Black**2_pack }})) {
-				block_position = GetPosition(2) | limit2(0_sz, kBoardSize * kBoardSize);
-				return RenCount(0, 1, 0);
-			}
-			if (MatchPatternB(pattern, position, dir, {{ Stone::Black, Stone::None | Stone::Black**2_pack }})) {
-				block_position = GetPosition(1) | limit2(0_sz, kBoardSize * kBoardSize);
+				block_position = GetPosition(-2) | limit2(0_sz, kBoardSize * kBoardSize);
 				return RenCount(0, 1, 0);
 			}
 			//10111
-			if (MatchPatternB(pattern, position, dir, Side::Left, {{ Stone::None | Stone::Black**3_pack }})) {
+			if (MatchPatternB(pattern, position, dir, Side::Right, {{ Stone::None | Stone::Black**3_pack }})) {
 				block_position = GetPosition(1) | limit2(0_sz, kBoardSize * kBoardSize);
 				return RenCount(0, 1, 0);
 			}
@@ -676,7 +674,7 @@ class Board {
 			}
 			if (offset2 != 0) {
 				int next_pos = GetPosition(offset2);
-				if (next_pos >= 0 && next_pos < kBoardSize * kBoardSize) {
+				if (next_pos >= 0 && static_cast<std::size_t>(next_pos) < kBoardSize * kBoardSize) {
 					board_[position] = Stone::Black;
 					auto valid_flg = IsValidMove(next_pos);
 					board_[position] = Stone::None;
@@ -685,7 +683,7 @@ class Board {
 			}
 			if (offset1 != 0) {
 				int next_pos = GetPosition(offset1);
-				if (next_pos >= 0 && next_pos < kBoardSize * kBoardSize) {
+				if (next_pos >= 0 && static_cast<std::size_t>(next_pos) < kBoardSize * kBoardSize) {
 					board_[position] = Stone::Black;
 					auto valid_flg = IsValidMove(next_pos);
 					board_[position] = Stone::None;
@@ -702,24 +700,24 @@ class Board {
 		* 3. BBBO|B|OBBB "Souryu-no-ShiShi"
 		* 一直線上に出来る四々で、両頭の四々・長蛇の四々・双龍の四々
 		*/
-		if (
+		{
 			//BO|BBB|OB
-			   MatchPatternW(pattern, position, dir, {{ Stone::None | Stone::White, Stone::White**2_pack | Stone::None | Stone::White }})
-			|| MatchPatternW(pattern, position, dir, {{ Stone::White | Stone::None | Stone::White, Stone::White | Stone::None | Stone::White }})
-			|| MatchPatternW(pattern, position, dir, {{ Stone::White**2_pack | Stone::None | Stone::White, Stone::None | Stone::White }})
+			if (MatchPatternW(pattern, position, dir, {{ Stone::None | Stone::White, Stone::White**2_pack | Stone::None | Stone::White }})) return RenCount(0, 2, 0);
+			if (MatchPatternW(pattern, position, dir, {{ Stone::White | Stone::None | Stone::White, Stone::White | Stone::None | Stone::White }})) return RenCount(0, 2, 0);
+			if (MatchPatternW(pattern, position, dir, {{ Stone::White**2_pack | Stone::None | Stone::White, Stone::None | Stone::White }})) return RenCount(0, 2, 0);
 			//BBO|BB|OBB
-			|| MatchPatternW(pattern, position, dir, {{ Stone::None | Stone::White**2_pack, Stone::White | Stone::None | Stone::White**2_pack }})
-			|| MatchPatternW(pattern, position, dir, {{ Stone::White | Stone::None | Stone::White**2_pack, Stone::None | Stone::White**2_pack }})
+			if (MatchPatternW(pattern, position, dir, {{ Stone::None | Stone::White**2_pack, Stone::White | Stone::None | Stone::White**2_pack }})) return RenCount(0, 2, 0);
+			if (MatchPatternW(pattern, position, dir, {{ Stone::White | Stone::None | Stone::White**2_pack, Stone::None | Stone::White**2_pack }})) return RenCount(0, 2, 0);
 			//BBBO|B|OBBB
-			|| MatchPatternW(pattern, position, dir, {{ Stone::None | Stone::White**3_pack, Stone::None | Stone::White**3_pack }})
-		) return RenCount(0, 2, 0);
+			if (MatchPatternW(pattern, position, dir, {{ Stone::None | Stone::White**3_pack, Stone::None | Stone::White**3_pack }})) return RenCount(0, 2, 0);
+		}
 		// Count Shi-ren
-		if (
-			   MatchPatternW(pattern, position, dir, {{ Stone::None, Stone::White**3_pack | Stone::None }})
-			|| MatchPatternW(pattern, position, dir, {{ Stone::White | Stone::None, Stone::White**2_pack | Stone::None }})
-			|| MatchPatternW(pattern, position, dir, {{ Stone::White**3_pack | Stone::None, Stone::None }})
-			|| MatchPatternW(pattern, position, dir, {{ Stone::White**2_pack | Stone::None, Stone::White | Stone::None }})
-		) return RenCount(1, 0, 0);
+		{
+			if (MatchPatternW(pattern, position, dir, {{ Stone::None, Stone::White**3_pack | Stone::None }})) return RenCount(1, 0, 0);
+			if (MatchPatternW(pattern, position, dir, {{ Stone::White | Stone::None, Stone::White**2_pack | Stone::None }})) return RenCount(1, 0, 0);
+			if (MatchPatternW(pattern, position, dir, {{ Stone::White**3_pack | Stone::None, Stone::None }})) return RenCount(1, 0, 0);
+			if (MatchPatternW(pattern, position, dir, {{ Stone::White**2_pack | Stone::None, Stone::White | Stone::None }})) return RenCount(1, 0, 0);
+		}
 		// Count Katsu-Shi
 		{
 			auto GetPosition = [&position, &dir](int count) -> int {return position + kPositionoffset[dir] * count; };
@@ -864,6 +862,7 @@ class Board {
 					auto score = IsShioiMove(Stone::Black, block_position2, depth - 1);
 					board_[p] = Stone::None;
 					if (score) {
+						//PutBoard();
 						board_[block_position] = Stone::None;
 						return true;
 					}
@@ -884,6 +883,7 @@ class Board {
 					if (s4n) block_position2 = blk;
 				}
 				if (sum_4_strong > 0 || sum_4_normal > 1) {
+					//PutBoard();
 					board_[block_position] = Stone::None;
 					return true;
 				}
@@ -892,6 +892,7 @@ class Board {
 					auto score = IsShioiMove(Stone::White, block_position2, depth - 1);
 					board_[p] = Stone::None;
 					if (score) {
+						//PutBoard();
 						board_[block_position] = Stone::None;
 						return true;
 					}
@@ -926,6 +927,13 @@ class Board {
 						sum_4_normal += s4n;
 						sum_3 += s3;
 					}
+					/*if (p == 4) {
+						// 棋譜：b1,f5,c1,c5,d1,**,
+						auto move_pattern2 = GetPatternB(p, Direction::Row);
+						PutBoard();
+						auto hoge = CountRenB2(move_pattern2, p, Direction::Row, block_position);
+						continue;
+					}*/
 					if (cho_ren_flg || sum_4_strong + sum_4_normal >= 2 || sum_3 >= 2) continue;
 					if (sum_4_strong > 0) return Result(p, true);
 					if (sum_4_normal == 1) {
@@ -954,12 +962,10 @@ class Board {
 						sum_4_normal += s4n;
 						if (s4n) block_position = blk;
 					}
-					/*if (sum_4_strong + sum_4_normal >= 1) {
-					cout << PositionToString(p) << " " << sum_4_strong << " " << sum_4_normal << endl;
-					}*/
 					if (sum_4_strong > 0) return Result(p, true);
 					if (sum_4_normal > 1) return Result(p, true);
 					if (sum_4_normal == 1) {
+						//auto move_pattern = GetPatternW(p, Direction::DiagR);
 						board_[p] = Stone::White;
 						auto score = IsShioiMove(Stone::White, block_position, depth);
 						board_[p] = Stone::None;
@@ -974,7 +980,7 @@ class Board {
 	// Get Range(for Prospective pruning)
 	array<size_t, 4> GetRange() const noexcept {
 		//                        left,       top,    right, bottom
-		array<size_t, 4> range{ { kBoardSize, kBoardSize, 0, 0 } };
+		array<size_t, 4> range{{ kBoardSize, kBoardSize, 0, 0 }};
 		//外接四角形を求める
 		for (size_t y : rep(kBoardSize)) {
 			for (size_t x : rep(kBoardSize)) {
@@ -995,7 +1001,7 @@ class Board {
 		return range;
 	}
 	// AlphaBeta Method
-	int NegaMax(const Stone turn, const size_t depth, int alpha, int beta) {
+	int NegaMax(const Stone turn, const size_t depth, int /*alpha*/, int beta) {
 		if (FindGorenMove(turn).second) return beta;
 		int max_score = -kScoreInf2;
 		if (depth == 0) {
@@ -1210,6 +1216,15 @@ class Board {
 						auto move_pattern = GetPatternB(p, static_cast<Direction>(dir));
 						if (Board_helper::IsChorenB(move_pattern)) {
 							cho_ren_flg = true;
+							//auto p5 = Stone::Black**5_pack;
+							//auto p4 = Stone::Black**4_pack;
+							//auto p3 = Stone::Black**3_pack;
+							//auto p2 = Stone::Black**2_pack;
+							//auto q5 = move_pattern[Side::Right][4];
+							//auto q4 = move_pattern[Side::Right][3];
+							//auto q3 = move_pattern[Side::Right][2];
+							//auto q2 = move_pattern[Side::Right][1];
+							//auto q1 = move_pattern[Side::Right][0];
 							break;
 						}
 						size_t s4s, s4n, s3;
@@ -1360,7 +1375,7 @@ class Board {
 		return (next_move.size() == 0 ? Result(0, false) : Result(next_move[RandInt(next_move.size())], true));
 	}
 	// Find Random tsume
-	Result FindRandomMove(const Stone turn) {
+	Result FindRandomMove(const Stone /*turn*/) {
 		vector<Score> position_list;
 		for (size_t p : rep(kBoardSize * kBoardSize)) {
 			if (board_[p] != Stone::None) continue;
@@ -1391,9 +1406,7 @@ public:
 	Board(const char board_text[], const char turn_text[]) 
 		: turn_(turn_text[0] | toStone("Can't read turn data."))
 	{
-		constexpr const char kStoneString[] = "-*O";
 		// Read board-text
-		const string board_text_str(board_text);
 		if (strlen(board_text) < kBoardSize * kBoardSize) {
 			throw std::invalid_argument("Too short board-text size!");
 		}
@@ -1455,36 +1468,46 @@ public:
 		if (result.first >= kBoardSize * kBoardSize) return -2;
 		return -1;
 	}
+	// Test Code
+	void Test() {
+		size_t p1 = StringToPosition("dA"), p2 = StringToPosition("eA");
+		auto result = FindShioiMove(turn_, kShioiDepth1);
+		int x = 1;
+		return;
+	}
 };
 
 int main(int argc, char *argv[]) {
 	// Read arguments
 	if (argc < 4) {
-		cout << "Usage: I401 board_text turn_text depth" << endl
+		cout << "Usage: I401 [board_text] [turn_text] [depth] (--debug)" << endl
 			<< endl
 			<< "board_text     : board data of stone or blank" << endl
 			<< "turn_text      : turn data of stone or blank" << endl
 			<< "depth          : depth of thinking" << endl
+			<< R"(--debug(opt)   : put debug info to std::err if this string is "--debug")" << endl
+			<< endl
 			<< "stone or blank : black(*), white(O), blank(-)" << endl
-			<< "return value   : [move] >=0 | [can't move] -1 | [give up] -2" << endl;
+			<< "return value   : " << endl
+			<< R"(    When you specify "--debug", return >=0[move] | -1[can't move] | -2[give up].)" << endl
+			<< "    On the other case, return 0[no error] or -1[error]" << endl;
 		return -1;
 	}
 	try {
 		Board board(argv[1], argv[2]);
+//		board.Test();
 		book = BookDB("book.csv");
 		const int depth = argv[3] | to_i() | max(0);
-		cout << board.NextMove(depth, (argc >= 5)) << endl;
+		const bool is_debug = (5 <= argc && 0 == std::strcmp("--debug", argv[4]));
+		const auto move = board.NextMove(depth, is_debug);
+		cout << move << endl;
+		if (is_debug) return move;
+//		cout << PositionToString(move) << endl;
 	}
 	catch (const std::exception& er) {
 		std::cerr << er.what() << endl;
 		cout << -1 << endl;
-		return 1;
+		return -1;
 	}
 	return 0;
 }
-
-/* 進捗：
-・ベンチマーク問題(63449ms、gBが正着っぽい？)
-h8,i7,i9,g9,g7,f6,h7,h9,i8,g8,g6,f5,j8,j9,hA,k7,f8,fA,f9,i6,iA,jA,f7,j7,j6,h6,gA,e8,e7,d7,kA,e6,g4,**,
----------------------------------------------------*-------------O-------------OO*OO*--------O****OOO--------O*O***----------*OO*O----------O***O*------------------------------------------------------------------------------- O
-*/

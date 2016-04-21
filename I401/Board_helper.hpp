@@ -4,6 +4,7 @@
 #include "types.hpp"
 #include "misc_functions.hpp"
 #include "constant.hpp"
+#include "PackedStone.hpp"
 using std::array;
 namespace Board_helper {
 	constexpr std::pair<array<size_t, 2>, size_t> ToPositionByDirection(const Direction d, const size_t i, const size_t j) {
@@ -41,12 +42,12 @@ namespace Board_helper {
 	// Check Cho-ren
 	constexpr bool IsChorenB(const Pattern &pattern) {
 		return (
-			(pattern[Side::Right][4] == PackPattern_n(Stone::Black, 5))
-			|| ((pattern[Side::Right][3] == PackPattern_n(Stone::Black, 4)) && (pattern[Side::Left][0] == Stone::Black))
-			|| ((pattern[Side::Right][2] == PackPattern_n(Stone::Black, 3)) && (pattern[Side::Left][1] == PackPattern_n(Stone::Black, 2)))
-			|| ((pattern[Side::Left][4] == PackPattern_n(Stone::Black, 5)))
-			|| ((pattern[Side::Left][3] == PackPattern_n(Stone::Black, 4)) && (pattern[Side::Right][0] == Stone::Black))
-			|| ((pattern[Side::Left][2] == PackPattern_n(Stone::Black, 3)) && (pattern[Side::Right][1] == PackPattern_n(Stone::Black, 2)))
+			    (pattern[Side::Right][4] == Stone::Black**5_pack)
+			|| ((pattern[Side::Right][3] == Stone::Black**4_pack) && (pattern[Side::Left][0]  == Stone::Black))
+			|| ((pattern[Side::Right][2] == Stone::Black**3_pack) && (pattern[Side::Left][1]  == Stone::Black**2_pack))
+			||  (pattern[Side::Left][4]  == Stone::Black**5_pack)
+			|| ((pattern[Side::Left][3]  == Stone::Black**4_pack) && (pattern[Side::Right][0] == Stone::Black))
+			|| ((pattern[Side::Left][2]  == Stone::Black**3_pack) && (pattern[Side::Right][1] == Stone::Black**2_pack))
 		);
 	}
 	constexpr bool IsChorenW(const Pattern & /*pattern*/) {

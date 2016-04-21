@@ -6,7 +6,14 @@ template<typename T, std::enable_if_t<std::is_arithmetic<T>::value, std::nullptr
 class counter_iterator : std::iterator<std::random_access_iterator_tag, T> {
 private:
 	T i;
+	typedef std::iterator<std::random_access_iterator_tag, T> my_t;
 public:
+	typedef typename my_t::iterator_category iterator_category;
+	typedef typename my_t::value_type value_type;
+	typedef typename my_t::difference_type difference_type;
+	typedef typename my_t::pointer pointer;
+	typedef typename my_t::reference reference;
+
 	constexpr counter_iterator() : i() { }
 	constexpr counter_iterator(T n) : i(n) { }
 	counter_iterator& operator=(const counter_iterator& o) noexcept {

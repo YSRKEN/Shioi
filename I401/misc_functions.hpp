@@ -3,16 +3,27 @@
 #include "constant.hpp"
 #include <array>
 #include <string>
+#include <cstring>
 #include <cerrno>
+#include <limits>
 #include <stdexcept>
 #include <type_traits>
+#include "PackedStone.hpp"
 using std::array;
 using std::size_t;
-std::string PositionToString(const size_t p) {
+using std::string;
+string PositionToString(const size_t p) {
 	return std::string(1, kPositionStringX[p % kBoardSize]) + std::string(1, kPositionStringY[p / kBoardSize]);
 }
 constexpr size_t ToPosition(const size_t x, const size_t y) {
 	return x + y * kBoardSize;
+}
+size_t StringToPosition(const string str) {
+	const auto kPSX = string(kPositionStringX);
+	const auto kPSY = string(kPositionStringY);
+	auto x = kPSX.find(str[0]);
+	auto y = kPSY.find(str[1]);
+	return ToPosition(x, y);
 }
 constexpr Stone EnemyTurn(const Stone turn) {
 	return (turn == Stone::Black ? Stone::White : Stone::Black);
@@ -27,8 +38,8 @@ namespace detail {
 		return board[info.pos + kPositionoffset[info.direction] * info.count];
 	}
 	struct StoneNormalizer_helper {};
-	constexpr Stone operator| (Stone value, StoneNormalizer_helper) {
-		return ((0b11U & value) != Stone::White) ? value : Stone::None;//pickup 2bit and compare.
+	constexpr PackedStone operator| (PackedStone value, StoneNormalizer_helper) {
+		return (value.back() != Stone::White) ? value : value.back(Stone::None);//pickup 2bit and compare.
 	}
 	struct PackPattern_helper {
 		int start;
@@ -40,13 +51,15 @@ namespace detail {
 		return{ position, dir, count };
 	}
 	constexpr StoneNormalizer_helper Normalize() { return{}; }
-	Stone operator| (const array<Stone, kBoardSize * kBoardSize>& board, const PackPattern_helper& info) {
+	PackedStone operator| (const array<Stone, kBoardSize * kBoardSize>& board, const PackPattern_helper& info) {
 		using std::abs;
 		if (abs(info.stop) < abs(info.start)) return{};
-		size_t re = 0;
-		int i;
-		for (i = info.start; abs(i) <= abs(info.stop); i += (i > 0) ? 1 : -1, re <<= 2U) re += board | Get(info.pos, info.direction, i);
-		return static_cast<Stone>(re >> 2U);
+		PackedStone re{};
+		for (int i = info.start; abs(i) <= abs(info.stop); i += (i > 0) ? 1 : -1) {
+	//		auto hoge = (board | Get(info.pos, info.direction, i));
+			re = re | (board | Get(info.pos, info.direction, i));
+		}
+		return re;
 	}
 }
 using detail::Get;
@@ -54,29 +67,6 @@ using detail::Normalize;
 constexpr detail::PackPattern_helper PackPattern(size_t position, Direction dir, int start, int stop) {
 	return{ start, stop, position, dir };
 }
-namespace detail {
-	constexpr size_t PackPattern_n_impl(const size_t tmp, const Stone s, const size_t rest_count) {
-		return (rest_count - 1) ? PackPattern_n_impl((tmp << 2) + s, s, rest_count - 1) : (tmp << 2) + s;
-	}
-}
-constexpr size_t PackPattern_n(const Stone s, size_t n) {
-	return (n * 2 > sizeof(size_t) * CHAR_BIT) ? std::numeric_limits<size_t>::max() : detail::PackPattern_n_impl(0U, s, n);
-}
-namespace detail {
-	struct PackPattern_n_operator_helper {
-		struct Impl {
-			size_t n;
-		};
-		Impl p;
-		constexpr Impl operator*() const {
-			return p;
-		}
-	};
-	constexpr size_t operator*(const Stone s, PackPattern_n_operator_helper::Impl n) {
-		return PackPattern_n(s, n.n);
-	}
-}
-constexpr detail::PackPattern_n_operator_helper operator "" _pack(unsigned long long n) { return{ { static_cast<size_t>(n) } }; }
 namespace detail {
 	template<typename T>struct limit_helper {
 		T min, max;
@@ -167,6 +157,17 @@ namespace detail {
 template<typename T> constexpr detail::max_helper<T> max(const T& max) { return{ max }; }
 
 namespace detail {
+	template<bool int_and_long_are_same> struct range_check {
+		constexpr bool operator()(long n) const noexcept {
+			using lim = std::numeric_limits<int>;
+			return (lim::min() <= n && n <= lim::max());
+		}
+	};
+	template<> struct range_check<true> {
+		constexpr bool operator()(long) const noexcept {
+			return true;
+		}
+	};
 	struct to_i_helper {};
 	template<typename CharType>
 	int operator|(const std::basic_string<CharType>& s, to_i_helper) { return std::stoi(s); }
@@ -174,14 +175,14 @@ namespace detail {
 		errno = 0;
 		const auto r = std::strtol(s, nullptr, 10);
 		if (0 != errno) throw std::out_of_range("");
-		static_assert(sizeof(int) == sizeof(long), "check function int operator|(const char*, to_i_helper)");
+		if (!range_check<sizeof(int) == sizeof(long)>()(r)) throw std::out_of_range("");
 		return static_cast<int>(r);
 	}
 	int operator|(const wchar_t* s, to_i_helper) {
 		errno = 0;
 		const auto r = std::wcstol(s, nullptr, 10);
 		if (0 != errno) throw std::out_of_range("");
-		static_assert(sizeof(int) == sizeof(long), "check function int operator|(const char*, to_i_helper)");
+		if (!range_check<sizeof(int) == sizeof(long)>()(r)) throw std::out_of_range("");
 		return static_cast<int>(r);
 	}
 }
@@ -213,7 +214,7 @@ namespace detail {
 		const char* err_message;
 	};
 	Stone operator|(const char c, toStone_helper info) {
-		constexpr const char kStoneString[] = "-*O";
+		constexpr const char kStoneString[] = "NBW";
 		const auto p = std::strchr(kStoneString, c);
 		if (!p) throw std::invalid_argument(info.err_message);
 		return static_cast<Stone>(p - kStoneString);

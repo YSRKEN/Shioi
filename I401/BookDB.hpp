@@ -22,7 +22,7 @@ public:
 	BookDB() {}
 	BookDB(const char *book_name) {
 		std::ifstream ifs(book_name);
-		if (ifs.fail()) throw std::exception("Book.csv not found.");
+		if (ifs.fail()) throw std::runtime_error("Book.csv not found.");
 		string str;
 		while (getline(ifs, str)) {
 			// Read CSV data
