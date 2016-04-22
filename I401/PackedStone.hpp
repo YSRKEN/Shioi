@@ -288,3 +288,42 @@ constexpr detail::PackPattern_n_operator_helper operator "" _pack(unsigned long 
 
 typedef array<array<PackedStone, 5>, 2> Pattern;
 
+namespace packed_stone{
+	using PS = PackedStone;
+	constexpr PS n = Stone::None;
+	constexpr PS b = Stone::Black;
+	constexpr PS w = Stone::White;
+	constexpr PS bb = Stone::Black | Stone::Black;
+	constexpr PS bn = Stone::Black | Stone::None;
+	constexpr PS nb = Stone::None | Stone::Black;
+	constexpr PS ww = Stone::White | Stone::White;
+	constexpr PS wn = Stone::White | Stone::None;
+	constexpr PS nw = Stone::None | Stone::White;
+	constexpr PS nn = Stone::None | Stone::None;
+	constexpr PS bbb = bb | Stone::Black;
+	constexpr PS bbn = bb | Stone::None;
+	constexpr PS bnb = Stone::Black | Stone::None | Stone::Black;
+	constexpr PS nbb = Stone::None | bb;
+	constexpr PS www = ww | Stone::White;
+	constexpr PS wwn = ww | Stone::None;
+	constexpr PS wnw = Stone::White | Stone::None | Stone::White;
+	constexpr PS nww = Stone::None | ww;
+	constexpr PS bnn = Stone::Black | nn;
+	constexpr PS nbn = Stone::None | Stone::Black | Stone::None;	
+	constexpr PS nwn = Stone::None | Stone::White | Stone::None;	
+	constexpr PS wnn = Stone::White | nn;
+	constexpr PS bbbn = bbb | Stone::None;
+	constexpr PS bbnb = bb | Stone::None | Stone::Black;
+	constexpr PS bnbb = Stone::Black | Stone::None | bb;
+	constexpr PS nbbb = Stone::None | bbb;
+	constexpr PS wwnw = ww | Stone::None | Stone::White;
+	constexpr PS wnww = Stone::White | Stone::None | ww;
+	constexpr PS nbbn = Stone::None | bb | Stone::None;
+	constexpr PS bnbn = Stone::Black | Stone::None | Stone::Black | Stone::None;
+	constexpr PS bbnn = ww | nn;
+	constexpr PS wwwn = www | Stone::None;
+	constexpr PS nwww = Stone::None | www;
+	constexpr PS wnwn = Stone::White | Stone::None | Stone::White | Stone::None;
+	constexpr PS wwnn = ww | nn;
+	constexpr PS nwwn = Stone::None | ww | Stone::None;
+}
