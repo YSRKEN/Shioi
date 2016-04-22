@@ -841,7 +841,7 @@ class Board {
 			if (turn == Stone::Black) {
 				bool cho_ren_flg = false;
 				size_t sum_4_strong = 0, sum_4_normal = 0, sum_3 = 0;
-				size_t block_position2;
+				size_t block_position2 = kBoardSize * kBoardSize;
 				for (uint8_t dir = 0; dir < Direction::Directions; ++dir) {
 					auto move_pattern = GetPatternB(p, static_cast<Direction>(dir));
 					if (Board_helper::IsChorenB(move_pattern)) {
@@ -874,7 +874,7 @@ class Board {
 				}
 			}
 			else {
-				size_t block_position2;
+				size_t block_position2 = kBoardSize * kBoardSize;
 				size_t sum_4_strong = 0, sum_4_normal = 0;
 				for (uint8_t dir = 0; dir < Direction::Directions; ++dir) {
 					auto move_pattern = GetPatternW(p, static_cast<Direction>(dir));
@@ -918,7 +918,7 @@ class Board {
 					if (board_[p] != Stone::None) continue;
 					bool cho_ren_flg = false;
 					size_t sum_4_strong = 0, sum_4_normal = 0, sum_3 = 0;
-					size_t block_position;
+					size_t block_position = kBoardSize * kBoardSize;
 					for (uint8_t dir = 0; dir < Direction::Directions; ++dir) {
 						auto move_pattern = GetPatternB(p, static_cast<Direction>(dir));
 						if (Board_helper::IsChorenB(move_pattern)) {
@@ -954,7 +954,7 @@ class Board {
 				for (size_t x : rep(range[0], range[2])) {
 					size_t p = ToPosition(x, y);
 					if (board_[p] != Stone::None) continue;
-					size_t block_position;
+					size_t block_position = kBoardSize * kBoardSize;
 					size_t sum_4_strong = 0, sum_4_normal = 0;
 					for (uint8_t dir = 0; dir < Direction::Directions; ++dir) {
 						auto move_pattern = GetPatternW(p, static_cast<Direction>(dir));
