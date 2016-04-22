@@ -981,6 +981,15 @@ class Board {
 		}
 		return Result(0, false);
 	}
+	// Find Oi tsume
+	bool IsOiteMove(const Stone turn, const size_t block_position, const size_t depth) {
+
+		return false;
+	}
+	Result FindOiteMove(const Stone turn, const size_t depth) {
+
+		return Result(0, false);
+	}
 	// Get Range(for Prospective pruning)
 	array<size_t, 4> GetRange() const noexcept {
 		//                        left,       top,    right, bottom
@@ -1464,6 +1473,10 @@ public:
 		// Search of quadruplex's problem(Shioi Tsume)
 		if (debug_flg) std::cerr << "Shioi" << endl;
 		result = FindShioiMove(turn_, kShioiDepth1);
+		if (result.second) return result.first;
+		// Search of attack's problem (Oi Tsume)
+		if (debug_flg) std::cerr << "Oite" << endl;
+		result = FindOiteMove(turn_, kOiteDepth1);
 		if (result.second) return result.first;
 		// Normal move search
 		if (debug_flg) std::cerr << "Normal" << endl;
