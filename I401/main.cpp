@@ -812,7 +812,6 @@ class Board {
 	bool IsShioiMove(const Stone turn, const size_t block_position, const size_t depth) {
 		// Block Katsu-Shi
 		if (block_position >= kBoardSize * kBoardSize) {
-			//PutBoard();
 			return true;
 		}
 		auto enemy_stone = EnemyTurn(turn);
@@ -968,8 +967,184 @@ class Board {
 		return Result(0, false);
 	}
 	// Find Oi tsume
-	bool IsOiteMove(const Stone turn, const size_t block_position, const size_t depth) {
-
+	bool IsOiteMove(const Stone turn, const size_t depth) {
+		auto range = GetRange();
+		if (turn == Stone::Black) {
+			for (size_t y : rep(range[1], range[3])) {
+				for (size_t x : rep(range[0], range[2])) {
+					size_t p = ToPosition(x, y);
+					if (board_[p] != Stone::None) continue;
+					bool cho_ren_flg = false;
+					size_t sum_4_strong = 0, sum_4_normal = 0, sum_3 = 0;
+					size_t block_position = kBoardSize * kBoardSize;
+					for (uint8_t dir = 0; dir < Direction::Directions; ++dir) {
+						auto move_pattern = GetPatternB(p, static_cast<Direction>(dir));
+						if (Board_helper::IsChorenB(move_pattern)) {
+							cho_ren_flg = true;
+							break;
+						}
+						size_t s4s, s4n, s3;
+						std::tie(s4s, s4n, s3) = CountRenB2(move_pattern, p, static_cast<Direction>(dir), block_position);
+						sum_4_strong += s4s;
+						sum_4_normal += s4n;
+						sum_3 += s3;
+					}
+					if (cho_ren_flg || sum_4_strong + sum_4_normal >= 2 || sum_3 >= 2) continue;
+					// Shi-ren
+					if (sum_4_strong > 0) return true;
+					// Other Oite
+					if (depth > 0) {
+						board_[p] = Stone::Black;
+						auto result = FindShioiMove(turn, kShioiDepth2);
+						if (result.second) {
+							auto flg = IsBlockMove(Stone::White, depth);
+							board_[p] = Stone::None;
+							if (!flg) return true;
+						}
+						else {
+							board_[p] = Stone::None;
+						}
+					}
+				}
+			}
+		}
+		else {
+			for (size_t y : rep(range[1], range[3])) {
+				for (size_t x : rep(range[0], range[2])) {
+					size_t p = ToPosition(x, y);
+					if (board_[p] != Stone::None) continue;
+					size_t block_position = kBoardSize * kBoardSize;
+					size_t sum_4_strong = 0, sum_4_normal = 0;
+					for (uint8_t dir = 0; dir < Direction::Directions; ++dir) {
+						auto move_pattern = GetPatternW(p, static_cast<Direction>(dir));
+						if (Board_helper::IsChorenW(move_pattern)) return true;
+						size_t s4s, s4n, blk;
+						std::tie(s4s, s4n, blk) = CountRenW2(move_pattern, p, static_cast<Direction>(dir));
+						sum_4_strong += s4s;
+						sum_4_normal += s4n;
+						if (s4n) block_position = blk;
+					}
+					// Shi-ren or Shi-Shi
+					if (sum_4_strong > 0) return true;
+					if (sum_4_normal > 1) return true;
+					// Other Oite
+					board_[p] = Stone::White;
+					auto result = FindShioiMove(turn, kShioiDepth2);
+					if (result.second) {
+						auto flg = IsBlockMove(Stone::Black, depth);
+						board_[p] = Stone::None;
+						if (!flg) return true;
+					}
+					else {
+						board_[p] = Stone::None;
+					}
+				}
+			}
+		}
+		return false;
+	}
+	bool IsBlockMove(const Stone turn, const size_t depth) {
+		auto range = GetRange();
+		if (turn == Stone::Black) {
+			for (size_t y : rep(range[1], range[3])) {
+				for (size_t x : rep(range[0], range[2])) {
+					size_t p = ToPosition(x, y);
+					if (board_[p] != Stone::None) continue;
+					bool cho_ren_flg = false;
+					size_t sum_4_strong = 0, sum_4_normal = 0, sum_3 = 0;
+					size_t block_position = kBoardSize * kBoardSize;
+					for (uint8_t dir = 0; dir < Direction::Directions; ++dir) {
+						auto move_pattern = GetPatternB(p, static_cast<Direction>(dir));
+						if (Board_helper::IsChorenB(move_pattern)) {
+							cho_ren_flg = true;
+							break;
+						}
+						size_t s4s, s4n, s3;
+						std::tie(s4s, s4n, s3) = CountRenB2(move_pattern, p, static_cast<Direction>(dir), block_position);
+						sum_4_strong += s4s;
+						sum_4_normal += s4n;
+						sum_3 += s3;
+					}
+					if (cho_ren_flg || sum_4_strong + sum_4_normal >= 2 || sum_3 >= 2) continue;
+					// Shi-ren
+					if (sum_4_strong > 0) return true;
+					// Katsu-Shi or Other move
+					board_[p] = turn;
+					if (sum_4_normal == 1) {
+						if (block_position >= kBoardSize * kBoardSize) {
+							board_[p] = Stone::None;
+							return true;
+						}
+						auto enemy_stone = EnemyTurn(turn);
+						board_[block_position] = enemy_stone;
+						auto result = FindGorenMove(enemy_stone);
+						if (result.second) {
+							board_[block_position] = Stone::None;
+							board_[p] = Stone::None;
+							continue;
+						}
+						auto flg = IsOiteMove(enemy_stone, depth - 1);
+						board_[block_position] = Stone::None;
+						board_[p] = Stone::None;
+						if (!flg) return true;
+					}else{
+						auto flg = IsOiteMove(EnemyTurn(turn), depth - 1);
+						board_[p] = Stone::None;
+						if (!flg) return true;
+					}
+				}
+			}
+		}else{
+			for (size_t y : rep(range[1], range[3])) {
+				for (size_t x : rep(range[0], range[2])) {
+					size_t p = ToPosition(x, y);
+					if (board_[p] != Stone::None) continue;
+					size_t block_position = kBoardSize * kBoardSize;
+					size_t sum_4_strong = 0, sum_4_normal = 0;
+					for (uint8_t dir = 0; dir < Direction::Directions; ++dir) {
+						auto move_pattern = GetPatternW(p, static_cast<Direction>(dir));
+						if (Board_helper::IsChorenW(move_pattern)) return true;
+						size_t s4s, s4n, blk;
+						std::tie(s4s, s4n, blk) = CountRenW2(move_pattern, p, static_cast<Direction>(dir));
+						sum_4_strong += s4s;
+						sum_4_normal += s4n;
+						if (s4n) block_position = blk;
+					}
+					// Shi-ren or Shi-Shi
+					if (sum_4_strong > 0) return true;
+					if (sum_4_normal > 1) return true;
+					// Katsu-Shi or Other move
+					board_[p] = turn;
+					if (sum_4_normal == 1) {
+						if (block_position >= kBoardSize * kBoardSize) {
+							board_[p] = Stone::None;
+							return true;
+						}
+						auto enemy_stone = EnemyTurn(turn);
+						if (!IsValidMove(block_position)) {
+							board_[p] = Stone::None;
+							return true;
+						}
+						board_[block_position] = enemy_stone;
+						auto result = FindGorenMove(enemy_stone);
+						if (result.second) {
+							board_[block_position] = Stone::None;
+							board_[p] = Stone::None;
+							continue;
+						}
+						auto flg = IsOiteMove(enemy_stone, depth - 1);
+						board_[block_position] = Stone::None;
+						board_[p] = Stone::None;
+						if (!flg) return true;
+					}
+					else {
+						auto flg = IsOiteMove(EnemyTurn(turn), depth - 1);
+						board_[p] = Stone::None;
+						if (!flg) return true;
+					}
+				}
+			}
+		}
 		return false;
 	}
 	Result FindOiteMove(const Stone turn, const size_t depth) {
@@ -995,13 +1170,18 @@ class Board {
 						sum_3 += s3;
 					}
 					if (cho_ren_flg || sum_4_strong + sum_4_normal >= 2 || sum_3 >= 2) continue;
+					// Shi-ren
 					if (sum_4_strong > 0) return Result(p, true);
-					if (sum_4_normal == 1) {
-						board_[p] = Stone::Black;
-						auto score = IsShioiMove(Stone::Black, block_position, depth);
+					// Other Oite
+					board_[p] = Stone::Black;
+					auto result = FindShioiMove(turn, kShioiDepth2);
+					if (result.second) {
+						auto flg = IsBlockMove(Stone::White, depth);
 						board_[p] = Stone::None;
-						if (score) return Result(p, true);
-						continue;
+						if(!flg) return Result(p, true);
+					}
+					else {
+						board_[p] = Stone::None;
 					}
 				}
 			}
@@ -1022,14 +1202,19 @@ class Board {
 						sum_4_normal += s4n;
 						if (s4n) block_position = blk;
 					}
+					// Shi-ren or Shi-Shi
 					if (sum_4_strong > 0) return Result(p, true);
 					if (sum_4_normal > 1) return Result(p, true);
-					if (sum_4_normal == 1) {
-						board_[p] = Stone::White;
-						auto score = IsShioiMove(Stone::White, block_position, depth);
+					// Other Oite
+					board_[p] = Stone::White;
+					auto result = FindShioiMove(turn, kShioiDepth2);
+					if (result.second) {
+						auto flg = IsBlockMove(Stone::Black, depth);
 						board_[p] = Stone::None;
-						if (score) return Result(p, true);
-						continue;
+						if (!flg) return Result(p, true);
+					}
+					else {
+						board_[p] = Stone::None;
 					}
 				}
 			}
