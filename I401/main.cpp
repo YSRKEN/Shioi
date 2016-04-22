@@ -303,7 +303,7 @@ class Board {
 	bool MatchPatternB(const Pattern &pattern, const size_t position, const Direction dir, const Side side, const array<PackedStone, 1>& s1) const noexcept {
 		return (
 			kIterateTable[position][dir][side] >= s1[0].size() && pattern[side][s1[0].size()] == (s1[0] | Stone::None)
-			&& /*kIterateTable[position][dir][!side] >= 1 &&*/ pattern[!side][0] == Stone::None
+			&& pattern[!side][0] == Stone::None
 			);
 	}
 	bool MatchPatternW(const Pattern &pattern, const size_t position, const Direction dir, const array<PackedStone, 2>& s1) const noexcept {
@@ -857,7 +857,6 @@ class Board {
 				}
 				if (cho_ren_flg || sum_4_strong + sum_4_normal >= 2 || sum_3 >= 2) continue;
 				if (sum_4_strong > 0) {
-					//PutBoard();
 					board_[block_position] = Stone::None;
 					return true;
 				}
@@ -866,7 +865,6 @@ class Board {
 					auto score = IsShioiMove(Stone::Black, block_position2, depth - 1);
 					board_[p] = Stone::None;
 					if (score) {
-						//PutBoard();
 						board_[block_position] = Stone::None;
 						return true;
 					}
@@ -878,7 +876,6 @@ class Board {
 				size_t sum_4_strong = 0, sum_4_normal = 0;
 				for (uint8_t dir = 0; dir < Direction::Directions; ++dir) {
 					auto move_pattern = GetPatternW(p, static_cast<Direction>(dir));
-					//auto ren_count = CountRenW2(move_pattern, p, static_cast<Direction>(dir));
 					if (Board_helper::IsChorenW(move_pattern)) return true;
 					size_t s4s, s4n, blk;
 					std::tie(s4s, s4n, blk) = CountRenW2(move_pattern, p, static_cast<Direction>(dir));
@@ -887,7 +884,6 @@ class Board {
 					if (s4n) block_position2 = blk;
 				}
 				if (sum_4_strong > 0 || sum_4_normal > 1) {
-					//PutBoard();
 					board_[block_position] = Stone::None;
 					return true;
 				}
@@ -896,7 +892,6 @@ class Board {
 					auto score = IsShioiMove(Stone::White, block_position2, depth - 1);
 					board_[p] = Stone::None;
 					if (score) {
-						//PutBoard();
 						board_[block_position] = Stone::None;
 						return true;
 					}
@@ -931,13 +926,6 @@ class Board {
 						sum_4_normal += s4n;
 						sum_3 += s3;
 					}
-					/*if (p == 4) {
-						// 棋譜：b1,f5,c1,c5,d1,**,
-						auto move_pattern2 = GetPatternB(p, Direction::Row);
-						PutBoard();
-						auto hoge = CountRenB2(move_pattern2, p, Direction::Row, block_position);
-						continue;
-					}*/
 					if (cho_ren_flg || sum_4_strong + sum_4_normal >= 2 || sum_3 >= 2) continue;
 					if (sum_4_strong > 0) return Result(p, true);
 					if (sum_4_normal == 1) {
@@ -958,7 +946,6 @@ class Board {
 					size_t sum_4_strong = 0, sum_4_normal = 0;
 					for (uint8_t dir = 0; dir < Direction::Directions; ++dir) {
 						auto move_pattern = GetPatternW(p, static_cast<Direction>(dir));
-						//auto ren_count = CountRenW2(move_pattern, p, static_cast<Direction>(dir));
 						if (Board_helper::IsChorenW(move_pattern)) return Result(p, true);
 						size_t s4s, s4n, blk;
 						std::tie(s4s, s4n, blk) = CountRenW2(move_pattern, p, static_cast<Direction>(dir));
@@ -969,7 +956,6 @@ class Board {
 					if (sum_4_strong > 0) return Result(p, true);
 					if (sum_4_normal > 1) return Result(p, true);
 					if (sum_4_normal == 1) {
-						//auto move_pattern = GetPatternW(p, Direction::DiagR);
 						board_[p] = Stone::White;
 						auto score = IsShioiMove(Stone::White, block_position, depth);
 						board_[p] = Stone::None;
@@ -987,12 +973,72 @@ class Board {
 		return false;
 	}
 	Result FindOiteMove(const Stone turn, const size_t depth) {
-
+		auto range = GetRange();
+		if (turn == Stone::Black) {
+			for (size_t y : rep(range[1], range[3])) {
+				for (size_t x : rep(range[0], range[2])) {
+					size_t p = ToPosition(x, y);
+					if (board_[p] != Stone::None) continue;
+					bool cho_ren_flg = false;
+					size_t sum_4_strong = 0, sum_4_normal = 0, sum_3 = 0;
+					size_t block_position = kBoardSize * kBoardSize;
+					for (uint8_t dir = 0; dir < Direction::Directions; ++dir) {
+						auto move_pattern = GetPatternB(p, static_cast<Direction>(dir));
+						if (Board_helper::IsChorenB(move_pattern)) {
+							cho_ren_flg = true;
+							break;
+						}
+						size_t s4s, s4n, s3;
+						std::tie(s4s, s4n, s3) = CountRenB2(move_pattern, p, static_cast<Direction>(dir), block_position);
+						sum_4_strong += s4s;
+						sum_4_normal += s4n;
+						sum_3 += s3;
+					}
+					if (cho_ren_flg || sum_4_strong + sum_4_normal >= 2 || sum_3 >= 2) continue;
+					if (sum_4_strong > 0) return Result(p, true);
+					if (sum_4_normal == 1) {
+						board_[p] = Stone::Black;
+						auto score = IsShioiMove(Stone::Black, block_position, depth);
+						board_[p] = Stone::None;
+						if (score) return Result(p, true);
+						continue;
+					}
+				}
+			}
+		}
+		else {
+			for (size_t y : rep(range[1], range[3])) {
+				for (size_t x : rep(range[0], range[2])) {
+					size_t p = ToPosition(x, y);
+					if (board_[p] != Stone::None) continue;
+					size_t block_position = kBoardSize * kBoardSize;
+					size_t sum_4_strong = 0, sum_4_normal = 0;
+					for (uint8_t dir = 0; dir < Direction::Directions; ++dir) {
+						auto move_pattern = GetPatternW(p, static_cast<Direction>(dir));
+						if (Board_helper::IsChorenW(move_pattern)) return Result(p, true);
+						size_t s4s, s4n, blk;
+						std::tie(s4s, s4n, blk) = CountRenW2(move_pattern, p, static_cast<Direction>(dir));
+						sum_4_strong += s4s;
+						sum_4_normal += s4n;
+						if (s4n) block_position = blk;
+					}
+					if (sum_4_strong > 0) return Result(p, true);
+					if (sum_4_normal > 1) return Result(p, true);
+					if (sum_4_normal == 1) {
+						board_[p] = Stone::White;
+						auto score = IsShioiMove(Stone::White, block_position, depth);
+						board_[p] = Stone::None;
+						if (score) return Result(p, true);
+						continue;
+					}
+				}
+			}
+		}
 		return Result(0, false);
 	}
 	// Get Range(for Prospective pruning)
 	array<size_t, 4> GetRange() const noexcept {
-		//                        left,       top,    right, bottom
+		//                       left,       top,    right, bottom
 		array<size_t, 4> range{{ kBoardSize, kBoardSize, 0, 0 }};
 		//外接四角形を求める
 		for (size_t y : rep(kBoardSize)) {
@@ -1229,15 +1275,6 @@ class Board {
 						auto move_pattern = GetPatternB(p, static_cast<Direction>(dir));
 						if (Board_helper::IsChorenB(move_pattern)) {
 							cho_ren_flg = true;
-							//auto p5 = Stone::Black**5_pack;
-							//auto p4 = Stone::Black**4_pack;
-							//auto p3 = p::bbb;
-							//auto p2 = p::bb;
-							//auto q5 = move_pattern[Side::Right][4];
-							//auto q4 = move_pattern[Side::Right][3];
-							//auto q3 = move_pattern[Side::Right][2];
-							//auto q2 = move_pattern[Side::Right][1];
-							//auto q1 = move_pattern[Side::Right][0];
 							break;
 						}
 						size_t s4s, s4n, s3;
@@ -1487,9 +1524,6 @@ public:
 	}
 	// Test Code
 	void Test() {
-		//size_t p1 = StringToPosition("dA"), p2 = StringToPosition("eA");
-		//auto result = FindShioiMove(turn_, kShioiDepth1);
-		//int x = 1;
 		return;
 	}
 };
