@@ -63,12 +63,15 @@ artifacts/
 *.tmp
 *.tmp_proj
 *.log
+*.tlog
+*.exe
 *.vspscc
 *.vssscc
 .builds
 *.pidb
 *.svclog
 *.scc
+*.lastbuildstate
 
 # Chutzpah Test files
 _Chutzpah*
@@ -180,6 +183,8 @@ BundleArtifacts/
 !*.[Cc]ache/
 
 # Others
+sql/
+*.Cache
 ClientBin/
 [Ss]tyle[Cc]op.*
 ~$*
