@@ -320,7 +320,7 @@ namespace packed_stone{
 	constexpr PS wnww = Stone::White | Stone::None | ww;
 	constexpr PS nbbn = Stone::None | bb | Stone::None;
 	constexpr PS bnbn = Stone::Black | Stone::None | Stone::Black | Stone::None;
-	constexpr PS bbnn = ww | nn;
+	constexpr PS bbnn = bb | nn;
 	constexpr PS wwwn = www | Stone::None;
 	constexpr PS nwww = Stone::None | www;
 	constexpr PS wnwn = Stone::White | Stone::None | Stone::White | Stone::None;

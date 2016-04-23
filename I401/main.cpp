@@ -295,6 +295,8 @@ class Board {
 		return (pattern[side][0] == Stone::None);
 	}
 	bool MatchPatternB(const Pattern &pattern, const size_t position, const Direction dir, const array<PackedStone, 2>& s1) const noexcept {
+		//auto hoge1 = (s1[Side::Left] | Stone::None);
+		//auto hoge2 = (s1[Side::Right] | Stone::None);
 		return (
 			kIterateTable[position][dir][Side::Left] >= s1[Side::Left].size() && pattern[Side::Left][s1[Side::Left].size()] == (s1[Side::Left] | Stone::None)
 			&& kIterateTable[position][dir][Side::Right] >= s1[Side::Right].size() && pattern[Side::Right][s1[Side::Right].size()] == (s1[Side::Right] | Stone::None)
@@ -1153,6 +1155,7 @@ class Board {
 			for (size_t y : rep(range[1], range[3])) {
 				for (size_t x : rep(range[0], range[2])) {
 					size_t p = ToPosition(x, y);
+					//p = StringToPosition("g9");
 					if (board_[p] != Stone::None) continue;
 					bool cho_ren_flg = false;
 					size_t sum_4_strong = 0, sum_4_normal = 0, sum_3 = 0;
@@ -1169,6 +1172,15 @@ class Board {
 						sum_4_normal += s4n;
 						sum_3 += s3;
 					}
+					/*if (p == StringToPosition("g9")) {
+						auto move_pattern1 = GetPatternB(p, Direction::Column);
+						size_t block_position1 = kBoardSize * kBoardSize;
+						size_t block_position2 = kBoardSize * kBoardSize;
+						auto count1 = CountRenB2(move_pattern1, p, Direction::Column, block_position1);
+						auto move_pattern2 = GetPatternB(p, Direction::DiagL);
+						auto count2 = CountRenB2(move_pattern2, p, Direction::DiagL, block_position2);
+						continue;
+					}*/
 					if (cho_ren_flg || sum_4_strong + sum_4_normal >= 2 || sum_3 >= 2) continue;
 					// Shi-ren
 					if (sum_4_strong > 0) return Result(p, true);
@@ -1709,6 +1721,7 @@ public:
 	}
 	// Test Code
 	void Test() {
+		auto result = FindOiteMove(turn_, kOiteDepth1);
 		return;
 	}
 };
@@ -1731,7 +1744,7 @@ int main(int argc, char *argv[]) {
 	}
 	try {
 		Board board(argv[1], argv[2]);
-//		board.Test();
+		//board.Test();
 		book = BookDB("book.csv");
 		const int depth = argv[3] | to_i() | max(0);
 		const bool is_debug = (5 <= argc && 0 == std::strcmp("--debug", argv[4]));
