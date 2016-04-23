@@ -1085,14 +1085,16 @@ class Board {
 							board_[p] = Stone::None;
 							continue;
 						}
+						result = FindShioiMove(EnemyTurn(turn), kShioiDepth2);
 						auto flg = IsOiteMove(enemy_stone, depth - 1);
 						board_[block_position] = Stone::None;
 						board_[p] = Stone::None;
-						if (!flg) return true;
+						if (!flg && !result.second) return true;
 					}else{
+						auto result = FindShioiMove(EnemyTurn(turn), kShioiDepth2);
 						auto flg = IsOiteMove(EnemyTurn(turn), depth - 1);
 						board_[p] = Stone::None;
-						if (!flg) return true;
+						if (!flg && !result.second) return true;
 					}
 				}
 			}
@@ -1105,7 +1107,9 @@ class Board {
 					size_t sum_4_strong = 0, sum_4_normal = 0;
 					for (uint8_t dir = 0; dir < Direction::Directions; ++dir) {
 						auto move_pattern = GetPatternW(p, static_cast<Direction>(dir));
-						if (Board_helper::IsChorenW(move_pattern)) return true;
+						if (Board_helper::IsChorenW(move_pattern)) {
+							return true;
+						}
 						size_t s4s, s4n, blk;
 						std::tie(s4s, s4n, blk) = CountRenW2(move_pattern, p, static_cast<Direction>(dir));
 						sum_4_strong += s4s;
@@ -1113,8 +1117,12 @@ class Board {
 						if (s4n) block_position = blk;
 					}
 					// Shi-ren or Shi-Shi
-					if (sum_4_strong > 0) return true;
-					if (sum_4_normal > 1) return true;
+					if (sum_4_strong > 0) {
+						return true;
+					}
+					if (sum_4_normal > 1) {
+						return true;
+					}
 					// Katsu-Shi or Other move
 					board_[p] = turn;
 					if (sum_4_normal == 1) {
@@ -1134,15 +1142,21 @@ class Board {
 							board_[p] = Stone::None;
 							continue;
 						}
+						result = FindShioiMove(enemy_stone, kShioiDepth2);
 						auto flg = IsOiteMove(enemy_stone, depth - 1);
 						board_[block_position] = Stone::None;
 						board_[p] = Stone::None;
-						if (!flg) return true;
+						if (!flg && !result.second){
+							return true;
+						}
 					}
 					else {
+						auto result = FindShioiMove(EnemyTurn(turn), kShioiDepth2);
 						auto flg = IsOiteMove(EnemyTurn(turn), depth - 1);
 						board_[p] = Stone::None;
-						if (!flg) return true;
+						if (!flg && !result.second) {
+							return true;
+						}
 					}
 				}
 			}
@@ -1155,7 +1169,7 @@ class Board {
 			for (size_t y : rep(range[1], range[3])) {
 				for (size_t x : rep(range[0], range[2])) {
 					size_t p = ToPosition(x, y);
-					//p = StringToPosition("g9");
+					//p = StringToPosition("f8");
 					if (board_[p] != Stone::None) continue;
 					bool cho_ren_flg = false;
 					size_t sum_4_strong = 0, sum_4_normal = 0, sum_3 = 0;
@@ -1172,7 +1186,7 @@ class Board {
 						sum_4_normal += s4n;
 						sum_3 += s3;
 					}
-					/*if (p == StringToPosition("g9")) {
+					/*if (p == StringToPosition("f8")) {
 						auto move_pattern1 = GetPatternB(p, Direction::Column);
 						size_t block_position1 = kBoardSize * kBoardSize;
 						size_t block_position2 = kBoardSize * kBoardSize;
