@@ -1091,7 +1091,12 @@ class Board {
 						board_[p] = Stone::None;
 						if (!flg && !result.second) return true;
 					}else{
-						auto result = FindShioiMove(EnemyTurn(turn), kShioiDepth2);
+						auto result = FindShioiMove(turn, kShioiDepth2);
+						if (result.second) {
+							board_[p] = Stone::None;
+							return true;
+						}
+						result = FindShioiMove(EnemyTurn(turn), kShioiDepth2);
 						auto flg = IsOiteMove(EnemyTurn(turn), depth - 1);
 						board_[p] = Stone::None;
 						if (!flg && !result.second) return true;
@@ -1151,7 +1156,12 @@ class Board {
 						}
 					}
 					else {
-						auto result = FindShioiMove(EnemyTurn(turn), kShioiDepth2);
+						auto result = FindShioiMove(turn, kShioiDepth2);
+						if (result.second) {
+							board_[p] = Stone::None;
+							return true;
+						}
+						result = FindShioiMove(EnemyTurn(turn), kShioiDepth2);
 						auto flg = IsOiteMove(EnemyTurn(turn), depth - 1);
 						board_[p] = Stone::None;
 						if (!flg && !result.second) {
