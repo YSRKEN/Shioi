@@ -1030,15 +1030,17 @@ class Board {
 					if (sum_4_strong > 0) return true;
 					if (sum_4_normal > 1) return true;
 					// Other Oite
-					board_[p] = Stone::White;
-					auto result = FindShioiMove(turn, kShioiDepth2);
-					if (result.second) {
-						auto flg = IsBlockMove(Stone::Black, depth);
-						board_[p] = Stone::None;
-						if (!flg) return true;
-					}
-					else {
-						board_[p] = Stone::None;
+					if (depth > 0) {
+						board_[p] = Stone::White;
+						auto result = FindShioiMove(turn, kShioiDepth2);
+						if (result.second) {
+							auto flg = IsBlockMove(Stone::Black, depth);
+							board_[p] = Stone::None;
+							if (!flg) return true;
+						}
+						else {
+							board_[p] = Stone::None;
+						}
 					}
 				}
 			}
@@ -1086,10 +1088,10 @@ class Board {
 							continue;
 						}
 						result = FindShioiMove(EnemyTurn(turn), kShioiDepth2);
-						auto flg = IsOiteMove(enemy_stone, depth - 1);
+						//auto flg = IsOiteMove(enemy_stone, depth - 1);
 						board_[block_position] = Stone::None;
 						board_[p] = Stone::None;
-						if (!flg && !result.second) return true;
+						if (/*!flg &&*/ !result.second) return true;
 					}else{
 						auto result = FindShioiMove(turn, kShioiDepth2);
 						if (result.second) {
@@ -1097,9 +1099,9 @@ class Board {
 							return true;
 						}
 						result = FindShioiMove(EnemyTurn(turn), kShioiDepth2);
-						auto flg = IsOiteMove(EnemyTurn(turn), depth - 1);
+						//auto flg = IsOiteMove(EnemyTurn(turn), depth - 1);
 						board_[p] = Stone::None;
-						if (!flg && !result.second) return true;
+						if (/*!flg &&*/ !result.second) return true;
 					}
 				}
 			}
@@ -1148,10 +1150,10 @@ class Board {
 							continue;
 						}
 						result = FindShioiMove(enemy_stone, kShioiDepth2);
-						auto flg = IsOiteMove(enemy_stone, depth - 1);
+						//auto flg = IsOiteMove(enemy_stone, depth - 1);
 						board_[block_position] = Stone::None;
 						board_[p] = Stone::None;
-						if (!flg && !result.second){
+						if (/*!flg &&*/ !result.second){
 							return true;
 						}
 					}
@@ -1162,9 +1164,9 @@ class Board {
 							return true;
 						}
 						result = FindShioiMove(EnemyTurn(turn), kShioiDepth2);
-						auto flg = IsOiteMove(EnemyTurn(turn), depth - 1);
+						//auto flg = IsOiteMove(EnemyTurn(turn), depth - 1);
 						board_[p] = Stone::None;
-						if (!flg && !result.second) {
+						if (/*!flg &&*/ !result.second) {
 							return true;
 						}
 					}
@@ -1460,22 +1462,29 @@ class Board {
 	}
 	int CalcScore(const size_t position, const Stone turn) {
 		int score = 0;
-		size_t px = position % kBoardSize, py = position / kBoardSize;
-		array<size_t, 4> range;
-		if (px <= 2) range[0] = 0; else range[0] = px - 2;
-		if (py <= 2) range[1] = 0; else range[1] = py - 2;
-		if (px + 2 >= kBoardSize) range[2] = kBoardSize - 1; else range[2] = px + 2;
-		if (py + 2 >= kBoardSize) range[3] = kBoardSize - 1; else range[3] = py + 2;
-		for (size_t y : rep(range[1], range[3])) {
-			for (size_t x : rep(range[0], range[2])) {
-				size_t p = ToPosition(x, y);
-				if (board_[p] == Stone::None || p == position) continue;
-				int dist = std::max(std::abs(static_cast<int>(x) - static_cast<int>(px)), std::abs(static_cast<int>(y) - static_cast<int>(py)));
-				if (board_[p] == turn) {
-					score += (3 - dist) * 2;
-				}else{
-					score += 3 - dist;
+		for (uint8_t dir = 0; dir < Direction::Directions; ++dir) {
+			if (kIterateTable[position][dir][Side::Left] < 1 || kIterateTable[position][dir][Side::Right] < 1) continue;
+			Pattern move_pattern = (turn == Stone::Black ? GetPatternB(position, static_cast<Direction>(dir)) : GetPatternW(position, static_cast<Direction>(dir)));
+			size_t length = 0;
+			bool flg1[] = { false, false };
+			for (auto it : { Side::Left, Side::Right }) {
+				if (move_pattern[it][0] != turn) {
+					flg1[it] = (move_pattern[it][0] == Stone::None);
+					continue;
 				}
+				PackedStone match = turn;
+				for (size_t k = 1; k < kIterateTable[position][dir][it] - 1; ++k) {
+					if (move_pattern[it][k] != (match | turn)) {
+						flg1[it] = (move_pattern[it][k] == match | Stone::None);
+						length += k;
+						break;
+					}
+					match = turn | match;
+				}
+			}
+			if (length < 4) {
+				size_t cnt = ((flg1[Side::Left] ? 1 : 0) + (flg1[Side::Right] ? 1 : 0));
+				score += length * length * cnt * cnt;
 			}
 		}
 		return score;
