@@ -17,7 +17,11 @@ Z字形に走査する格好である。つまり、天元は112、盤面右下�
 「A1,A2,...,An,B」
 「A1,A2,...,An,B,C」
 「A1,A2,...,An,B,C,D」
-・添付した定石データは、伊達五目(http://www.vector.co.jp/soft/win95/game/se067096.html)
+
+○情報ソース
+・1～8837行目は伊達五目(http://www.vector.co.jp/soft/win95/game/se067096.html)
 から拝借した。元のフォーマットでは指し手数毎にファイルを変えていたが、
 却って分かりづらいので1ファイルにまとめたものになる。
 http://hp.vector.co.jp/authors/VA009422/adb_format_draft2.html
+・8838～行目は連珠五珠二カ所指定打ち着所ガイド(http://www4.tokai.or.jp/hamamatsurenju/renju5.htm)
+から拝借した。上記ルール上、白も黒も「自分が不利にならない場所」に打つようにしている。
