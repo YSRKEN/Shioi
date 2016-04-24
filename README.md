@@ -1,6 +1,7 @@
 # Shioi
 
 [![Build Status](https://travis-ci.org/YSRKEN/Shioi.svg?branch=master)](https://travis-ci.org/YSRKEN/Shioi)
+
 ## Abstract
 Shioi is renju player and solver by C++ and C#.
 
@@ -44,6 +45,7 @@ http://www.vector.co.jp/soft/win95/game/se169850.html
 ## Version History
 |Version|Information|
 |-------|-----------|
+|0.8.0|add Oi-tsume(Light) and change CalcScore()|
 |0.7.0|add Book(book.csv)|
 |0.6.0|rewrite CPU routine, update GUI|
 |0.5.0|Optimize computing speed|
@@ -104,6 +106,7 @@ http://www.vector.co.jp/soft/win95/game/se169850.html
 ## 更新履歴
 |Version|Information|
 |-------|-----------|
+|0.8.0|初歩的な追い詰めルーチンを追加した。また、先読み時の思考ルーチンを変更した|
 |0.7.0|定石データベースを追加、参照するようにした(book.csvがそれ)
 |0.6.0|コンピューターを全面的に書き換え、GUIも改善させた|
 |0.5.0|コンピューターの思考速度を大幅に向上させた|
