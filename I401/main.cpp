@@ -1482,7 +1482,7 @@ class Board {
 					match = turn | match;
 				}
 			}
-			if (length < 4) {
+			if (length < 3) {
 				size_t cnt = ((flg1[Side::Left] ? 1 : 0) + (flg1[Side::Right] ? 1 : 0));
 				score += length * length * cnt * cnt;
 			}
@@ -1754,7 +1754,7 @@ public:
 	}
 	// Test Code
 	void Test() {
-		auto result = FindOiteMove(turn_, kOiteDepth1);
+		auto result = FindNormalMove(0, true);
 		return;
 	}
 };
