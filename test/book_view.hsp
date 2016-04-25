@@ -1,0 +1,156 @@
+#packopt name "book_view"
+#const kFontSize 20
+#const kBoardSize 15
+#const kTextBoxHeight 20
+
+notesel text_buffer
+noteload "..\\book.csv"
+
+sdim list_key, 256, 10000
+sdim list_val, 256, 10000
+list_size = 0
+repeat notemax
+	if(time != gettime(6)){
+		title "" + (cnt + 1) + "/" + notemax
+		await 5
+		time = gettime(6)
+	}
+	noteget get, cnt
+	split get, ",", temp
+	list_key_temp = ""
+	for k, 0, length(temp) - 1
+		list_key_temp += "" + temp(k) + ","
+	next
+	flg = 0
+	for k, 0, list_size
+		if(list_key(k) == list_key_temp){
+			list_val(k) += "" + temp(length(temp) - 1) + ","
+			flg = 1
+			_break
+		}
+	next
+	if(flg == 0){
+		list_key(list_size) = list_key_temp
+		list_val(list_size) += "" + temp(length(temp) - 1) + ","
+		list_size++
+	}
+	dim temp, 1
+loop
+
+dim move, kBoardSize * kBoardSize
+move_ptr = 0
+
+screen 0, kFontSize * kBoardSize, kFontSize * kBoardSize + kTextBoxHeight
+title "book viewer"
+pos 0, kFontSize * kBoardSize
+move_str_log = ""
+input move_str_log, kFontSize * kBoardSize, kTextBoxHeight
+gosub *draw_board
+while
+	stick key
+	if(key & 256){
+		x = mousex / kFontSize
+		y = mousey / kFontSize
+		if(y >= kBoardSize) :_continue
+		flg = 0
+		for k, 0, move_ptr
+			if(move(k) == x + y * kBoardSize){
+				flg = 1
+				_break
+			}
+		next
+		if(flg == 1) :_continue
+		move(move_ptr) = x + y * kBoardSize
+		move_ptr++
+		gosub *draw_board
+	}
+	if(key & 512){
+		move_ptr = limit(move_ptr - 1, 0, kBoardSize * kBoardSize - 1)
+		gosub *draw_board
+	}
+	wait 5
+wend
+
+*draw_board
+	redraw 0
+		// clear board
+		color 255, 255, 255
+		boxf
+		// write board
+		color
+		font msgothic, kFontSize
+		for y, 0, kBoardSize
+			for x, 0, kBoardSize
+				pos x * kFontSize, y * kFontSize
+				// corner
+				if(x ==  0 && y ==  0) :mes "Ñ°" :_continue
+				if(x ==  0 && y == 14) :mes "Ñ§" :_continue
+				if(x == 14 && y ==  0) :mes "Ñ¢" :_continue
+				if(x == 14 && y == 14) :mes "Ñ£" :_continue
+				// side
+				if(x ==  0) :mes "Ñ•" :_continue
+				if(y ==  0) :mes "Ñ¶" :_continue
+				if(x == 14) :mes "Ñß" :_continue
+				if(y == 14) :mes "Ñ®" :_continue
+				// star
+				if(x ==  7 && y ==  7) :mes "Ñ¥" :_continue
+				if(x ==  3 && y ==  3) :mes "Ñ¥" :_continue
+				if(x ==  3 && y == 11) :mes "Ñ¥" :_continue
+				if(x == 11 && y ==  3) :mes "Ñ¥" :_continue
+				if(x == 11 && y == 11) :mes "Ñ¥" :_continue
+				mes "Ñ©"
+			next
+		next
+		// write move hands
+		for k, 0, move_ptr
+			x = move(k) \ kBoardSize
+			y = move(k) / kBoardSize
+			pos x * kFontSize, y * kFontSize
+			if(k \ 2 == 0){
+				color
+				mes "Åú"
+			}else{
+				color 255, 255, 255
+				mes "Åú"
+				color
+				pos x * kFontSize, y * kFontSize
+				mes "Åõ"
+			}
+		next
+		// show book
+		list_key_temp = ""
+		for k, 0, move_ptr
+			list_key_temp += "" + move(k) + ","
+		next
+		move_str_log = list_key_temp
+		objprm 0, move_str_log
+		sdim book, 256
+		book_size = 0
+		for k, 0, list_size
+			if(list_key(k) == list_key_temp){
+				split list_val(k), ",", book
+				book_size = length(book) - 1
+				_break
+			}
+		next
+		if(book_size != 0){
+			font msgothic, kFontSize, 1
+			for k, 0, book_size
+				book_pos = int(book(k))
+				x = book_pos \ kBoardSize
+				y = book_pos / kBoardSize
+				pos x * kFontSize, y * kFontSize
+				if(move_ptr \ 2 == 0){
+					color 255, 0, 0
+					mes "Åú"
+				}else{
+					color 0, 0, 255
+					mes "Åú"
+					color 255, 0, 0
+					pos x * kFontSize, y * kFontSize
+					mes "Åõ"
+				}
+			next
+		}
+	redraw 1
+return
