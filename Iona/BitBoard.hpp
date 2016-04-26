@@ -1,4 +1,4 @@
-/* –½—ßˆê——F
+/* –½—ßˆê——(https://software.intel.com/sites/landingpage/IntrinsicsGuide/#techs=AVX2)F
 vpabsw
 __m256i _mm256_abs_epi16 (__m256i a)
 vpabsd
