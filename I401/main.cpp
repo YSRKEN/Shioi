@@ -1769,7 +1769,7 @@ int main(int argc, char *argv[]) {
 			<< "depth          : depth of thinking" << endl
 			<< R"(--debug(opt)   : put debug info to std::err if this string is "--debug")" << endl
 			<< endl
-			<< "stone or blank : black(*), white(O), blank(-)" << endl
+			<< "stone or blank : black(B), white(W), blank(N)" << endl
 			<< "return value   : " << endl
 			<< R"(    When you specify "--debug", return >=0[move] | -1[can't move] | -2[give up].)" << endl
 			<< "    On the other case, return 0[no error] or -1[error]" << endl;
