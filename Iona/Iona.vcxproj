@@ -151,6 +151,9 @@
   <ItemGroup>
     <ClInclude Include="BitBoard.hpp" />
     <ClInclude Include="Board.hpp" />
+    <ClInclude Include="constant.hpp" />
+    <ClInclude Include="misc_functions.hpp" />
+    <ClInclude Include="types.hpp" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

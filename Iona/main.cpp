@@ -12,6 +12,7 @@ using std::cout;
 using std::endl;
 
 /**
+* @fn main
 * @brief main function
 * @param argc argument's count
 * @param argv argument's value
