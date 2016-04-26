@@ -46,10 +46,12 @@ struct BitBoard {
 	* ~english	@brief Set "1" to bit of position in BitBoard
 	*/
 	bool GetBit(const size_t position) const noexcept {
-		auto temp = board_ & kPositionArray[position];
+		/*auto temp = board_ & kPositionArray[position];
 		auto temp2 = (temp == kPackedZero);
 		auto temp3 = _mm256_movemask_epi8(temp2);
-		return (temp3 != 0xFFFFFFFF);
+		return (temp3 != 0xFFFFFFFF);*/
+		auto temp = _mm256_testz_si256(board_, kPositionArray[position]);
+		return (temp == 0);
 	}
 	/**
 	* @fn SetBit
