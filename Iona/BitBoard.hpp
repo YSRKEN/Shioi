@@ -1,4 +1,26 @@
-/* ���߈ꗗ(https://software.intel.com/sites/landingpage/IntrinsicsGuide/#techs=AVX2)�F
+﻿/**
+* @file BitBoard.hpp
+* @brief ピットボードをAVX2で定義する
+* @author YSR
+* @date 2016/04/26
+*/
+
+#include<cstdint>
+#include<immintrin.h>
+
+/**
+* @class
+* @brief BitBoard class for game board
+*/
+struct BitBoard {
+	union
+	{
+		__m256i board_;
+		uint16_t line_[16];
+	};
+};
+
+/* 命令一覧(https://software.intel.com/sites/landingpage/IntrinsicsGuide/#techs=AVX2)：
 vpabsw
 __m256i _mm256_abs_epi16 (__m256i a)
 vpabsd
