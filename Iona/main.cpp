@@ -6,6 +6,7 @@
 */
 
 #include<iostream>
+#include"BitBoard.hpp"
 #include"Board.hpp"
 
 using std::cout;
@@ -36,6 +37,7 @@ int main(int argc, char *argv[]) {
 		return -1;
 	}
 	try {
+		BitBoard::Initialize();
 		/**
 		* Calc next move
 		*/

@@ -67,7 +67,6 @@ public:
 	* @detail Reset data of board for Renju game
 	*/
 	Board(const char board_text[], const char turn_text[]) {
-		BitBoard::Initialize();
 		// Read board_text
 		if (strlen(board_text) < kAllBoardSize) {
 			throw std::invalid_argument("Too short board-text size!");
@@ -103,6 +102,9 @@ public:
 		return;
 	}
 	void NextMove() {
+		for (auto &position : kPositionArray) {
+
+		}
 		cout << "-1" << endl;	//! dummy
 	}
 };
