@@ -102,4 +102,7 @@ public:
 		}
 		return;
 	}
+	void NextMove() {
+		cout << "-1" << endl;	//! dummy
+	}
 };
