@@ -22,7 +22,13 @@ __m256i kPositionArray[kAllBoardSize];
 */
 __m256i operator | (const __m256i a, const __m256i b) noexcept {return _mm256_or_si256(a, b);}
 __m256i operator & (const __m256i a, const __m256i b) noexcept {return _mm256_and_si256(a, b);}
-__m256i operator == (const __m256i a, const __m256i b) noexcept { return _mm256_cmpeq_epi64(a, b); }
+bool operator == (const __m256i a, const __m256i b) noexcept {
+	/*auto temp = a & b;
+	auto temp2 = _mm256_cmpeq_epi64(temp, kPackedZero);
+	auto temp3 = _mm256_movemask_epi8(temp2);
+	return (temp3 != 0xFFFFFFFF);*/
+	return (_mm256_testz_si256(a, b) == 0);
+}
 /**
 * @class BitBoard
 * @brief BitBoard class for game board
@@ -46,12 +52,7 @@ struct BitBoard {
 	* ~english	@brief Set "1" to bit of position in BitBoard
 	*/
 	bool GetBit(const size_t position) const noexcept {
-		/*auto temp = board_ & kPositionArray[position];
-		auto temp2 = (temp == kPackedZero);
-		auto temp3 = _mm256_movemask_epi8(temp2);
-		return (temp3 != 0xFFFFFFFF);*/
-		auto temp = _mm256_testz_si256(board_, kPositionArray[position]);
-		return (temp == 0);
+		return (board_ == kPositionArray[position]);
 	}
 	/**
 	* @fn SetBit
