@@ -112,8 +112,8 @@ struct BitBoard {
 	* ~english	@brief Initialize of kPositionArray
 	*/
 	static void Initialize() {
-		for (size_t y = 0; y < kBoardSize; ++y) {
-			for (size_t x = 0; x < kBoardSize; ++x) {
+		REP(y, kBoardSize){
+			REP(x, kBoardSize) {
 				size_t position = ToPosition(x, y);
 				uint16_t line[sizeof(__m256i) / sizeof(uint16_t)]{};
 				line[y] = 1 << x;

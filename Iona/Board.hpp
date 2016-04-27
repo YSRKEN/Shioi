@@ -8,13 +8,30 @@
 #pragma once
 #include<cstring>
 #include<iostream>
+#include<random>
+#include<vector>
 #include"constant.hpp"
 #include"misc_functions.hpp"
 #include"types.hpp"
+#include"Optional.hpp"
 #include"BitBoard.hpp"
 
 using std::cout;
 using std::endl;
+using std::vector;
+
+//! Definition of random_device
+std::random_device rd;
+//! Definition of pseudo-random generator
+std::mt19937 mt(rd());
+
+/**
+* @fn RandInt
+* @return Integer random number in [0, n)
+*/
+inline size_t RandInt(const size_t n) {
+	return std::uniform_int_distribution<size_t>{0, n - 1}(mt);
+}
 
 /**
 * @class Board
@@ -58,6 +75,28 @@ class Board {
 		if (white_board_.GetBit(position)) return Stone::White;
 		return Stone::None;
 	}
+	/**
+	* @fn IsValidMove
+	* @return true(Valid), false(Invalid)
+	*/
+	bool IsValidMove(const size_t position) {
+		return true;	//! dummy
+	}
+	/**
+	* @fn FindRandomMove
+	* @return Next Move(Random)
+	*/
+	optional<size_t> FindRandomMove() {
+		vector<size_t> list;
+		REP(position, kAllBoardSize) {
+			//! You can only move at Stone::None in Board
+			if (GetStone(position) != Stone::None) continue;
+			if (turn_ == Stone::Black && !IsValidMove(position)) continue;
+			list.push_back(position);
+		}
+		if(list.size() > 0) return optional<size_t>(list[RandInt(list.size())]);
+		return optional<size_t>();
+	}
 public:
 	/**
 	* @fn Board
@@ -71,7 +110,7 @@ public:
 		if (strlen(board_text) < kAllBoardSize) {
 			throw std::invalid_argument("Too short board-text size!");
 		}
-		for (size_t position = 0; position < kAllBoardSize; ++position) {
+		REP(position, kAllBoardSize) {
 			auto stone = ToStone(board_text[position]);
 			SetStone(position, stone);
 		}
@@ -81,8 +120,8 @@ public:
 	* @brief Put text of board for debug
 	*/
 	void PutBoard() const noexcept{
-		for (size_t y = 0; y < kBoardSize; ++y) {
-			for (size_t x = 0; x < kBoardSize; ++x) {
+		REP(y, kBoardSize) {
+			REP(x, kBoardSize) {
 				auto position = ToPosition(x, y);
 				auto stone = GetStone(position);
 				switch (stone) {
@@ -93,7 +132,31 @@ public:
 					cout << "○";
 					break;
 				case Stone::None:
-					cout << "┼";
+					if (position == ToPosition(0, 0)) {
+						cout << "┌";
+					}else if(position == ToPosition(0, kBoardSize - 1)){
+						cout << "└";
+					}else if(position == ToPosition(kBoardSize - 1, 0)){
+						cout << "┐";
+					}else if(position == ToPosition(kBoardSize - 1, kBoardSize - 1)){
+						cout << "┘";
+					}else if (position == ToPosition(3, 3)
+					       || position == ToPosition(3, 11)
+					       || position == ToPosition(11, 3)
+					       || position == ToPosition(11, 11)
+					       || position == ToPosition(7, 7)) {
+						cout << "╋";
+					}else if(x == 0){
+						cout << "├";
+					}else if(x == kBoardSize - 1){
+						cout << "┤";
+					}else if(y == 0){
+						cout << "┬";
+					}else if(y == kBoardSize - 1){
+						cout << "┴";
+					}else{
+						cout << "┼";
+					}
 					break;
 				}
 			}
@@ -101,10 +164,13 @@ public:
 		}
 		return;
 	}
-	void NextMove() {
-		for (auto &position : kPositionArray) {
-
-		}
-		cout << "-1" << endl;	//! dummy
+	/**
+	* @fn NextMove
+	* @brief thinking next move
+	*/
+	int NextMove() {
+		auto result = FindRandomMove();
+		if (result) return *result;
+		return -1;
 	}
 };

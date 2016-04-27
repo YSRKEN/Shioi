@@ -154,6 +154,7 @@
     <ClInclude Include="Board.hpp" />
     <ClInclude Include="constant.hpp" />
     <ClInclude Include="misc_functions.hpp" />
+    <ClInclude Include="Optional.hpp" />
     <ClInclude Include="types.hpp" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
