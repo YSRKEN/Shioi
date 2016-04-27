@@ -449,9 +449,8 @@
 			this.ComType1ComboBox.Items.AddRange(new object[] {
             "Black",
             "Human",
-            "Lv.0",
-            "Lv.1",
-            "Lv.2"});
+            "I401",
+            "Iona"});
 			this.ComType1ComboBox.Location = new System.Drawing.Point(242, 34);
 			this.ComType1ComboBox.Name = "ComType1ComboBox";
 			this.ComType1ComboBox.Size = new System.Drawing.Size(55, 21);
@@ -468,11 +467,10 @@
 			this.ComType2ComboBox.Font = new System.Drawing.Font("MS UI Gothic", 9.75F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(128)));
 			this.ComType2ComboBox.FormattingEnabled = true;
 			this.ComType2ComboBox.Items.AddRange(new object[] {
-            "White",
+            "Black",
             "Human",
-            "Lv.0",
-            "Lv.1",
-            "Lv.2"});
+            "I401",
+            "Iona"});
 			this.ComType2ComboBox.Location = new System.Drawing.Point(303, 34);
 			this.ComType2ComboBox.Name = "ComType2ComboBox";
 			this.ComType2ComboBox.Size = new System.Drawing.Size(55, 21);

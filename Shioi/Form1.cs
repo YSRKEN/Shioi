@@ -312,23 +312,24 @@ namespace Shioi {
 		}
 		private void ComputingNextMove() {
 			var psInfo = new ProcessStartInfo();
-			psInfo.FileName = System.Windows.Forms.Application.StartupPath + @"\I401.exe";
+			if(FormRenju.TurnPlayer() == Stone.Black) {
+				if(ComType1ComboBox.SelectedIndex == 2) {
+					psInfo.FileName = System.Windows.Forms.Application.StartupPath + @"\I401.exe";
+				} else {
+					psInfo.FileName = System.Windows.Forms.Application.StartupPath + @"\Iona.exe";
+				}
+			}
+			else{
+				if(ComType2ComboBox.SelectedIndex == 2) {
+					psInfo.FileName = System.Windows.Forms.Application.StartupPath + @"\I401.exe";
+				} else {
+					psInfo.FileName = System.Windows.Forms.Application.StartupPath + @"\Iona.exe";
+				}
+			}
 			psInfo.CreateNoWindow = true;
 			psInfo.UseShellExecute = false;
 			psInfo.Arguments = FormRenju.GetArgumentString();
-			if(FormRenju.TurnPlayer() == Stone.Black) {
-				if(ComType1ComboBox.SelectedIndex >= 2) {
-					psInfo.Arguments += " " + (ComType1ComboBox.SelectedIndex - 2).ToString();
-				} else {
-					psInfo.Arguments += " 0";
-				}
-			} else {
-				if(ComType2ComboBox.SelectedIndex >= 2) {
-					psInfo.Arguments += " " + (ComType2ComboBox.SelectedIndex - 2).ToString();
-				} else {
-					psInfo.Arguments += " 0";
-				}
-			}
+			psInfo.Arguments += " 0";
 			if(DebugModeMenuItem.CheckState == CheckState.Checked) {
 				psInfo.Arguments += " --debug";
 			}
