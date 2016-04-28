@@ -109,31 +109,36 @@ class Board {
 		}
 		return shift_Pattern;
 	}
+	/**
+	* ~japanese	@brief 長連を起こす石の位置を算出する(黒石用)
+	* ~english	@brief Make position mask of Cho-ren for Stone::Black
+	*/
 	BitBoard CalcChorenMaskB(const ShiftPattern &pattern) {
 		BitBoard choren_mask;
 		REP(dir, Direction::Directions) {
+			BitBoard temp;
 			//! BBBBBX
-			choren_mask |= (pattern[dir][Stone::Black][Side::Left][0] & pattern[dir][Stone::Black][Side::Left][1]
+			choren_mask = choren_mask | (pattern[dir][Stone::Black][Side::Left][0] & pattern[dir][Stone::Black][Side::Left][1]
 				& pattern[dir][Stone::Black][Side::Left][2] & pattern[dir][Stone::Black][Side::Left][3]
 				& pattern[dir][Stone::Black][Side::Left][4]);
 			//! BBBBXB
-			choren_mask |= (pattern[dir][Stone::Black][Side::Left][0] & pattern[dir][Stone::Black][Side::Left][1]
+			choren_mask = choren_mask | (pattern[dir][Stone::Black][Side::Left][0] & pattern[dir][Stone::Black][Side::Left][1]
 				& pattern[dir][Stone::Black][Side::Left][2] & pattern[dir][Stone::Black][Side::Left][3]
 				& pattern[dir][Stone::Black][Side::Right][0]);
 			//! BBBXBB
-			choren_mask |= (pattern[dir][Stone::Black][Side::Left][0] & pattern[dir][Stone::Black][Side::Left][1]
+			choren_mask = choren_mask | (pattern[dir][Stone::Black][Side::Left][0] & pattern[dir][Stone::Black][Side::Left][1]
 				& pattern[dir][Stone::Black][Side::Left][2] & pattern[dir][Stone::Black][Side::Right][0]
 				& pattern[dir][Stone::Black][Side::Right][1]);
 			//! BBXBBB
-			choren_mask |= (pattern[dir][Stone::Black][Side::Left][0] & pattern[dir][Stone::Black][Side::Left][1]
+			choren_mask = choren_mask | (pattern[dir][Stone::Black][Side::Left][0] & pattern[dir][Stone::Black][Side::Left][1]
 				& pattern[dir][Stone::Black][Side::Right][0] & pattern[dir][Stone::Black][Side::Right][1]
 				& pattern[dir][Stone::Black][Side::Right][2]);
 			//! BXBBBB
-			choren_mask |= (pattern[dir][Stone::Black][Side::Left][0] & pattern[dir][Stone::Black][Side::Right][0]
+			choren_mask = choren_mask | (pattern[dir][Stone::Black][Side::Left][0] & pattern[dir][Stone::Black][Side::Right][0]
 				& pattern[dir][Stone::Black][Side::Right][1] & pattern[dir][Stone::Black][Side::Right][2]
 				& pattern[dir][Stone::Black][Side::Right][3]);
 			//! XBBBBB
-			choren_mask |= (pattern[dir][Stone::Black][Side::Right][0] & pattern[dir][Stone::Black][Side::Right][1]
+			choren_mask = choren_mask | (pattern[dir][Stone::Black][Side::Right][0] & pattern[dir][Stone::Black][Side::Right][1]
 				& pattern[dir][Stone::Black][Side::Right][2] & pattern[dir][Stone::Black][Side::Right][3]
 				& pattern[dir][Stone::Black][Side::Right][4]);
 		}
@@ -157,9 +162,14 @@ class Board {
 				}
 			}
 		}*/
-		auto choren_mask = CalcChorenMaskB(shift_pattern);
-		choren_mask.PutBoard();
 		BitBoard invalid_mask;
+		//! Cho-ren check
+		auto choren_mask = CalcChorenMaskB(shift_pattern);
+		invalid_mask |= choren_mask;
+		//! Shi-Shi on 1 line check
+
+		choren_mask.PutBoard();
+		
 		return invalid_mask;	//! dummy
 	}
 	/**
