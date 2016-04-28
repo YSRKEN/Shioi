@@ -81,11 +81,12 @@ class Board {
 	/**
 	* @fn GetShiftPattern
 	* @return shift pattern
-	* ~japanese	@brief 先後・方向・左右・シフト数に応じたシフトパターンを作成する
+	* ~japanese	@brief 方向・先後・左右・シフト数に応じたシフトパターンを作成する
 	* ~english	@brief Make shift pattern
 	*/
 	void GetShiftPattern(ShiftPattern shift_Pattern) {
-		REP(dir, Direction::Directions) {
+		REP(dir_, Direction::Directions) {
+			auto dir = static_cast<Direction>(dir_);
 			auto pattern_black_left = black_board_.ShiftLeft(dir);
 			auto pattern_black_right = black_board_.ShiftRight(dir);
 			auto pattern_white_left = white_board_.ShiftLeft(dir);
@@ -116,6 +117,17 @@ class Board {
 		//! shift_pattern[Black, White][Row, Column, DiagR, DiagL][Left, Right][Shifts]
 		ShiftPattern shift_pattern;
 		GetShiftPattern(shift_pattern);
+		REP(dir, Direction::Directions) {
+			REP(stone, Stone::Stones) {
+				REP(side, Side::Sides) {
+					REP(shift, kMaxShifts) {
+						cout << "Dir:" << dir << " Stone:" << stone << " Side:" << side << " Shift:" << (shift + 1) << endl;
+						shift_pattern[dir][stone][side][shift].PutBoard();
+						int i = 1;
+					}
+				}
+			}
+		}
 		BitBoard invalid_mask;
 		return invalid_mask;	//! dummy
 	}

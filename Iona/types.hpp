@@ -6,6 +6,9 @@
 * @date 2016/04/26
 */
 #pragma once
+#include<cstdint>
+
+using std::size_t;
 
 /**
 * @enum Turn

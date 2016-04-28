@@ -7,12 +7,12 @@
 */
 #pragma once
 #include<cstdint>
+#include<iostream>
 #include<immintrin.h>
+#include"types.hpp"
 #include"constant.hpp"
 #include"misc_functions.hpp"
 
-//! zero of __m256i
-__m256i kPackedZero{};
 //! constant table
 __m256i kPositionArray[kAllBoardSize];
 /**
@@ -62,6 +62,7 @@ bool operator == (const __m256i a, const __m256i b) noexcept {
 	* 結局完全一致してたら0xFFFFFFFF、そうでなければどこかが異なることになる。
 	*/
 	/*auto temp = a & b;
+	const __m256i kPackedZero{};
 	auto temp2 = _mm256_cmpeq_epi64(temp, kPackedZero);
 	auto temp3 = _mm256_movemask_epi8(temp2);
 	return (temp3 != 0xFFFFFFFF);*/
@@ -72,6 +73,19 @@ bool operator == (const __m256i a, const __m256i b) noexcept {
 	*/
 	return IsZero(a ^ b);
 }
+//! mask constant
+const __m256i kBitMaskR = _mm256_set1_epi16(0x7FFFu);
+const __m256i kBitMaskL = _mm256_set1_epi16(0xFFFEu);
+const __m256i kBitMaskU = _mm256_set_epi16(
+	0x0000u, 0xFFFFu, 0xFFFFu, 0xFFFFu, 0xFFFFu, 0xFFFFu, 0xFFFFu, 0xFFFFu,
+	0xFFFFu, 0xFFFFu, 0xFFFFu, 0xFFFFu, 0xFFFFu, 0xFFFFu, 0xFFFFu, 0xFFFFu);
+const __m256i kBitMaskD = _mm256_set_epi16(
+	0xFFFFu, 0xFFFFu, 0xFFFFu, 0xFFFFu, 0xFFFFu, 0xFFFFu, 0xFFFFu, 0xFFFFu,
+	0xFFFFu, 0xFFFFu, 0xFFFFu, 0xFFFFu, 0xFFFFu, 0xFFFFu, 0xFFFFu, 0x0000u);
+const __m256i kBitMaskRU = kBitMaskR & kBitMaskU;
+const __m256i kBitMaskRD = kBitMaskR & kBitMaskD;
+const __m256i kBitMaskLD = kBitMaskL & kBitMaskD;
+const __m256i kBitMaskLU = kBitMaskL & kBitMaskU;
 
 /**
 * @class BitBoard
@@ -84,26 +98,22 @@ struct BitBoard {
 		uint16_t line_[16];
 	};
 	/**
-	* @fn BitBoard
 	* @brief Constructor
 	*/
 	BitBoard() noexcept {
 		board_ = __m256i{};
 	}
 	/**
-	* @fn BitBoard
-	* @param __m256i
 	* @brief Constructor
 	*/
 	BitBoard(const __m256i a) noexcept{
 		board_ = a;
 	}
 	/**
-	* @fn operator __m256i
+	* @brief Cast operator(to __m256i)
 	*/
 	operator __m256i() const { return board_; }
 	/**
-	* @fn GetBit
 	* ~japanese	@brief BitBoardにおけるpositionの位置のビットを調べる
 	* ~english	@brief Get bit of position in BitBoard
 	*/
@@ -111,7 +121,6 @@ struct BitBoard {
 		return !IsZero(board_ & kPositionArray[position]);
 	}
 	/**
-	* @fn SetBit
 	* ~japanese	@brief BitBoardにおけるpositionの位置のビットを立てる
 	* ~english	@brief Set "1" to bit of position in BitBoard
 	*/
@@ -119,7 +128,59 @@ struct BitBoard {
 		board_ = board_ | kPositionArray[position];
 	}
 	/**
-	* @fn Initialize
+	* @fn PutBoard
+	* @brief Put text of board for debug
+	*/
+	void PutBoard() const noexcept {
+		using std::cout;
+		using std::endl;
+		REP(y, kBoardSize) {
+			REP(x, kBoardSize) {
+				auto position = ToPosition(x, y);
+				if (GetBit(position)) {
+					cout << "□";
+				}else{
+					if (position == ToPosition(0, 0)) {
+						cout << "┌";
+					}
+					else if (position == ToPosition(0, kBoardSize - 1)) {
+						cout << "└";
+					}
+					else if (position == ToPosition(kBoardSize - 1, 0)) {
+						cout << "┐";
+					}
+					else if (position == ToPosition(kBoardSize - 1, kBoardSize - 1)) {
+						cout << "┘";
+					}
+					else if (position == ToPosition(3, 3)
+						|| position == ToPosition(3, 11)
+						|| position == ToPosition(11, 3)
+						|| position == ToPosition(11, 11)
+						|| position == ToPosition(7, 7)) {
+						cout << "╋";
+					}
+					else if (x == 0) {
+						cout << "├";
+					}
+					else if (x == kBoardSize - 1) {
+						cout << "┤";
+					}
+					else if (y == 0) {
+						cout << "┬";
+					}
+					else if (y == kBoardSize - 1) {
+						cout << "┴";
+					}
+					else {
+						cout << "┼";
+					}
+				}
+			}
+			cout << endl;
+		}
+		return;
+	}
+	/**
 	* ~japanese	@brief kPositionArrayを初期化する
 	* ~english	@brief Initialize of kPositionArray
 	*/
@@ -133,20 +194,85 @@ struct BitBoard {
 			}
 		}
 	}
-	BitBoard ShiftLeft(const size_t n) noexcept {
-		auto shift_board = _mm256_slli_epi16(board_, n);
-		return BitBoard(shift_board);	//! dummy
+	/**
+	* ~japanese	@brief BitBoardを、dir方向における「左」にシフトする
+	* ~english	@brief shift BitBoard to "Left" direction
+	*/
+	BitBoard ShiftLeft(const Direction dir) noexcept {
+		switch (dir) {
+		case Direction::Row:
+			return BitBoard(_mm256_srli_epi16(board_, 1) & kBitMaskR);
+			break;
+		case Direction::Column:
+		{
+			alignas(32) uint16_t temp[17]{};
+			_mm256_store_si256((__m256i*)temp, board_);
+			return BitBoard(_mm256_loadu_si256((__m256i*)(temp + 1)) & kBitMaskU);
+		}
+			break;
+		case Direction::DiagR:
+		{
+			alignas(32) uint16_t temp[17]{};
+			_mm256_store_si256((__m256i*)temp, board_);
+			return BitBoard(_mm256_slli_epi16(_mm256_loadu_si256((__m256i*)(temp + 1)), 1) & kBitMaskLU);
+		}
+			break;
+		case Direction::DiagL:
+		{
+			alignas(32) uint16_t temp[17]{};
+			_mm256_store_si256((__m256i*)temp, board_);
+			return BitBoard(_mm256_srli_epi16(_mm256_loadu_si256((__m256i*)(temp + 1)), 1) & kBitMaskRU);
+		}
+			break;
+		default:
+			return *this;
+		}
 	}
-	BitBoard ShiftRight(const size_t n) noexcept {
-		auto shift_board = _mm256_srli_epi16(board_, n);
-		return BitBoard(shift_board);	//! dummy
+	/**
+	* ~japanese	@brief BitBoardを、dir方向における「右」にシフトする
+	* ~english	@brief shift BitBoard to "Right" direction
+	*/
+	BitBoard ShiftRight(const Direction dir) noexcept {
+		switch (dir) {
+		case Direction::Row:
+			return BitBoard(_mm256_slli_epi16(board_, 1) & kBitMaskL);
+			break;
+		case Direction::Column:
+		{
+			alignas(32) uint16_t temp[17]{};
+			_mm256_storeu_si256((__m256i*)(temp + 1), board_);
+			return BitBoard(_mm256_load_si256((__m256i*)temp) & kBitMaskD);
+		}
+		case Direction::DiagR:
+		{
+			alignas(32) uint16_t temp[17]{};
+			_mm256_storeu_si256((__m256i*)(temp + 1), board_);
+			return BitBoard(_mm256_srli_epi16(_mm256_load_si256((__m256i*)temp), 1) & kBitMaskRD);
+		}
+			break;
+		case Direction::DiagL:
+		{
+			alignas(32) uint16_t temp[17]{};
+			_mm256_storeu_si256((__m256i*)(temp + 1), board_);
+			return BitBoard(_mm256_slli_epi16(_mm256_load_si256((__m256i*)temp), 1) & kBitMaskLD);
+		}
+			break;
+		default:
+			return *this;
+		}
 	}
-	void ShiftLeftD(const size_t n) noexcept {
-		board_ = _mm256_slli_epi16(board_, n);
-		//! dummy
+	/**
+	* ~japanese	@brief BitBoardを、dir方向における「左」にシフトする(破壊的変更)
+	* ~english	@brief shift BitBoard to "Left" direction(Destructive change)
+	*/
+	void ShiftLeftD(const Direction dir) noexcept {
+		board_ = ShiftLeft(dir);
 	}
-	void ShiftRightD(const size_t n) noexcept {
-		board_ = _mm256_srli_epi16(board_, n);
-		//! dummy
+	/**
+	* ~japanese	@brief BitBoardを、dir方向における「右」にシフトする(破壊的変更)
+	* ~english	@brief shift BitBoard to "Right" direction(Destructive change)
+	*/
+	void ShiftRightD(const Direction dir) noexcept {
+		board_ = ShiftRight(dir);
 	}
 };
