@@ -42,6 +42,13 @@ http://www.vector.co.jp/soft/winnt/game/se502329.html
 This format is used by "Niroi Renju hu"(にろい連珠譜).  
 http://www.vector.co.jp/soft/win95/game/se169850.html
 
+## Author
+|名前       |GitHub                     |Twitter                     |
+|:----------|:--------------------------|:---------------------------|
+|YSR        |https://github.com/YSRKEN  |https://twitter.com/YSRKEN  |
+|yumetodo   |https://github.com/yumetodo|https://twitter.com/yumetodo|
+|Chikuzen   |https://github.com/chikuzen|https://twitter.com/mtfmk   |
+
 ## Version History
 |Version|Information|
 |-------|-----------|
@@ -102,6 +109,13 @@ http://www.vector.co.jp/soft/winnt/game/se502329.html
 ### *.nrf
 この形式は、にろい連珠譜というソフトウェアで使用しているものです。  
 http://www.vector.co.jp/soft/win95/game/se169850.html
+
+## 作者
+|名前       |GitHub                     |Twitter                     |
+|:----------|:--------------------------|:---------------------------|
+|YSR        |https://github.com/YSRKEN  |https://twitter.com/YSRKEN  |
+|yumetodo   |https://github.com/yumetodo|https://twitter.com/yumetodo|
+|Chikuzen   |https://github.com/chikuzen|https://twitter.com/mtfmk   |
 
 ## 更新履歴
 |Version|Information|

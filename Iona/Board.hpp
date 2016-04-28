@@ -146,7 +146,7 @@ class Board {
 	BitBoard CalcInValidMask() {
 		//! shift_pattern[Black, White][Row, Column, DiagR, DiagL][Left, Right][Shifts]
 		auto shift_pattern = GetShiftPattern();
-		REP(dir, Direction::Directions) {
+		/*REP(dir, Direction::Directions) {
 			REP(stone, Stone::Stones) {
 				REP(side, Side::Sides) {
 					REP(shift, kMaxShifts) {
@@ -156,7 +156,7 @@ class Board {
 					}
 				}
 			}
-		}
+		}*/
 		auto choren_mask = CalcChorenMaskB(shift_pattern);
 		choren_mask.PutBoard();
 		BitBoard invalid_mask;
