@@ -7,6 +7,7 @@
 */
 #pragma once
 #include<cstring>
+#include<array>
 #include<iostream>
 #include<random>
 #include<vector>
@@ -16,6 +17,7 @@
 #include"Optional.hpp"
 #include"BitBoard.hpp"
 
+using std::array;
 using std::cout;
 using std::endl;
 using std::vector;
@@ -26,7 +28,7 @@ std::random_device rd;
 std::mt19937 mt(rd());
 
 //! Definition of shift pattern
-using ShiftPattern = BitBoard[Direction::Directions][Stone::Stones][Side::Sides][kMaxShifts];
+using ShiftPattern = array<array<array<array<BitBoard, kMaxShifts>, Side::Sides>, Stone::Stones>, Direction::Directions>;
 
 /**
 * @fn RandInt
@@ -79,12 +81,11 @@ class Board {
 		return Stone::None;
 	}
 	/**
-	* @fn GetShiftPattern
-	* @return shift pattern
 	* ~japanese	@brief 方向・先後・左右・シフト数に応じたシフトパターンを作成する
 	* ~english	@brief Make shift pattern
 	*/
-	void GetShiftPattern(ShiftPattern shift_Pattern) {
+	ShiftPattern GetShiftPattern() {
+		ShiftPattern shift_Pattern;
 		REP(dir_, Direction::Directions) {
 			auto dir = static_cast<Direction>(dir_);
 			auto pattern_black_left = black_board_.ShiftLeft(dir);
@@ -106,17 +107,45 @@ class Board {
 			shift_Pattern[dir][Stone::White][Side::Left][kMaxShifts - 1] = pattern_white_left;
 			shift_Pattern[dir][Stone::White][Side::Right][kMaxShifts - 1] = pattern_white_right;
 		}
+		return shift_Pattern;
+	}
+	BitBoard CalcChorenMaskB(const ShiftPattern &pattern) {
+		BitBoard choren_mask;
+		REP(dir, Direction::Directions) {
+			//! BBBBBX
+			choren_mask |= (pattern[dir][Stone::Black][Side::Left][0] & pattern[dir][Stone::Black][Side::Left][1]
+				& pattern[dir][Stone::Black][Side::Left][2] & pattern[dir][Stone::Black][Side::Left][3]
+				& pattern[dir][Stone::Black][Side::Left][4]);
+			//! BBBBXB
+			choren_mask |= (pattern[dir][Stone::Black][Side::Left][0] & pattern[dir][Stone::Black][Side::Left][1]
+				& pattern[dir][Stone::Black][Side::Left][2] & pattern[dir][Stone::Black][Side::Left][3]
+				& pattern[dir][Stone::Black][Side::Right][0]);
+			//! BBBXBB
+			choren_mask |= (pattern[dir][Stone::Black][Side::Left][0] & pattern[dir][Stone::Black][Side::Left][1]
+				& pattern[dir][Stone::Black][Side::Left][2] & pattern[dir][Stone::Black][Side::Right][0]
+				& pattern[dir][Stone::Black][Side::Right][1]);
+			//! BBXBBB
+			choren_mask |= (pattern[dir][Stone::Black][Side::Left][0] & pattern[dir][Stone::Black][Side::Left][1]
+				& pattern[dir][Stone::Black][Side::Right][0] & pattern[dir][Stone::Black][Side::Right][1]
+				& pattern[dir][Stone::Black][Side::Right][2]);
+			//! BXBBBB
+			choren_mask |= (pattern[dir][Stone::Black][Side::Left][0] & pattern[dir][Stone::Black][Side::Right][0]
+				& pattern[dir][Stone::Black][Side::Right][1] & pattern[dir][Stone::Black][Side::Right][2]
+				& pattern[dir][Stone::Black][Side::Right][3]);
+			//! XBBBBB
+			choren_mask |= (pattern[dir][Stone::Black][Side::Right][0] & pattern[dir][Stone::Black][Side::Right][1]
+				& pattern[dir][Stone::Black][Side::Right][2] & pattern[dir][Stone::Black][Side::Right][3]
+				& pattern[dir][Stone::Black][Side::Right][4]);
+		}
+		return choren_mask;
 	}
 	/**
-	* @fn CalcInValidMask
-	* @return Invalid Mask
 	* ~japanese	@brief 禁手で打てない位置のビットを立てたマスクを作成する
 	* ~english	@brief Calc invaild position's mask
 	*/
 	BitBoard CalcInValidMask() {
 		//! shift_pattern[Black, White][Row, Column, DiagR, DiagL][Left, Right][Shifts]
-		ShiftPattern shift_pattern;
-		GetShiftPattern(shift_pattern);
+		auto shift_pattern = GetShiftPattern();
 		REP(dir, Direction::Directions) {
 			REP(stone, Stone::Stones) {
 				REP(side, Side::Sides) {
@@ -128,6 +157,8 @@ class Board {
 				}
 			}
 		}
+		auto choren_mask = CalcChorenMaskB(shift_pattern);
+		choren_mask.PutBoard();
 		BitBoard invalid_mask;
 		return invalid_mask;	//! dummy
 	}

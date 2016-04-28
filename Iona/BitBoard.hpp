@@ -29,29 +29,10 @@ bool IsZero(const __m256i a) noexcept {
 	*/
 	return (_mm256_testz_si256(a, a) != 0);
 }
-/**
-* @fn operator |
-* ~japanese	@brief __m256i向けの演算子オーバーロード(OR)
-* ~english	@brief operator override for __m256i(OR)
-*/
 __m256i operator | (const __m256i a, const __m256i b) noexcept {return _mm256_or_si256(a, b);}
-/**
-* @fn operator &
-* ~japanese	@brief __m256i向けの演算子オーバーロード(AND)
-* ~english	@brief operator override for __m256i(AND)
-*/
+__m256i operator |= (const __m256i a, const __m256i b) noexcept { return _mm256_or_si256(a, b); }
 __m256i operator & (const __m256i a, const __m256i b) noexcept {return _mm256_and_si256(a, b);}
-/**
-* @fn operator ^
-* ~japanese	@brief __m256i向けの演算子オーバーロード(XOR
-* ~english	@brief operator override for __m256i(XOR)
-*/
 __m256i operator ^ (const __m256i a, const __m256i b) noexcept { return _mm256_xor_si256(a, b); }
-/**
-* @fn operator ==
-* ~japanese	@brief __m256i向けの演算子オーバーロード(Equal)
-* ~english	@brief operator override for __m256i(Equal)
-*/
 bool operator == (const __m256i a, const __m256i b) noexcept {
 	/**
 	* 【通常のコード】
@@ -204,25 +185,29 @@ struct BitBoard {
 			return BitBoard(_mm256_srli_epi16(board_, 1) & kBitMaskR);
 			break;
 		case Direction::Column:
-		{
-			alignas(32) uint16_t temp[17]{};
+			//! 最初考えていた方法
+			/*{alignas(32) uint16_t temp[17]{};
 			_mm256_store_si256((__m256i*)temp, board_);
-			return BitBoard(_mm256_loadu_si256((__m256i*)(temp + 1)) & kBitMaskU);
-		}
+			return BitBoard(_mm256_loadu_si256((__m256i*)(temp + 1)) & kBitMaskU);}*/
+			//! 恐るべき解決手段
+			//! http://stackoverflow.com/questions/25248766/emulating-shifts-on-32-bytes-with-avx
+			return BitBoard(_mm256_alignr_epi8(_mm256_permute2x128_si256(board_, board_, _MM_SHUFFLE(2, 0, 0, 1)), board_, 2) & kBitMaskU);
 			break;
 		case Direction::DiagR:
-		{
-			alignas(32) uint16_t temp[17]{};
+			//! 最初考えていた方法
+			/*{alignas(32) uint16_t temp[17]{};
 			_mm256_store_si256((__m256i*)temp, board_);
-			return BitBoard(_mm256_slli_epi16(_mm256_loadu_si256((__m256i*)(temp + 1)), 1) & kBitMaskLU);
-		}
+			return BitBoard(_mm256_slli_epi16(_mm256_loadu_si256((__m256i*)(temp + 1)), 1) & kBitMaskLU);}*/
+			//! 恐るべき解決手段
+			return BitBoard(_mm256_slli_epi16(_mm256_alignr_epi8(_mm256_permute2x128_si256(board_, board_, _MM_SHUFFLE(2, 0, 0, 1)), board_, 2), 1) & kBitMaskLU);
 			break;
 		case Direction::DiagL:
-		{
-			alignas(32) uint16_t temp[17]{};
+			//! 最初考えていた方法
+			/*{alignas(32) uint16_t temp[17]{};
 			_mm256_store_si256((__m256i*)temp, board_);
-			return BitBoard(_mm256_srli_epi16(_mm256_loadu_si256((__m256i*)(temp + 1)), 1) & kBitMaskRU);
-		}
+			return BitBoard(_mm256_srli_epi16(_mm256_loadu_si256((__m256i*)(temp + 1)), 1) & kBitMaskRU);}*/
+			//! 恐るべき解決手段
+			return BitBoard(_mm256_srli_epi16(_mm256_alignr_epi8(_mm256_permute2x128_si256(board_, board_, _MM_SHUFFLE(2, 0, 0, 1)), board_, 2), 1) & kBitMaskRU);
 			break;
 		default:
 			return *this;
@@ -238,24 +223,27 @@ struct BitBoard {
 			return BitBoard(_mm256_slli_epi16(board_, 1) & kBitMaskL);
 			break;
 		case Direction::Column:
-		{
-			alignas(32) uint16_t temp[17]{};
+			//! 最初考えていた方法
+			/*{alignas(32) uint16_t temp[17]{};
 			_mm256_storeu_si256((__m256i*)(temp + 1), board_);
-			return BitBoard(_mm256_load_si256((__m256i*)temp) & kBitMaskD);
-		}
+			return BitBoard(_mm256_load_si256((__m256i*)temp) & kBitMaskD);}*/
+			//! 恐るべき解決手段
+			return BitBoard(_mm256_alignr_epi8(board_, _mm256_permute2x128_si256(board_, board_, _MM_SHUFFLE(0, 0, 2, 0)), 16 - 2) & kBitMaskD);
 		case Direction::DiagR:
-		{
-			alignas(32) uint16_t temp[17]{};
+			//! 最初考えていた方法
+			/*{alignas(32) uint16_t temp[17]{};
 			_mm256_storeu_si256((__m256i*)(temp + 1), board_);
-			return BitBoard(_mm256_srli_epi16(_mm256_load_si256((__m256i*)temp), 1) & kBitMaskRD);
-		}
+			return BitBoard(_mm256_srli_epi16(_mm256_load_si256((__m256i*)temp), 1) & kBitMaskRD);}*/
+			//! 恐るべき解決手段
+			return BitBoard(_mm256_srli_epi16(_mm256_alignr_epi8(board_, _mm256_permute2x128_si256(board_, board_, _MM_SHUFFLE(0, 0, 2, 0)), 16 - 2), 1) & kBitMaskRD);
 			break;
 		case Direction::DiagL:
-		{
-			alignas(32) uint16_t temp[17]{};
+			//! 最初考えていた方法
+			/*{alignas(32) uint16_t temp[17]{};
 			_mm256_storeu_si256((__m256i*)(temp + 1), board_);
-			return BitBoard(_mm256_slli_epi16(_mm256_load_si256((__m256i*)temp), 1) & kBitMaskLD);
-		}
+			return BitBoard(_mm256_slli_epi16(_mm256_load_si256((__m256i*)temp), 1) & kBitMaskLD);}*/
+			//! 恐るべき解決手段
+			return BitBoard(_mm256_slli_epi16(_mm256_alignr_epi8(board_, _mm256_permute2x128_si256(board_, board_, _MM_SHUFFLE(0, 0, 2, 0)), 16 - 2), 1) & kBitMaskLD);
 			break;
 		default:
 			return *this;
