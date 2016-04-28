@@ -25,6 +25,9 @@ std::random_device rd;
 //! Definition of pseudo-random generator
 std::mt19937 mt(rd());
 
+//! Definition of shift pattern
+using ShiftPattern = BitBoard[Direction::Directions][Stone::Stones][Side::Sides][kMaxShifts];
+
 /**
 * @fn RandInt
 * @return Integer random number in [0, n)
@@ -76,11 +79,45 @@ class Board {
 		return Stone::None;
 	}
 	/**
-	* @fn IsValidMove
-	* @return true(Valid), false(Invalid)
+	* @fn GetShiftPattern
+	* @return shift pattern
+	* ~japanese	@brief 先後・方向・左右・シフト数に応じたシフトパターンを作成する
+	* ~english	@brief Make shift pattern
 	*/
-	bool IsValidMove(const size_t position) {
-		return true;	//! dummy
+	void GetShiftPattern(ShiftPattern shift_Pattern) {
+		REP(dir, Direction::Directions) {
+			auto pattern_black_left = black_board_.ShiftLeft(dir);
+			auto pattern_black_right = black_board_.ShiftRight(dir);
+			auto pattern_white_left = white_board_.ShiftLeft(dir);
+			auto pattern_white_right = white_board_.ShiftRight(dir);
+			REP(shift, kMaxShifts - 1) {
+				shift_Pattern[dir][Stone::Black][Side::Left][shift] = pattern_black_left;
+				shift_Pattern[dir][Stone::Black][Side::Right][shift] = pattern_black_right;
+				shift_Pattern[dir][Stone::White][Side::Left][shift] = pattern_white_left;
+				shift_Pattern[dir][Stone::White][Side::Right][shift] = pattern_white_right;
+				pattern_black_left.ShiftLeftD(dir);
+				pattern_black_right.ShiftRightD(dir);
+				pattern_white_left.ShiftLeftD(dir);
+				pattern_white_right.ShiftRightD(dir);
+			}
+			shift_Pattern[dir][Stone::Black][Side::Left][kMaxShifts - 1] = pattern_black_left;
+			shift_Pattern[dir][Stone::Black][Side::Right][kMaxShifts - 1] = pattern_black_right;
+			shift_Pattern[dir][Stone::White][Side::Left][kMaxShifts - 1] = pattern_white_left;
+			shift_Pattern[dir][Stone::White][Side::Right][kMaxShifts - 1] = pattern_white_right;
+		}
+	}
+	/**
+	* @fn CalcInValidMask
+	* @return Invalid Mask
+	* ~japanese	@brief 禁手で打てない位置のビットを立てたマスクを作成する
+	* ~english	@brief Calc invaild position's mask
+	*/
+	BitBoard CalcInValidMask() {
+		//! shift_pattern[Black, White][Row, Column, DiagR, DiagL][Left, Right][Shifts]
+		ShiftPattern shift_pattern;
+		GetShiftPattern(shift_pattern);
+		BitBoard invalid_mask;
+		return invalid_mask;	//! dummy
 	}
 	/**
 	* @fn FindRandomMove
@@ -88,14 +125,17 @@ class Board {
 	*/
 	optional<size_t> FindRandomMove() {
 		vector<size_t> list;
+		auto invalid_mask = black_board_ | white_board_;
+		if (turn_ == Stone::Black) {
+			invalid_mask = invalid_mask | CalcInValidMask();
+		}
 		REP(position, kAllBoardSize) {
 			//! You can only move at Stone::None in Board
-			if (GetStone(position) != Stone::None) continue;
-			if (turn_ == Stone::Black && !IsValidMove(position)) continue;
+			if (!IsZero(kPositionArray[position] & invalid_mask)) continue;
 			list.push_back(position);
 		}
 		if(list.size() > 0) return optional<size_t>(list[RandInt(list.size())]);
-		return optional<size_t>();
+		return optional<size_t>(-1);
 	}
 public:
 	/**
@@ -114,6 +154,7 @@ public:
 			auto stone = ToStone(board_text[position]);
 			SetStone(position, stone);
 		}
+		turn_ = ToStone(turn_text[0]);
 	}
 	/**
 	* @fn PutBoard

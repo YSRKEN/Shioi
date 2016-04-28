@@ -42,7 +42,7 @@ int main(int argc, char *argv[]) {
 		* Calc next move
 		*/
 		Board board(argv[1], argv[2]);
-		//board.PutBoard();
+		board.PutBoard();
 		cout << board.NextMove() << endl;
 	}
 	catch (const std::exception& er) {

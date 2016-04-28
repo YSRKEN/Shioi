@@ -16,3 +16,5 @@
 constexpr size_t kBoardSize = 15;
 //! all board size of Renju(255=15x15)
 constexpr size_t kAllBoardSize = kBoardSize * kBoardSize;
+//! maximum pattern shifts
+constexpr size_t kMaxShifts = 5;

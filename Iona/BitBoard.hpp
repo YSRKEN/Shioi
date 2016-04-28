@@ -87,9 +87,21 @@ struct BitBoard {
 	* @fn BitBoard
 	* @brief Constructor
 	*/
-	BitBoard() {
+	BitBoard() noexcept {
 		board_ = __m256i{};
 	}
+	/**
+	* @fn BitBoard
+	* @param __m256i
+	* @brief Constructor
+	*/
+	BitBoard(const __m256i a) noexcept{
+		board_ = a;
+	}
+	/**
+	* @fn operator __m256i
+	*/
+	operator __m256i() const { return board_; }
 	/**
 	* @fn GetBit
 	* ~japanese	@brief BitBoardにおけるpositionの位置のビットを調べる
@@ -120,5 +132,21 @@ struct BitBoard {
 				kPositionArray[position] = _mm256_loadu_si256((__m256i*)line);
 			}
 		}
+	}
+	BitBoard ShiftLeft(const size_t n) noexcept {
+		auto shift_board = _mm256_slli_epi16(board_, n);
+		return BitBoard(shift_board);	//! dummy
+	}
+	BitBoard ShiftRight(const size_t n) noexcept {
+		auto shift_board = _mm256_srli_epi16(board_, n);
+		return BitBoard(shift_board);	//! dummy
+	}
+	void ShiftLeftD(const size_t n) noexcept {
+		board_ = _mm256_slli_epi16(board_, n);
+		//! dummy
+	}
+	void ShiftRightD(const size_t n) noexcept {
+		board_ = _mm256_srli_epi16(board_, n);
+		//! dummy
 	}
 };
