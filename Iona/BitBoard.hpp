@@ -15,6 +15,7 @@
 
 //! constant table
 __m256i kPositionArray[kAllBoardSize];
+__m256i kBitMaskArray[Direction::Directions][Side::Sides][kMaxShifts];
 //! mask constant
 __m256i AllBit1 = _mm256_set1_epi16(0xFFFFu);
 /**
@@ -52,14 +53,14 @@ bool operator == (const __m256i a, const __m256i b) noexcept {
 	return IsZero(a ^ b);
 }
 //! mask constant
-const __m256i kBitMaskR = _mm256_set1_epi16(0x7FFFu);
+const __m256i kBitMaskR = _mm256_set1_epi16(0x3FFFu);
 const __m256i kBitMaskL = _mm256_set1_epi16(0xFFFEu);
 const __m256i kBitMaskU = _mm256_set_epi16(
 	0x0000u, 0xFFFFu, 0xFFFFu, 0xFFFFu, 0xFFFFu, 0xFFFFu, 0xFFFFu, 0xFFFFu,
-	0xFFFFu, 0xFFFFu, 0xFFFFu, 0xFFFFu, 0xFFFFu, 0xFFFFu, 0xFFFFu, 0xFFFFu);
-const __m256i kBitMaskD = _mm256_set_epi16(
-	0xFFFFu, 0xFFFFu, 0xFFFFu, 0xFFFFu, 0xFFFFu, 0xFFFFu, 0xFFFFu, 0xFFFFu,
 	0xFFFFu, 0xFFFFu, 0xFFFFu, 0xFFFFu, 0xFFFFu, 0xFFFFu, 0xFFFFu, 0x0000u);
+const __m256i kBitMaskD = _mm256_set_epi16(
+	0x0000u, 0x0000u, 0xFFFFu, 0xFFFFu, 0xFFFFu, 0xFFFFu, 0xFFFFu, 0xFFFFu,
+	0xFFFFu, 0xFFFFu, 0xFFFFu, 0xFFFFu, 0xFFFFu, 0xFFFFu, 0xFFFFu, 0xFFFFu);
 const __m256i kBitMaskRU = kBitMaskR & kBitMaskU;
 const __m256i kBitMaskRD = kBitMaskR & kBitMaskD;
 const __m256i kBitMaskLD = kBitMaskL & kBitMaskD;
@@ -159,10 +160,11 @@ struct BitBoard {
 		return;
 	}
 	/**
-	* ~japanese	@brief kPositionArrayを初期化する
-	* ~english	@brief Initialize of kPositionArray
+	* ~japanese	@brief kPositionArrayとkBitMaskArrayを初期化する
+	* ~english	@brief Initialize of kPositionArray and kBitMaskArray
 	*/
 	static void Initialize() {
+		//! kPositionArray
 		REP(y, kBoardSize){
 			REP(x, kBoardSize) {
 				size_t position = ToPosition(x, y);
@@ -171,6 +173,22 @@ struct BitBoard {
 				kPositionArray[position] = _mm256_loadu_si256((__m256i*)line);
 			}
 		}
+		//! kBitMaskArray
+		kBitMaskArray[Direction::Row][Side::Left][0]     = kBitMaskL;
+		kBitMaskArray[Direction::Column][Side::Left][0]  = kBitMaskU;
+		kBitMaskArray[Direction::DiagR][Side::Left][0]   = kBitMaskRU;
+		kBitMaskArray[Direction::DiagL][Side::Left][0]   = kBitMaskLU;
+		kBitMaskArray[Direction::Row][Side::Right][0]    = kBitMaskR;
+		kBitMaskArray[Direction::Column][Side::Right][0] = kBitMaskD;
+		kBitMaskArray[Direction::DiagR][Side::Right][0]  = kBitMaskLD;
+		kBitMaskArray[Direction::DiagL][Side::Right][0]  = kBitMaskRD;
+		REP(dir, Direction::Directions) {
+			REP(shift, kMaxShifts - 1) {
+				kBitMaskArray[dir][Side::Left][shift + 1] = BitBoard(kBitMaskArray[dir][Side::Left][shift]).ShiftRight((Direction)dir);
+				kBitMaskArray[dir][Side::Right][shift + 1] = BitBoard(kBitMaskArray[dir][Side::Right][shift]).ShiftLeft((Direction)dir);
+			}
+		}
+		return;
 	}
 	/**
 	* ~japanese	@brief BitBoardを、dir方向における「左」にシフトする
@@ -188,7 +206,7 @@ struct BitBoard {
 			return BitBoard(_mm256_loadu_si256((__m256i*)(temp + 1)) & kBitMaskU);}*/
 			//! 恐るべき解決手段
 			//! http://stackoverflow.com/questions/25248766/emulating-shifts-on-32-bytes-with-avx
-			return BitBoard(_mm256_alignr_epi8(_mm256_permute2x128_si256(board_, board_, _MM_SHUFFLE(2, 0, 0, 1)), board_, 2) & kBitMaskU);
+			return BitBoard(_mm256_alignr_epi8(_mm256_permute2x128_si256(board_, board_, _MM_SHUFFLE(2, 0, 0, 1)), board_, 2) & kBitMaskD);
 			break;
 		case Direction::DiagR:
 			//! 最初考えていた方法
@@ -196,7 +214,7 @@ struct BitBoard {
 			_mm256_store_si256((__m256i*)temp, board_);
 			return BitBoard(_mm256_slli_epi16(_mm256_loadu_si256((__m256i*)(temp + 1)), 1) & kBitMaskLU);}*/
 			//! 恐るべき解決手段
-			return BitBoard(_mm256_slli_epi16(_mm256_alignr_epi8(_mm256_permute2x128_si256(board_, board_, _MM_SHUFFLE(2, 0, 0, 1)), board_, 2), 1) & kBitMaskLU);
+			return BitBoard(_mm256_slli_epi16(_mm256_alignr_epi8(_mm256_permute2x128_si256(board_, board_, _MM_SHUFFLE(2, 0, 0, 1)), board_, 2), 1) & kBitMaskLD);
 			break;
 		case Direction::DiagL:
 			//! 最初考えていた方法
@@ -204,7 +222,7 @@ struct BitBoard {
 			_mm256_store_si256((__m256i*)temp, board_);
 			return BitBoard(_mm256_srli_epi16(_mm256_loadu_si256((__m256i*)(temp + 1)), 1) & kBitMaskRU);}*/
 			//! 恐るべき解決手段
-			return BitBoard(_mm256_srli_epi16(_mm256_alignr_epi8(_mm256_permute2x128_si256(board_, board_, _MM_SHUFFLE(2, 0, 0, 1)), board_, 2), 1) & kBitMaskRU);
+			return BitBoard(_mm256_srli_epi16(_mm256_alignr_epi8(_mm256_permute2x128_si256(board_, board_, _MM_SHUFFLE(2, 0, 0, 1)), board_, 2), 1) & kBitMaskRD);
 			break;
 		default:
 			return *this;
@@ -225,14 +243,14 @@ struct BitBoard {
 			_mm256_storeu_si256((__m256i*)(temp + 1), board_);
 			return BitBoard(_mm256_load_si256((__m256i*)temp) & kBitMaskD);}*/
 			//! 恐るべき解決手段
-			return BitBoard(_mm256_alignr_epi8(board_, _mm256_permute2x128_si256(board_, board_, _MM_SHUFFLE(0, 0, 2, 0)), 16 - 2) & kBitMaskD);
+			return BitBoard(_mm256_alignr_epi8(board_, _mm256_permute2x128_si256(board_, board_, _MM_SHUFFLE(0, 0, 2, 0)), 16 - 2) & kBitMaskU);
 		case Direction::DiagR:
 			//! 最初考えていた方法
 			/*{alignas(32) uint16_t temp[17]{};
 			_mm256_storeu_si256((__m256i*)(temp + 1), board_);
 			return BitBoard(_mm256_srli_epi16(_mm256_load_si256((__m256i*)temp), 1) & kBitMaskRD);}*/
 			//! 恐るべき解決手段
-			return BitBoard(_mm256_srli_epi16(_mm256_alignr_epi8(board_, _mm256_permute2x128_si256(board_, board_, _MM_SHUFFLE(0, 0, 2, 0)), 16 - 2), 1) & kBitMaskRD);
+			return BitBoard(_mm256_srli_epi16(_mm256_alignr_epi8(board_, _mm256_permute2x128_si256(board_, board_, _MM_SHUFFLE(0, 0, 2, 0)), 16 - 2), 1) & kBitMaskRU);
 			break;
 		case Direction::DiagL:
 			//! 最初考えていた方法
@@ -240,7 +258,7 @@ struct BitBoard {
 			_mm256_storeu_si256((__m256i*)(temp + 1), board_);
 			return BitBoard(_mm256_slli_epi16(_mm256_load_si256((__m256i*)temp), 1) & kBitMaskLD);}*/
 			//! 恐るべき解決手段
-			return BitBoard(_mm256_slli_epi16(_mm256_alignr_epi8(board_, _mm256_permute2x128_si256(board_, board_, _MM_SHUFFLE(0, 0, 2, 0)), 16 - 2), 1) & kBitMaskLD);
+			return BitBoard(_mm256_slli_epi16(_mm256_alignr_epi8(board_, _mm256_permute2x128_si256(board_, board_, _MM_SHUFFLE(0, 0, 2, 0)), 16 - 2), 1) & kBitMaskLU);
 			break;
 		default:
 			return *this;

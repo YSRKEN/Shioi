@@ -187,6 +187,40 @@ class Board {
 		return shishi1_mask;
 	}
 	/**
+	* ~japanese	@brief 四連を作る石の位置を算出する(黒石用)
+	* ~english	@brief Make position mask of Shi-ren for Stone::Black
+	*/
+	array<BitBoard, Direction::Directions> CalcShirenMaskB(const ShiftPattern &pattern) {
+		array<BitBoard, Direction::Directions> shiren_mask;
+		REP(dir, Direction::Directions) {
+			auto &BL0 = pattern[dir][Stone::Black][Side::Left][0], &NL0 = pattern[dir][Stone::None][Side::Left][0], &bL0 = pattern[dir][Stone::NonBlack][Side::Left][0];
+			auto &BL1 = pattern[dir][Stone::Black][Side::Left][1], &NL1 = pattern[dir][Stone::None][Side::Left][1], &bL1 = pattern[dir][Stone::NonBlack][Side::Left][1];
+			auto &BL2 = pattern[dir][Stone::Black][Side::Left][2], &NL2 = pattern[dir][Stone::None][Side::Left][2], &bL2 = pattern[dir][Stone::NonBlack][Side::Left][2];
+			auto &BL3 = pattern[dir][Stone::Black][Side::Left][3], &NL3 = pattern[dir][Stone::None][Side::Left][3], &bL3 = pattern[dir][Stone::NonBlack][Side::Left][3];
+			auto &BL4 = pattern[dir][Stone::Black][Side::Left][4], &NL4 = pattern[dir][Stone::None][Side::Left][4], &bL4 = pattern[dir][Stone::NonBlack][Side::Left][4];
+			auto &BR0 = pattern[dir][Stone::Black][Side::Right][0], &NR0 = pattern[dir][Stone::None][Side::Right][0], &bR0 = pattern[dir][Stone::NonBlack][Side::Right][0];
+			auto &BR1 = pattern[dir][Stone::Black][Side::Right][1], &NR1 = pattern[dir][Stone::None][Side::Right][1], &bR1 = pattern[dir][Stone::NonBlack][Side::Right][1];
+			auto &BR2 = pattern[dir][Stone::Black][Side::Right][2], &NR2 = pattern[dir][Stone::None][Side::Right][2], &bR2 = pattern[dir][Stone::NonBlack][Side::Right][2];
+			auto &BR3 = pattern[dir][Stone::Black][Side::Right][3], &NR3 = pattern[dir][Stone::None][Side::Right][3], &bR3 = pattern[dir][Stone::NonBlack][Side::Right][3];
+			auto &BR4 = pattern[dir][Stone::Black][Side::Right][4], &NR4 = pattern[dir][Stone::None][Side::Right][4], &bR4 = pattern[dir][Stone::NonBlack][Side::Right][4];
+			auto &ML1 = kBitMaskArray[dir][Side::Right][0], &ML2 = kBitMaskArray[dir][Side::Right][1];
+			auto &ML3 = kBitMaskArray[dir][Side::Right][2] , &ML4 = kBitMaskArray[dir][Side::Right][3];
+			auto &MR1 = kBitMaskArray[dir][Side::Left][0], &MR2 = kBitMaskArray[dir][Side::Left][1];
+			auto &MR3 = kBitMaskArray[dir][Side::Left][2], &MR4 = kBitMaskArray[dir][Side::Left][3];
+
+			//! [XOBBBBOX]
+			//! XOBBBYOX
+			shiren_mask[dir] |= (NL0 & bL1 & ML1/**/& BR0 & BR1 & BR2 & NR3 & bR4 & MR4);
+			//! XOBBYBOX
+			shiren_mask[dir] |= (BL0 & NL1 & bL2 & ML2/**/& BR0 & BR1 & NR2 & bR3 & MR3);
+			//! XOBYBBOX
+			shiren_mask[dir] |= (BR0 & NR1 & bR2 & MR2/**/& BL0 & BL1 & NL2 & bL3 & ML3);
+			//! XOYBBBOX
+			shiren_mask[dir] |= (NR0 & bR1 & MR1/**/& BL0 & BL1 & BL2 & NL3 & bL4 & ML4);
+		}
+		return shiren_mask;
+	}
+	/**
 	* ~japanese	@brief 禁手で打てない位置のビットを立てたマスクを作成する
 	* ~english	@brief Calc invaild position's mask
 	*/
@@ -211,9 +245,12 @@ class Board {
 		//! Shi-Shi on 1 line check
 		auto shishi1_mask = CalcLineShiShiMaskB(shift_pattern);
 		invalid_mask |= shishi1_mask;
+		//! Shi-ren check
+		auto shiren_mask = CalcShirenMaskB(shift_pattern);
 
 		choren_mask.PutBoard();
 		shishi1_mask.PutBoard();
+		BitBoard(shiren_mask[0] | shiren_mask[1] | shiren_mask[2] | shiren_mask[3]).PutBoard();
 		return invalid_mask;	//! dummy
 	}
 	/**
