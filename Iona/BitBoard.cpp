@@ -8,10 +8,10 @@ const __m256i BitBoard::kBitMaskU = _mm256_set_epi16(
 const __m256i BitBoard::kBitMaskD = _mm256_set_epi16(
 	0xFFFFu, 0xFFFFu, 0xFFFFu, 0xFFFFu, 0xFFFFu, 0xFFFFu, 0xFFFFu, 0xFFFFu,
 	0xFFFFu, 0xFFFFu, 0xFFFFu, 0xFFFFu, 0xFFFFu, 0xFFFFu, 0xFFFFu, 0x0000u);
-const __m256i BitBoard::kBitMaskRU = BitBoard::kBitMaskR & BitBoard::kBitMaskU;
-const __m256i BitBoard::kBitMaskRD = BitBoard::kBitMaskR & BitBoard::kBitMaskD;
-const __m256i BitBoard::kBitMaskLD = BitBoard::kBitMaskL & BitBoard::kBitMaskD;
-const __m256i BitBoard::kBitMaskLU = BitBoard::kBitMaskL & BitBoard::kBitMaskU;
+const __m256i BitBoard::kBitMaskRU = _mm256_and_si256(BitBoard::kBitMaskR, BitBoard::kBitMaskU);
+const __m256i BitBoard::kBitMaskRD = _mm256_and_si256(BitBoard::kBitMaskR, BitBoard::kBitMaskD);
+const __m256i BitBoard::kBitMaskLD = _mm256_and_si256(BitBoard::kBitMaskL, BitBoard::kBitMaskD);
+const __m256i BitBoard::kBitMaskLU = _mm256_and_si256(BitBoard::kBitMaskL, BitBoard::kBitMaskU);
 
 /**
 * ~japanese	@brief kPositionArrayを初期化する
