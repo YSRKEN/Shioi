@@ -184,8 +184,8 @@ struct BitBoard {
 		kBitMaskArray[Direction::DiagL][Side::Right][0]  = kBitMaskRD;
 		REP(dir, Direction::Directions) {
 			REP(shift, kMaxShifts - 1) {
-				kBitMaskArray[dir][Side::Left][shift + 1] = BitBoard(kBitMaskArray[dir][Side::Left][shift]).ShiftRight((Direction)dir);
-				kBitMaskArray[dir][Side::Right][shift + 1] = BitBoard(kBitMaskArray[dir][Side::Right][shift]).ShiftLeft((Direction)dir);
+				kBitMaskArray[dir][Side::Left][shift + 1] = BitBoard(kBitMaskArray[dir][Side::Left][shift]).ShiftLeft((Direction)dir);
+				kBitMaskArray[dir][Side::Right][shift + 1] = BitBoard(kBitMaskArray[dir][Side::Right][shift]).ShiftRight((Direction)dir);
 			}
 		}
 		return;
@@ -194,7 +194,7 @@ struct BitBoard {
 	* ~japanese	@brief BitBoardを、dir方向における「左」にシフトする
 	* ~english	@brief shift BitBoard to "Left" direction
 	*/
-	BitBoard ShiftLeft(const Direction dir) noexcept {
+	BitBoard ShiftRight(const Direction dir) noexcept {
 		switch (dir) {
 		case Direction::Row:
 			return BitBoard(_mm256_srli_epi16(board_, 1) & kBitMaskR);
@@ -232,7 +232,7 @@ struct BitBoard {
 	* ~japanese	@brief BitBoardを、dir方向における「右」にシフトする
 	* ~english	@brief shift BitBoard to "Right" direction
 	*/
-	BitBoard ShiftRight(const Direction dir) noexcept {
+	BitBoard ShiftLeft(const Direction dir) noexcept {
 		switch (dir) {
 		case Direction::Row:
 			return BitBoard(_mm256_slli_epi16(board_, 1) & kBitMaskL);

@@ -88,32 +88,32 @@ class Board {
 		ShiftPattern shift_Pattern;
 		REP(dir_, Direction::Directions) {
 			auto dir = static_cast<Direction>(dir_);
-			auto pattern_black_left = black_board_.ShiftLeft(dir);
 			auto pattern_black_right = black_board_.ShiftRight(dir);
-			auto pattern_white_left = white_board_.ShiftLeft(dir);
+			auto pattern_black_left = black_board_.ShiftLeft(dir);
 			auto pattern_white_right = white_board_.ShiftRight(dir);
+			auto pattern_white_left = white_board_.ShiftLeft(dir);
 			REP(shift, kMaxShifts - 1) {
-				shift_Pattern[dir][Stone::Black][Side::Left][shift] = pattern_black_left;
-				shift_Pattern[dir][Stone::White][Side::Left][shift] = pattern_white_left;
-				shift_Pattern[dir][Stone::None][Side::Left][shift] = !(pattern_black_left | pattern_white_left);
-				shift_Pattern[dir][Stone::NonBlack][Side::Left][shift] = !pattern_black_left;
 				shift_Pattern[dir][Stone::Black][Side::Right][shift] = pattern_black_right;
 				shift_Pattern[dir][Stone::White][Side::Right][shift] = pattern_white_right;
 				shift_Pattern[dir][Stone::None][Side::Right][shift] = !(pattern_black_right | pattern_white_right);
 				shift_Pattern[dir][Stone::NonBlack][Side::Right][shift] = !pattern_black_right;
-				pattern_black_left.ShiftLeftD(dir);
-				pattern_white_left.ShiftLeftD(dir);
+				shift_Pattern[dir][Stone::Black][Side::Left][shift] = pattern_black_left;
+				shift_Pattern[dir][Stone::White][Side::Left][shift] = pattern_white_left;
+				shift_Pattern[dir][Stone::None][Side::Left][shift] = !(pattern_black_left | pattern_white_left);
+				shift_Pattern[dir][Stone::NonBlack][Side::Left][shift] = !pattern_black_left;
 				pattern_black_right.ShiftRightD(dir);
 				pattern_white_right.ShiftRightD(dir);
+				pattern_black_left.ShiftLeftD(dir);
+				pattern_white_left.ShiftLeftD(dir);
 			}
-			shift_Pattern[dir][Stone::Black][Side::Left][kMaxShifts - 1] = pattern_black_left;
-			shift_Pattern[dir][Stone::White][Side::Left][kMaxShifts - 1] = pattern_white_left;
-			shift_Pattern[dir][Stone::None][Side::Left][kMaxShifts - 1] = !(pattern_black_left | pattern_white_left);
-			shift_Pattern[dir][Stone::NonBlack][Side::Left][kMaxShifts - 1] = !pattern_black_left;
 			shift_Pattern[dir][Stone::Black][Side::Right][kMaxShifts - 1] = pattern_black_right;
 			shift_Pattern[dir][Stone::White][Side::Right][kMaxShifts - 1] = pattern_white_right;
 			shift_Pattern[dir][Stone::None][Side::Right][kMaxShifts - 1] = !(pattern_black_right | pattern_white_right);
 			shift_Pattern[dir][Stone::NonBlack][Side::Right][kMaxShifts - 1] = !pattern_black_right;
+			shift_Pattern[dir][Stone::Black][Side::Left][kMaxShifts - 1] = pattern_black_left;
+			shift_Pattern[dir][Stone::White][Side::Left][kMaxShifts - 1] = pattern_white_left;
+			shift_Pattern[dir][Stone::None][Side::Left][kMaxShifts - 1] = !(pattern_black_left | pattern_white_left);
+			shift_Pattern[dir][Stone::NonBlack][Side::Left][kMaxShifts - 1] = !pattern_black_left;
 		}
 		return shift_Pattern;
 	}
@@ -136,17 +136,17 @@ class Board {
 			auto &BR4 = pattern[dir][Stone::Black][Side::Right][4], &NR4 = pattern[dir][Stone::None][Side::Right][4];
 
 			//! [BBBBBB]
-			//! YBBBBB
-			choren_mask |= (BL0 & BL1 & BL2 & BL3 & BL4);
-			//! BYBBBB
-			choren_mask |= (BL0 & BL1 & BL2 & BL3 /**/& BR0);
-			//! BBYBBB
-			choren_mask |= (BL0 & BL1 & BL2 /**/& BR0 & BR1);
-			//! BBBYBB
-			choren_mask |= (BL0 & BL1 /**/& BR0 & BR1 & BR2);
-			//! BBBBYB
-			choren_mask |= (BL0 /**/& BR0 & BR1 & BR2 & BR3);
 			//! BBBBBY
+			choren_mask |= (BL0 & BL1 & BL2 & BL3 & BL4);
+			//! BBBBYB
+			choren_mask |= (BL0 & BL1 & BL2 & BL3 /**/& BR0);
+			//! BBBYBB
+			choren_mask |= (BL0 & BL1 & BL2 /**/& BR0 & BR1);
+			//! BBYBBB
+			choren_mask |= (BL0 & BL1 /**/& BR0 & BR1 & BR2);
+			//! BYBBBB
+			choren_mask |= (BL0 /**/& BR0 & BR1 & BR2 & BR3);
+			//! YBBBBB
 			choren_mask |= (BR0 & BR1 & BR2 & BR3 & BR4);
 		}
 		return choren_mask;
@@ -170,16 +170,16 @@ class Board {
 			auto &BR4 = pattern[dir][Stone::Black][Side::Right][4], &NR4 = pattern[dir][Stone::None][Side::Right][4], &bR4 = pattern[dir][Stone::NonBlack][Side::Right][4];
 
 			//! [XBOYYYOBX]
-			//! XBOYBBOBX
+			//! XBOBBYOBX
 			shishi1_mask |= (BL0 & BL1 & NL2 & BL3 & bL4 /**/& NR0 & BR1 & bR2);
 			//! XBOBYBOBX
 			shishi1_mask |= (BL0 & NL1 & BL2 & bL3 /**/& BR0 & NR1 & BR2 & bR3);
-			//! XBOBBYOBX
+			//! XBOYBBOBX
 			shishi1_mask |= (NL0 & BL1 & bL2 /**/& BR0 & BR1 & NR2 & BR3 & bR4);
 			//! [XBBOYYOBBX]
-			//! XBBOYBOBBX
-			shishi1_mask |= (BL0 & NL1 & BL2 & BL3 & bL4 /**/& NR0 & BR1 & BR2 & bR3);
 			//! XBBOBYOBBX
+			shishi1_mask |= (BL0 & NL1 & BL2 & BL3 & bL4 /**/& NR0 & BR1 & BR2 & bR3);
+			//! XBBOYBOBBX
 			shishi1_mask |= (NL0 & BL1 & BL2 & bL3 /**/& BR0 & NR1 & BR2 & BR3 & bR4);
 			//! [XBBBOYOBBBX]
 			shishi1_mask |= (NR0 & BR1 & BR2 & BR3 & bR4 /**/& NL0 & BL1 & BL2 & BL3 & bL4);
@@ -203,19 +203,19 @@ class Board {
 			auto &BR2 = pattern[dir][Stone::Black][Side::Right][2], &NR2 = pattern[dir][Stone::None][Side::Right][2], &bR2 = pattern[dir][Stone::NonBlack][Side::Right][2];
 			auto &BR3 = pattern[dir][Stone::Black][Side::Right][3], &NR3 = pattern[dir][Stone::None][Side::Right][3], &bR3 = pattern[dir][Stone::NonBlack][Side::Right][3];
 			auto &BR4 = pattern[dir][Stone::Black][Side::Right][4], &NR4 = pattern[dir][Stone::None][Side::Right][4], &bR4 = pattern[dir][Stone::NonBlack][Side::Right][4];
-			auto &ML1 = kBitMaskArray[dir][Side::Right][0], &ML2 = kBitMaskArray[dir][Side::Right][1];
-			auto &ML3 = kBitMaskArray[dir][Side::Right][2] , &ML4 = kBitMaskArray[dir][Side::Right][3];
-			auto &MR1 = kBitMaskArray[dir][Side::Left][0], &MR2 = kBitMaskArray[dir][Side::Left][1];
-			auto &MR3 = kBitMaskArray[dir][Side::Left][2], &MR4 = kBitMaskArray[dir][Side::Left][3];
+			auto &ML1 = kBitMaskArray[dir][Side::Left][0], &ML2 = kBitMaskArray[dir][Side::Left][1];
+			auto &ML3 = kBitMaskArray[dir][Side::Left][2] , &ML4 = kBitMaskArray[dir][Side::Left][3];
+			auto &MR1 = kBitMaskArray[dir][Side::Right][0], &MR2 = kBitMaskArray[dir][Side::Right][1];
+			auto &MR3 = kBitMaskArray[dir][Side::Right][2], &MR4 = kBitMaskArray[dir][Side::Right][3];
 
 			//! [XOBBBBOX]
-			//! XOBBBYOX
-			shiren_mask[dir] |= (NL0 & bL1 & ML1/**/& BR0 & BR1 & BR2 & NR3 & bR4 & MR4);
-			//! XOBBYBOX
-			shiren_mask[dir] |= (BL0 & NL1 & bL2 & ML2/**/& BR0 & BR1 & NR2 & bR3 & MR3);
-			//! XOBYBBOX
-			shiren_mask[dir] |= (BR0 & NR1 & bR2 & MR2/**/& BL0 & BL1 & NL2 & bL3 & ML3);
 			//! XOYBBBOX
+			shiren_mask[dir] |= (NL0 & bL1 & ML1/**/& BR0 & BR1 & BR2 & NR3 & bR4 & MR4);
+			//! XOBYBBOX
+			shiren_mask[dir] |= (BL0 & NL1 & bL2 & ML2/**/& BR0 & BR1 & NR2 & bR3 & MR3);
+			//! XOBBYBOX
+			shiren_mask[dir] |= (BR0 & NR1 & bR2 & MR2/**/& BL0 & BL1 & NL2 & bL3 & ML3);
+			//! XOBBBYOX
 			shiren_mask[dir] |= (NR0 & bR1 & MR1/**/& BL0 & BL1 & BL2 & NL3 & bL4 & ML4);
 		}
 		return shiren_mask;
