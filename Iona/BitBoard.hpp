@@ -15,7 +15,6 @@
 #include"misc_functions.hpp"
 #include <type_traits>
 
-
 /**
 * @class BitBoard
 * @brief BitBoard class for game board
@@ -32,6 +31,7 @@ struct BitBoard {
 	static const __m256i kBitMaskRD;
 	static const __m256i kBitMaskLD;
 	static const __m256i kBitMaskLU;
+	static const __m256i AllBit1;
 	union
 	{
 		__m256i board_;
@@ -176,7 +176,12 @@ struct BitBoard {
 	}
 	bool operator!=(const BitBoard& r) const noexcept { return !(*this == r); }
 	bool operator!=(std::nullptr_t) const noexcept { return !(*this == 0); }
+	BitBoard operator! () noexcept { return _mm256_xor_si256(this->board_, AllBit1); }
 };
 inline bool operator==(std::nullptr_t, const BitBoard& r) noexcept { return r == 0; }
 inline bool operator!=(std::nullptr_t l, const BitBoard& r) { return !(l == r); }
 inline BitBoard operator & (const __m256i a, const BitBoard& b) noexcept { return _mm256_and_si256(a, b.board_); }
+template<Side side> inline BitBoard sift(const BitBoard& l , Direction r) noexcept;
+template<> inline BitBoard sift<Side::Left>(const BitBoard& l , Direction r) noexcept { return l << r; }
+template<> inline BitBoard sift<Side::Right>(const BitBoard& l , Direction r) noexcept { return l >> r; }
+template<Side side> inline BitBoard& sift_assign(BitBoard& l , Direction r) noexcept { l =  sift<side>(l, r); return l; }

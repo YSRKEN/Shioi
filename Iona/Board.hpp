@@ -80,6 +80,19 @@ class Board {
 		if (white_board_.GetBit(position)) return Stone::White;
 		return Stone::None;
 	}
+	template<Stone color, enable_if_t<color == Stone::Black> = nullptr> BitBoard GetBitBoardByStoneColor() const noexcept { return black_board_; }
+	template<Stone color, enable_if_t<color == Stone::White> = nullptr> BitBoard GetBitBoardByStoneColor() const noexcept { return white_board_; }
+	template<Stone color, Side side> void GetShiftPattern_impl(array<array<array<BitBoard, kMaxShifts>, Side::Sides>, Stone::Stones>& s_p, Direction dir){
+		auto pattern = GetBitBoardByStoneColor<color>();
+		for (auto& shift : s_p[color][side])  { sift_assign<side>(pattern, dir); shift = pattern; }
+	}
+	template<Side side> void GetShiftPattern_impl(array<array<array<BitBoard, kMaxShifts>, Side::Sides>, Stone::Stones>& s_p, Stone color, Direction dir){
+		auto pattern_black = black_board_; auto pattern_white = white_board_;
+		for (auto& shift : s_p[color][side]) {
+			pattern_black >>= dir; pattern_white >>= dir;
+			shift = !(pattern_black | pattern_white);
+		}
+	}
 	/**
 	* ~japanese	@brief 方向・先後・左右・シフト数に応じたシフトパターンを作成する
 	* ~english	@brief Make shift pattern
@@ -88,14 +101,17 @@ class Board {
 		ShiftPattern shift_Pattern;
 		REP(dir_, Direction::Directions) {
 			const auto dir = static_cast<Direction>(dir_);
-			auto pattern = black_board_;
-			for (auto& shift : shift_Pattern[dir][Stone::Black][Side::Left])  { pattern <<= dir; shift = pattern; }
-			pattern = black_board_;
-			for (auto& shift : shift_Pattern[dir][Stone::Black][Side::Right]) { pattern >>= dir; shift = pattern; }
-			pattern = white_board_;
-			for (auto& shift : shift_Pattern[dir][Stone::White][Side::Left])  { pattern <<= dir; shift = pattern; }
-			pattern = white_board_;
-			for (auto& shift : shift_Pattern[dir][Stone::White][Side::Right]) { pattern >>= dir; shift = pattern; }
+			auto& s_p = shift_Pattern[dir];
+			//modify shift_Pattern
+			GetShiftPattern_impl<Stone::Black, Side::Left >(s_p, dir);
+			GetShiftPattern_impl<Stone::Black, Side::Right>(s_p, dir);
+			GetShiftPattern_impl<Stone::White, Side::Left >(s_p, dir);
+			GetShiftPattern_impl<Stone::White, Side::Right>(s_p, dir);
+			GetShiftPattern_impl<Side::Left >(s_p, Stone::None, dir);
+			GetShiftPattern_impl<Side::Right>(s_p, Stone::None, dir);
+			
+			s_p[Stone::NonBlack] = s_p[Stone::Black];//copy
+			for(auto s : s_p[Stone::NonBlack]) for(auto& spss : s) spss = !spss;//否定
 		}
 		return shift_Pattern;
 	}
@@ -106,31 +122,25 @@ class Board {
 	BitBoard CalcChorenMaskB(const ShiftPattern &pattern) {
 		BitBoard choren_mask;
 		REP(dir, Direction::Directions) {
-			//BitBoard temp;
-			//! BBBBBX
-			choren_mask |= (pattern[dir][Stone::Black][Side::Left][0] & pattern[dir][Stone::Black][Side::Left][1]
-				& pattern[dir][Stone::Black][Side::Left][2] & pattern[dir][Stone::Black][Side::Left][3]
-				& pattern[dir][Stone::Black][Side::Left][4]);
-			//! BBBBXB
-			choren_mask |= (pattern[dir][Stone::Black][Side::Left][0] & pattern[dir][Stone::Black][Side::Left][1]
-				& pattern[dir][Stone::Black][Side::Left][2] & pattern[dir][Stone::Black][Side::Left][3]
-				& pattern[dir][Stone::Black][Side::Right][0]);
-			//! BBBXBB
-			choren_mask |= (pattern[dir][Stone::Black][Side::Left][0] & pattern[dir][Stone::Black][Side::Left][1]
-				& pattern[dir][Stone::Black][Side::Left][2] & pattern[dir][Stone::Black][Side::Right][0]
-				& pattern[dir][Stone::Black][Side::Right][1]);
-			//! BBXBBB
-			choren_mask |= (pattern[dir][Stone::Black][Side::Left][0] & pattern[dir][Stone::Black][Side::Left][1]
-				& pattern[dir][Stone::Black][Side::Right][0] & pattern[dir][Stone::Black][Side::Right][1]
-				& pattern[dir][Stone::Black][Side::Right][2]);
-			//! BXBBBB
-			choren_mask |= (pattern[dir][Stone::Black][Side::Left][0] & pattern[dir][Stone::Black][Side::Right][0]
-				& pattern[dir][Stone::Black][Side::Right][1] & pattern[dir][Stone::Black][Side::Right][2]
-				& pattern[dir][Stone::Black][Side::Right][3]);
-			//! XBBBBB
-			choren_mask |= (pattern[dir][Stone::Black][Side::Right][0] & pattern[dir][Stone::Black][Side::Right][1]
-				& pattern[dir][Stone::Black][Side::Right][2] & pattern[dir][Stone::Black][Side::Right][3]
-				& pattern[dir][Stone::Black][Side::Right][4]);
+			auto& p = pattern[dir];
+			constexpr size_t B = Stone::Black;
+			//constexpr size_t N = Stone::None;
+			constexpr size_t L = Side::Left;
+			constexpr size_t R = Side::Right;
+
+			//! [BBBBBB]
+			//! YBBBBB
+			choren_mask |= (p[B][L][0] & p[B][L][1] & p[B][L][2] & p[B][L][3] & p[B][L][4]);
+			//! BYBBBB
+			choren_mask |= (p[B][L][0] & p[B][L][1] & p[B][L][2] & p[B][L][3] /**/& p[B][R][0]);
+			//! BBYBBB
+			choren_mask |= (p[B][L][0] & p[B][L][1] & p[B][L][2] /**/& p[B][R][0] & p[B][R][1]);
+			//! BBBYBB
+			choren_mask |= (p[B][L][0] & p[B][L][1] /**/& p[B][R][0] & p[B][R][1] & p[B][R][2]);
+			//! BBBBYB
+			choren_mask |= (p[B][L][0] /**/& p[B][R][0] & p[B][R][1] & p[B][R][2] & p[B][R][3]);
+			//! BBBBBY
+			choren_mask |= (p[B][R][0] & p[B][R][1] & p[B][R][2] & p[B][R][3] & p[B][R][4]);
 		}
 		return choren_mask;
 	}
@@ -140,6 +150,29 @@ class Board {
 	*/
 	BitBoard CalcLineShiShiMaskB(const ShiftPattern &pattern) {
 		BitBoard shishi1_mask;
+		REP(dir, Direction::Directions) {
+			auto& p = pattern[dir];
+			constexpr size_t B = Stone::Black;
+			constexpr size_t N = Stone::None;
+			constexpr size_t b = Stone::NonBlack;
+			constexpr size_t L = Side::Left;
+			constexpr size_t R = Side::Right;
+
+			//! [XBOYYYOBX]
+			//! XBOYBBOBX
+			shishi1_mask |= (p[B][L][0] & p[B][L][1] & p[N][L][2] & p[B][L][3] & p[b][L][4] /**/& p[N][R][0] & p[B][R][1] & p[b][R][2]);
+			//! XBOBYBOBX
+			shishi1_mask |= (p[B][L][0] & p[N][L][1] & p[B][L][2] & p[b][L][3] /**/& p[B][R][0] & p[N][R][1] & p[B][R][2] & p[b][R][3]);
+			//! XBOBBYOBX
+			shishi1_mask |= (p[N][L][0] & p[B][L][1] & p[b][L][2] /**/& p[B][R][0] & p[B][R][1] & p[N][R][2] & p[B][R][3] & p[b][R][4]);
+			//! [XBBOYYOBBX]
+			//! XBBOYBOBBX
+			shishi1_mask |= (p[B][L][0] & p[N][L][1] & p[B][L][2] & p[B][L][3] & p[b][L][4] /**/& p[N][R][0] & p[B][R][1] & p[B][R][2] & p[b][R][3]);
+			//! XBBOBYOBBX
+			shishi1_mask |= (p[N][L][0] & p[B][L][1] & p[B][L][2] & p[b][L][3] /**/& p[B][R][0] & p[N][R][1] & p[B][R][2] & p[B][R][3] & p[b][R][4]);
+			//! [XBBBOYOBBBX]
+			shishi1_mask |= (p[N][R][0] & p[B][R][1] & p[B][R][2] & p[B][R][3] & p[b][R][4] /**/& p[N][L][0] & p[B][L][1] & p[B][L][2] & p[B][L][3] & p[b][L][4]);
+		}
 		return shishi1_mask;
 	}
 	/**
@@ -189,7 +222,7 @@ class Board {
 			list.push_back(position);
 		}
 		if(list.size() > 0) return optional<size_t>(list[RandInt(list.size())]);
-		return optional<size_t>(-1);
+		return{};
 	}
 public:
 	/**
@@ -253,6 +286,7 @@ public:
 						cout << "┼";
 					}
 					break;
+				default: break;
 				}
 			}
 			cout << endl;

@@ -7,7 +7,8 @@
 */
 #pragma once
 #include"constant.hpp"
-
+#include<type_traits>
+template<bool con> using enable_if_t = typename std::enable_if<con, std::nullptr_t>::type;
 /**
 * @fn ToPosition
 * @brief Convert two position one position
