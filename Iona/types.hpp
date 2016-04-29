@@ -18,7 +18,8 @@ enum Stone : uint8_t {
 	Black,
 	White,
 	None,
-	Stones = 2,
+	NonBlack,
+	Stones = 4,
 };
 
 /**

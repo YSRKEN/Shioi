@@ -15,6 +15,8 @@
 
 //! constant table
 __m256i kPositionArray[kAllBoardSize];
+//! mask constant
+__m256i AllBit1 = _mm256_set1_epi16(0xFFFFu);
 /**
 * @fn IsZero
 * ~japanese	@brief __m256iのビットが全て0か調べる
@@ -32,6 +34,7 @@ bool IsZero(const __m256i a) noexcept {
 __m256i operator | (const __m256i a, const __m256i b) noexcept {return _mm256_or_si256(a, b);}
 __m256i operator & (const __m256i a, const __m256i b) noexcept {return _mm256_and_si256(a, b);}
 __m256i operator ^ (const __m256i a, const __m256i b) noexcept { return _mm256_xor_si256(a, b); }
+__m256i operator ! (const __m256i a) noexcept { return _mm256_xor_si256(a, AllBit1); }
 bool operator == (const __m256i a, const __m256i b) noexcept {
 	/**
 	* 【通常のコード】
@@ -41,11 +44,6 @@ bool operator == (const __m256i a, const __m256i b) noexcept {
 	* 256/8=32なので、int型の変数に集約されることになるが、先ほどより0か1かなので、
 	* 結局完全一致してたら0xFFFFFFFF、そうでなければどこかが異なることになる。
 	*/
-	/*auto temp = a & b;
-	const __m256i kPackedZero{};
-	auto temp2 = _mm256_cmpeq_epi64(temp, kPackedZero);
-	auto temp3 = _mm256_movemask_epi8(temp2);
-	return (temp3 != 0xFFFFFFFF);*/
 	/**
 	* 【高度なコード】
 	* 二引数のXORを取れば、等しいビットは全て0、等しくないビットは全て1になる。
