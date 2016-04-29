@@ -1047,7 +1047,7 @@ class Board {
 		}
 		return false;
 	}
-	bool IsBlockMove(const Stone turn, const size_t depth) {
+	bool IsBlockMove(const Stone turn, const size_t /*depth*/) {
 		auto range = GetRange();
 		if (turn == Stone::Black) {
 			for (size_t y : rep(range[1], range[3])) {

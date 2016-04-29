@@ -9,31 +9,27 @@
 #include<cstdint>
 #include<iostream>
 #include<immintrin.h>
+#include<array>
 #include"types.hpp"
 #include"constant.hpp"
 #include"misc_functions.hpp"
+#include <type_traits>
 
-//! constant table
-__m256i kPositionArray[kAllBoardSize];
-/**
-* @fn IsZero
-* ~japanese	@brief __m256iのビットが全て0か調べる
-* ~english	@brief is all bits of __m256i "0" ?
-*/
-bool IsZero(const __m256i a) noexcept {
+inline __m256i operator | (const __m256i a, const __m256i b) noexcept {return _mm256_or_si256(a, b);}
+inline __m256i& operator |= (__m256i& a, const __m256i b) noexcept { a = _mm256_or_si256(a, b); return a; }
+inline __m256i operator & (const __m256i a, const __m256i b) noexcept {return _mm256_and_si256(a, b);}
+inline __m256i operator ^ (const __m256i a, const __m256i b) noexcept { return _mm256_xor_si256(a, b); }
+inline bool operator==(const __m256i l, std::nullptr_t) noexcept {
 	/**
 	* _mm256_testz_si256は、2つの引数のANDを取り、全てのビットが0ならZFフラグを設定し、
 	* そうでなければZFフラグをクリアする。ZFフラグが設定されるとこの関数の返り値が非0になり、
 	* そうでなければ返り値が0になる。つまり、引数に両方aを噛ますと、aがオール0ならば
 	* 返り値が非0、そうでなければ返り値が0になる。
 	*/
-	return (_mm256_testz_si256(a, a) != 0);
+	return (_mm256_testz_si256(l, l) != 0);
 }
-__m256i operator | (const __m256i a, const __m256i b) noexcept {return _mm256_or_si256(a, b);}
-//__m256i operator |= (const __m256i a, const __m256i b) noexcept { return _mm256_or_si256(a, b); }  <- bug
-__m256i operator & (const __m256i a, const __m256i b) noexcept {return _mm256_and_si256(a, b);}
-__m256i operator ^ (const __m256i a, const __m256i b) noexcept { return _mm256_xor_si256(a, b); }
-bool operator == (const __m256i a, const __m256i b) noexcept {
+inline bool operator==(std::nullptr_t, const __m256i r) noexcept { return 0 == r; }
+inline bool operator == (const __m256i a, const __m256i b) noexcept {
 	/**
 	* 【通常のコード】
 	* _mm256_cmpeq_epi64は、__m256iを64bit毎に分割した要素毎に比較を行い、
@@ -54,59 +50,54 @@ bool operator == (const __m256i a, const __m256i b) noexcept {
 	*/
 	return IsZero(a ^ b);
 }
-//! mask constant
-const __m256i kBitMaskR = _mm256_set1_epi16(0x7FFFu);
-const __m256i kBitMaskL = _mm256_set1_epi16(0xFFFEu);
-const __m256i kBitMaskU = _mm256_set_epi16(
-	0x0000u, 0xFFFFu, 0xFFFFu, 0xFFFFu, 0xFFFFu, 0xFFFFu, 0xFFFFu, 0xFFFFu,
-	0xFFFFu, 0xFFFFu, 0xFFFFu, 0xFFFFu, 0xFFFFu, 0xFFFFu, 0xFFFFu, 0xFFFFu);
-const __m256i kBitMaskD = _mm256_set_epi16(
-	0xFFFFu, 0xFFFFu, 0xFFFFu, 0xFFFFu, 0xFFFFu, 0xFFFFu, 0xFFFFu, 0xFFFFu,
-	0xFFFFu, 0xFFFFu, 0xFFFFu, 0xFFFFu, 0xFFFFu, 0xFFFFu, 0xFFFFu, 0x0000u);
-const __m256i kBitMaskRU = kBitMaskR & kBitMaskU;
-const __m256i kBitMaskRD = kBitMaskR & kBitMaskD;
-const __m256i kBitMaskLD = kBitMaskL & kBitMaskD;
-const __m256i kBitMaskLU = kBitMaskL & kBitMaskU;
+bool operator!=(const __m256i& l, const __m256i& r) { return !(l == r); }
+bool operator!=(std::nullptr_t l, const __m256i& r) { return !(l == r); }
+bool operator!=(const __m256i& l, std::nullptr_t r) { return !(l == r); }
 
 /**
 * @class BitBoard
 * @brief BitBoard class for game board
 */
 struct BitBoard {
+	//! constant table
+	static const std::array<__m256i, kAllBoardSize> kPositionArray;
+	//! mask constant
+	static const __m256i kBitMaskR;
+	static const __m256i kBitMaskL;
+	static const __m256i kBitMaskU;
+	static const __m256i kBitMaskD;
+	static const __m256i kBitMaskRU;
+	static const __m256i kBitMaskRD;
+	static const __m256i kBitMaskLD;
+	static const __m256i kBitMaskLU;
 	union
 	{
 		__m256i board_;
 		uint16_t line_[16];
 	};
-	/**
-	* @brief Constructor
-	*/
-	BitBoard() noexcept {
-		board_ = __m256i{};
-	}
-	/**
-	* @brief Constructor
-	*/
-	BitBoard(const __m256i a) noexcept{
-		board_ = a;
-	}
+	BitBoard() = default;
+	BitBoard(const __m256i a) noexcept;
+	BitBoard(const BitBoard&) = default;
+	BitBoard(BitBoard&&) = default;
+	BitBoard& operator=(const BitBoard&) = default;
+	BitBoard& operator=(BitBoard&&) = default;
 	/**
 	* @brief Cast operator(to __m256i)
 	*/
-	operator __m256i() const { return board_; }
+	explicit operator __m256i() const { return board_; }
 	/**
 	* ~japanese	@brief BitBoardにおけるpositionの位置のビットを調べる
 	* ~english	@brief Get bit of position in BitBoard
 	*/
 	bool GetBit(const size_t position) const noexcept {
-		return !IsZero(board_ & kPositionArray[position]);
+		return 0 != (board_ & kPositionArray[position]);
 	}
 	/**
 	* ~japanese	@brief BitBoardにおけるpositionの位置のビットを立てる
 	* ~english	@brief Set "1" to bit of position in BitBoard
 	*/
 	void SetBit(const size_t position) noexcept {
-		board_ = board_ | kPositionArray[position];
+		board_ |= kPositionArray[position];
 	}
 	/**
 	* @fn PutBoard
@@ -162,105 +153,33 @@ struct BitBoard {
 		return;
 	}
 	/**
-	* ~japanese	@brief kPositionArrayを初期化する
-	* ~english	@brief Initialize of kPositionArray
-	*/
-	static void Initialize() {
-		REP(y, kBoardSize){
-			REP(x, kBoardSize) {
-				size_t position = ToPosition(x, y);
-				uint16_t line[sizeof(__m256i) / sizeof(uint16_t)]{};
-				line[y] = 1 << x;
-				kPositionArray[position] = _mm256_loadu_si256((__m256i*)line);
-			}
-		}
-	}
-	/**
 	* ~japanese	@brief BitBoardを、dir方向における「左」にシフトする
 	* ~english	@brief shift BitBoard to "Left" direction
 	*/
-	BitBoard ShiftLeft(const Direction dir) noexcept {
-		switch (dir) {
-		case Direction::Row:
-			return BitBoard(_mm256_srli_epi16(board_, 1) & kBitMaskR);
-			break;
-		case Direction::Column:
-			//! 最初考えていた方法
-			/*{alignas(32) uint16_t temp[17]{};
-			_mm256_store_si256((__m256i*)temp, board_);
-			return BitBoard(_mm256_loadu_si256((__m256i*)(temp + 1)) & kBitMaskU);}*/
-			//! 恐るべき解決手段
-			//! http://stackoverflow.com/questions/25248766/emulating-shifts-on-32-bytes-with-avx
-			return BitBoard(_mm256_alignr_epi8(_mm256_permute2x128_si256(board_, board_, _MM_SHUFFLE(2, 0, 0, 1)), board_, 2) & kBitMaskU);
-			break;
-		case Direction::DiagR:
-			//! 最初考えていた方法
-			/*{alignas(32) uint16_t temp[17]{};
-			_mm256_store_si256((__m256i*)temp, board_);
-			return BitBoard(_mm256_slli_epi16(_mm256_loadu_si256((__m256i*)(temp + 1)), 1) & kBitMaskLU);}*/
-			//! 恐るべき解決手段
-			return BitBoard(_mm256_slli_epi16(_mm256_alignr_epi8(_mm256_permute2x128_si256(board_, board_, _MM_SHUFFLE(2, 0, 0, 1)), board_, 2), 1) & kBitMaskLU);
-			break;
-		case Direction::DiagL:
-			//! 最初考えていた方法
-			/*{alignas(32) uint16_t temp[17]{};
-			_mm256_store_si256((__m256i*)temp, board_);
-			return BitBoard(_mm256_srli_epi16(_mm256_loadu_si256((__m256i*)(temp + 1)), 1) & kBitMaskRU);}*/
-			//! 恐るべき解決手段
-			return BitBoard(_mm256_srli_epi16(_mm256_alignr_epi8(_mm256_permute2x128_si256(board_, board_, _MM_SHUFFLE(2, 0, 0, 1)), board_, 2), 1) & kBitMaskRU);
-			break;
-		default:
-			return *this;
-		}
-	}
+	BitBoard operator<<(const Direction dir) const noexcept;
 	/**
 	* ~japanese	@brief BitBoardを、dir方向における「右」にシフトする
 	* ~english	@brief shift BitBoard to "Right" direction
 	*/
-	BitBoard ShiftRight(const Direction dir) noexcept {
-		switch (dir) {
-		case Direction::Row:
-			return BitBoard(_mm256_slli_epi16(board_, 1) & kBitMaskL);
-			break;
-		case Direction::Column:
-			//! 最初考えていた方法
-			/*{alignas(32) uint16_t temp[17]{};
-			_mm256_storeu_si256((__m256i*)(temp + 1), board_);
-			return BitBoard(_mm256_load_si256((__m256i*)temp) & kBitMaskD);}*/
-			//! 恐るべき解決手段
-			return BitBoard(_mm256_alignr_epi8(board_, _mm256_permute2x128_si256(board_, board_, _MM_SHUFFLE(0, 0, 2, 0)), 16 - 2) & kBitMaskD);
-		case Direction::DiagR:
-			//! 最初考えていた方法
-			/*{alignas(32) uint16_t temp[17]{};
-			_mm256_storeu_si256((__m256i*)(temp + 1), board_);
-			return BitBoard(_mm256_srli_epi16(_mm256_load_si256((__m256i*)temp), 1) & kBitMaskRD);}*/
-			//! 恐るべき解決手段
-			return BitBoard(_mm256_srli_epi16(_mm256_alignr_epi8(board_, _mm256_permute2x128_si256(board_, board_, _MM_SHUFFLE(0, 0, 2, 0)), 16 - 2), 1) & kBitMaskRD);
-			break;
-		case Direction::DiagL:
-			//! 最初考えていた方法
-			/*{alignas(32) uint16_t temp[17]{};
-			_mm256_storeu_si256((__m256i*)(temp + 1), board_);
-			return BitBoard(_mm256_slli_epi16(_mm256_load_si256((__m256i*)temp), 1) & kBitMaskLD);}*/
-			//! 恐るべき解決手段
-			return BitBoard(_mm256_slli_epi16(_mm256_alignr_epi8(board_, _mm256_permute2x128_si256(board_, board_, _MM_SHUFFLE(0, 0, 2, 0)), 16 - 2), 1) & kBitMaskLD);
-			break;
-		default:
-			return *this;
-		}
-	}
+	BitBoard operator>>(const Direction dir) const noexcept;
 	/**
 	* ~japanese	@brief BitBoardを、dir方向における「左」にシフトする(破壊的変更)
 	* ~english	@brief shift BitBoard to "Left" direction(Destructive change)
 	*/
-	void ShiftLeftD(const Direction dir) noexcept {
-		board_ = ShiftLeft(dir);
+	BitBoard& operator<<=(const Direction dir) noexcept {
+		*this = *this << dir;
+		return *this;
 	}
 	/**
 	* ~japanese	@brief BitBoardを、dir方向における「右」にシフトする(破壊的変更)
 	* ~english	@brief shift BitBoard to "Right" direction(Destructive change)
 	*/
-	void ShiftRightD(const Direction dir) noexcept {
-		board_ = ShiftRight(dir);
+	BitBoard& operator>>=(const Direction dir) noexcept {
+		*this = *this >> dir;
+		return *this;
 	}
+	BitBoard operator|(const BitBoard& r) const { return this->board_ | r.board_; }
+	BitBoard& operator|=(const BitBoard& r) noexcept { *this = *this | r; return *this; }
+	BitBoard operator&(const BitBoard& r) const { return this->board_ & r.board_; }
 };
+inline __m256i operator & (const __m256i a, const BitBoard& b) noexcept { return a & b.board_; }

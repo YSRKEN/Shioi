@@ -8,8 +8,7 @@
 #pragma once
 #include<cstdint>
 
-using std::size_t;
-
+using std::uint8_t;
 /**
 * @enum Turn
 * Information of turn player
