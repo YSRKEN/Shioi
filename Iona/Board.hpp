@@ -118,31 +118,39 @@ class Board {
 		REP(dir, Direction::Directions) {
 			BitBoard temp;
 			//! BBBBBX
-			choren_mask = choren_mask | (pattern[dir][Stone::Black][Side::Left][0] & pattern[dir][Stone::Black][Side::Left][1]
+			choren_mask |= (pattern[dir][Stone::Black][Side::Left][0] & pattern[dir][Stone::Black][Side::Left][1]
 				& pattern[dir][Stone::Black][Side::Left][2] & pattern[dir][Stone::Black][Side::Left][3]
 				& pattern[dir][Stone::Black][Side::Left][4]);
 			//! BBBBXB
-			choren_mask = choren_mask | (pattern[dir][Stone::Black][Side::Left][0] & pattern[dir][Stone::Black][Side::Left][1]
+			choren_mask |= (pattern[dir][Stone::Black][Side::Left][0] & pattern[dir][Stone::Black][Side::Left][1]
 				& pattern[dir][Stone::Black][Side::Left][2] & pattern[dir][Stone::Black][Side::Left][3]
 				& pattern[dir][Stone::Black][Side::Right][0]);
 			//! BBBXBB
-			choren_mask = choren_mask | (pattern[dir][Stone::Black][Side::Left][0] & pattern[dir][Stone::Black][Side::Left][1]
+			choren_mask |= (pattern[dir][Stone::Black][Side::Left][0] & pattern[dir][Stone::Black][Side::Left][1]
 				& pattern[dir][Stone::Black][Side::Left][2] & pattern[dir][Stone::Black][Side::Right][0]
 				& pattern[dir][Stone::Black][Side::Right][1]);
 			//! BBXBBB
-			choren_mask = choren_mask | (pattern[dir][Stone::Black][Side::Left][0] & pattern[dir][Stone::Black][Side::Left][1]
+			choren_mask |= (pattern[dir][Stone::Black][Side::Left][0] & pattern[dir][Stone::Black][Side::Left][1]
 				& pattern[dir][Stone::Black][Side::Right][0] & pattern[dir][Stone::Black][Side::Right][1]
 				& pattern[dir][Stone::Black][Side::Right][2]);
 			//! BXBBBB
-			choren_mask = choren_mask | (pattern[dir][Stone::Black][Side::Left][0] & pattern[dir][Stone::Black][Side::Right][0]
+			choren_mask |= (pattern[dir][Stone::Black][Side::Left][0] & pattern[dir][Stone::Black][Side::Right][0]
 				& pattern[dir][Stone::Black][Side::Right][1] & pattern[dir][Stone::Black][Side::Right][2]
 				& pattern[dir][Stone::Black][Side::Right][3]);
 			//! XBBBBB
-			choren_mask = choren_mask | (pattern[dir][Stone::Black][Side::Right][0] & pattern[dir][Stone::Black][Side::Right][1]
+			choren_mask |= (pattern[dir][Stone::Black][Side::Right][0] & pattern[dir][Stone::Black][Side::Right][1]
 				& pattern[dir][Stone::Black][Side::Right][2] & pattern[dir][Stone::Black][Side::Right][3]
 				& pattern[dir][Stone::Black][Side::Right][4]);
 		}
 		return choren_mask;
+	}
+	/**
+	* ~japanese	@brief 一直線上の四々を起こす石の位置を算出する(黒石用)
+	* ~english	@brief Make position mask of Shi-Shi on 1Line for Stone::Black
+	*/
+	BitBoard CalcLineShiShiMaskB(const ShiftPattern &pattern) {
+		BitBoard shishi1_mask;
+		return shishi1_mask;
 	}
 	/**
 	* ~japanese	@brief 禁手で打てない位置のビットを立てたマスクを作成する
@@ -167,9 +175,11 @@ class Board {
 		auto choren_mask = CalcChorenMaskB(shift_pattern);
 		invalid_mask |= choren_mask;
 		//! Shi-Shi on 1 line check
+		auto shishi1_mask = CalcLineShiShiMaskB(shift_pattern);
+		invalid_mask |= shishi1_mask;
 
 		choren_mask.PutBoard();
-		
+		shishi1_mask.PutBoard();
 		return invalid_mask;	//! dummy
 	}
 	/**
@@ -182,6 +192,7 @@ class Board {
 		if (turn_ == Stone::Black) {
 			invalid_mask = invalid_mask | CalcInValidMask();
 		}
+		BitBoard(invalid_mask).PutBoard();
 		REP(position, kAllBoardSize) {
 			//! You can only move at Stone::None in Board
 			if (!IsZero(kPositionArray[position] & invalid_mask)) continue;

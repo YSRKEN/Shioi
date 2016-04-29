@@ -30,7 +30,6 @@ bool IsZero(const __m256i a) noexcept {
 	return (_mm256_testz_si256(a, a) != 0);
 }
 __m256i operator | (const __m256i a, const __m256i b) noexcept {return _mm256_or_si256(a, b);}
-//__m256i operator |= (const __m256i a, const __m256i b) noexcept { return _mm256_or_si256(a, b); }  <- bug
 __m256i operator & (const __m256i a, const __m256i b) noexcept {return _mm256_and_si256(a, b);}
 __m256i operator ^ (const __m256i a, const __m256i b) noexcept { return _mm256_xor_si256(a, b); }
 bool operator == (const __m256i a, const __m256i b) noexcept {
@@ -263,4 +262,5 @@ struct BitBoard {
 	void ShiftRightD(const Direction dir) noexcept {
 		board_ = ShiftRight(dir);
 	}
+	BitBoard& operator |= (const __m256i a) noexcept { board_ = _mm256_or_si256(board_, a); return *this; }
 };
