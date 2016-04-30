@@ -97,7 +97,7 @@ class Board {
 	* @fn RandInt
 	* @return Integer random number in [0, n)
 	*/
-	static size_t RandInt(const size_t n) {
+	inline size_t RandInt(const size_t n) {
 		return std::uniform_int_distribution<size_t>{0, n - 1}(mt);
 	}
 	/**
@@ -108,7 +108,7 @@ class Board {
 	* ~japanese	@detail strがkStoneStringのどれにも当てはまらない場合は例外を投げる
 	* ~english	@detail If you can't find str in kStoneString, this throw exception.
 	*/
-	static Stone ToStone(const char str) {
+	inline Stone ToStone(const char str) {
 		constexpr static char kStoneString[] = "BWN";
 		auto find_ptr = strchr(kStoneString, str);
 		if (find_ptr != NULL) {
@@ -122,7 +122,7 @@ class Board {
 	* ~japanese	@brief 長連を起こす石の位置を算出する(黒石用)
 	* ~english	@brief Make position mask of Cho-ren for Stone::Black
 	*/
-	static BitBoard CalcChorenMaskB(const ShiftPattern &pattern) noexcept {
+	inline BitBoard CalcChorenMaskB(const ShiftPattern &pattern) noexcept {
 		BitBoard choren_mask;
 		REP(dir, Direction::Directions) {
 			auto &BL0 = pattern[dir][Stone::Black][Side::Left][0], &NL0 = pattern[dir][Stone::None][Side::Left][0];
@@ -156,7 +156,7 @@ class Board {
 	* ~japanese	@brief 一直線上の四々を起こす石の位置を算出する(黒石用)
 	* ~english	@brief Make position mask of Shi-Shi on 1Line for Stone::Black
 	*/
-	static BitBoard CalcLineShiShiMaskB(const ShiftPattern &pattern)  noexcept {
+	inline BitBoard CalcLineShiShiMaskB(const ShiftPattern &pattern)  noexcept {
 		BitBoard shishi1_mask;
 		REP(dir, Direction::Directions) {
 			auto &BL0 = pattern[dir][Stone::Black][Side::Left][0], &NL0 = pattern[dir][Stone::None][Side::Left][0], &bL0 = pattern[dir][Stone::NonBlack][Side::Left][0];
@@ -191,7 +191,7 @@ class Board {
 	* ~japanese	@brief 四連を作る石の位置を算出する(黒石用)
 	* ~english	@brief Make position mask of Shi-ren for Stone::Black
 	*/
-	static RenjuPattern CalcShirenMaskB(const ShiftPattern &pattern)  noexcept {
+	inline RenjuPattern CalcShirenMaskB(const ShiftPattern &pattern)  noexcept {
 		RenjuPattern shiren_mask;
 		REP(dir, Direction::Directions) {
 			auto &BL0 = pattern[dir][Stone::Black][Side::Left][0], &NL0 = pattern[dir][Stone::None][Side::Left][0], &bL0 = pattern[dir][Stone::NonBlack][Side::Left][0];
@@ -225,7 +225,7 @@ class Board {
 	* ~japanese	@brief 活四を作る石の位置を算出する(黒石用)
 	* ~english	@brief Make position mask of Katsu-Shi for Stone::Black
 	*/
-	static RenjuPattern CalcKatsuShiMaskB(const ShiftPattern &pattern)  noexcept {
+	inline RenjuPattern CalcKatsuShiMaskB(const ShiftPattern &pattern)  noexcept {
 		RenjuPattern katsushi_mask;
 		REP(dir, Direction::Directions) {
 			auto &BL0 = pattern[dir][Stone::Black][Side::Left][0], &NL0 = pattern[dir][Stone::None][Side::Left][0], &bL0 = pattern[dir][Stone::NonBlack][Side::Left][0];
