@@ -103,12 +103,12 @@ class Board {
 			const auto dir = static_cast<Direction>(dir_);
 			auto& s_p = shift_Pattern[dir];
 			//modify shift_Pattern
-			GetShiftPattern_impl<Stone::Black, Side::Left >(s_p, dir);
 			GetShiftPattern_impl<Stone::Black, Side::Right>(s_p, dir);
-			GetShiftPattern_impl<Stone::White, Side::Left >(s_p, dir);
 			GetShiftPattern_impl<Stone::White, Side::Right>(s_p, dir);
-			GetShiftPattern_impl<Side::Left >(s_p, Stone::None, dir);
 			GetShiftPattern_impl<Side::Right>(s_p, Stone::None, dir);
+			GetShiftPattern_impl<Stone::Black, Side::Left >(s_p, dir);
+			GetShiftPattern_impl<Stone::White, Side::Left >(s_p, dir);
+			GetShiftPattern_impl<Side::Left >(s_p, Stone::None, dir);
 			
 			s_p[Stone::NonBlack] = s_p[Stone::Black];//copy
 			for(auto s : s_p[Stone::NonBlack]) for(auto& spss : s) spss = !spss;//否定
@@ -129,17 +129,17 @@ class Board {
 			constexpr size_t R = Side::Right;
 
 			//! [BBBBBB]
-			//! YBBBBB
-			choren_mask |= (p[B][L][0] & p[B][L][1] & p[B][L][2] & p[B][L][3] & p[B][L][4]);
-			//! BYBBBB
-			choren_mask |= (p[B][L][0] & p[B][L][1] & p[B][L][2] & p[B][L][3] /**/& p[B][R][0]);
-			//! BBYBBB
-			choren_mask |= (p[B][L][0] & p[B][L][1] & p[B][L][2] /**/& p[B][R][0] & p[B][R][1]);
-			//! BBBYBB
-			choren_mask |= (p[B][L][0] & p[B][L][1] /**/& p[B][R][0] & p[B][R][1] & p[B][R][2]);
-			//! BBBBYB
-			choren_mask |= (p[B][L][0] /**/& p[B][R][0] & p[B][R][1] & p[B][R][2] & p[B][R][3]);
 			//! BBBBBY
+			choren_mask |= (p[B][L][0] & p[B][L][1] & p[B][L][2] & p[B][L][3] & p[B][L][4]);
+			//! BBBBYB
+			choren_mask |= (p[B][L][0] & p[B][L][1] & p[B][L][2] & p[B][L][3] /**/& p[B][R][0]);
+			//! BBBYBB
+			choren_mask |= (p[B][L][0] & p[B][L][1] & p[B][L][2] /**/& p[B][R][0] & p[B][R][1]);
+			//! BBYBBB
+			choren_mask |= (p[B][L][0] & p[B][L][1] /**/& p[B][R][0] & p[B][R][1] & p[B][R][2]);
+			//! BYBBBB
+			choren_mask |= (p[B][L][0] /**/& p[B][R][0] & p[B][R][1] & p[B][R][2] & p[B][R][3]);
+			//! YBBBBB
 			choren_mask |= (p[B][R][0] & p[B][R][1] & p[B][R][2] & p[B][R][3] & p[B][R][4]);
 		}
 		return choren_mask;
@@ -159,16 +159,16 @@ class Board {
 			constexpr size_t R = Side::Right;
 
 			//! [XBOYYYOBX]
-			//! XBOYBBOBX
+			//! XBOBBYOBX
 			shishi1_mask |= (p[B][L][0] & p[B][L][1] & p[N][L][2] & p[B][L][3] & p[b][L][4] /**/& p[N][R][0] & p[B][R][1] & p[b][R][2]);
 			//! XBOBYBOBX
 			shishi1_mask |= (p[B][L][0] & p[N][L][1] & p[B][L][2] & p[b][L][3] /**/& p[B][R][0] & p[N][R][1] & p[B][R][2] & p[b][R][3]);
-			//! XBOBBYOBX
+			//! XBOYBBOBX
 			shishi1_mask |= (p[N][L][0] & p[B][L][1] & p[b][L][2] /**/& p[B][R][0] & p[B][R][1] & p[N][R][2] & p[B][R][3] & p[b][R][4]);
 			//! [XBBOYYOBBX]
-			//! XBBOYBOBBX
-			shishi1_mask |= (p[B][L][0] & p[N][L][1] & p[B][L][2] & p[B][L][3] & p[b][L][4] /**/& p[N][R][0] & p[B][R][1] & p[B][R][2] & p[b][R][3]);
 			//! XBBOBYOBBX
+			shishi1_mask |= (p[B][L][0] & p[N][L][1] & p[B][L][2] & p[B][L][3] & p[b][L][4] /**/& p[N][R][0] & p[B][R][1] & p[B][R][2] & p[b][R][3]);
+			//! XBBOYBOBBX
 			shishi1_mask |= (p[N][L][0] & p[B][L][1] & p[B][L][2] & p[b][L][3] /**/& p[B][R][0] & p[N][R][1] & p[B][R][2] & p[B][R][3] & p[b][R][4]);
 			//! [XBBBOYOBBBX]
 			shishi1_mask |= (p[N][R][0] & p[B][R][1] & p[B][R][2] & p[B][R][3] & p[b][R][4] /**/& p[N][L][0] & p[B][L][1] & p[B][L][2] & p[B][L][3] & p[b][L][4]);
@@ -191,13 +191,13 @@ class Board {
 			constexpr size_t R = Side::Right;
 
 			//! [XOBBBBOX]
-			//! XOBBBYOX
-			shiren_mask[dir] |= (p[N][L][0] & p[b][L][1] & m[L][1]/**/& p[B][R][0] & p[B][R][1] & p[B][R][2] & p[N][R][3] & p[b][R][4] & m[R][4]);
-			//! XOBBYBOX
-			shiren_mask[dir] |= (p[B][L][0] & p[N][L][1] & p[b][L][2] & m[L][2]/**/& p[B][R][0] & p[B][R][1] & p[N][R][2] & p[b][R][3] & m[R][3]);
-			//! XOBYBBOX
-			shiren_mask[dir] |= (p[B][R][0] & p[N][R][1] & p[b][R][2] & m[R][2]/**/& p[B][L][0] & p[B][L][1] & p[N][L][2] & p[b][L][3] & m[L][3]);
 			//! XOYBBBOX
+			shiren_mask[dir] |= (p[N][L][0] & p[b][L][1] & m[L][1]/**/& p[B][R][0] & p[B][R][1] & p[B][R][2] & p[N][R][3] & p[b][R][4] & m[R][4]);
+			//! XOBYBBOX
+			shiren_mask[dir] |= (p[B][L][0] & p[N][L][1] & p[b][L][2] & m[L][2]/**/& p[B][R][0] & p[B][R][1] & p[N][R][2] & p[b][R][3] & m[R][3]);
+			//! XOBBYBOX
+			shiren_mask[dir] |= (p[B][R][0] & p[N][R][1] & p[b][R][2] & m[R][2]/**/& p[B][L][0] & p[B][L][1] & p[N][L][2] & p[b][L][3] & m[L][3]);
+			//! XOBBBYOX
 			shiren_mask[dir] |= (p[N][R][0] & p[b][R][1] & m[R][1]/**/& p[B][L][0] & p[B][L][1] & p[B][L][2] & p[N][L][3] & p[b][L][4] & m[L][4]);
 		}
 		return shiren_mask;

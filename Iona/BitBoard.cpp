@@ -60,7 +60,7 @@ BitBoard::BitBoard(const __m256i a) noexcept {
 	board_ = a;
 }
 
-BitBoard BitBoard::operator>>(const Direction dir) const noexcept {
+BitBoard BitBoard::operator<<(const Direction dir) const noexcept {
 	switch (dir) {
 		case Direction::Row:
 			return BitBoard(_mm256_srli_epi16(board_, 1) & kBitMaskR);
@@ -95,7 +95,7 @@ BitBoard BitBoard::operator>>(const Direction dir) const noexcept {
 	}
 }
 
-BitBoard BitBoard::operator<<(const Direction dir) const noexcept {
+BitBoard BitBoard::operator>>(const Direction dir) const noexcept {
 	switch (dir) {
 		case Direction::Row:
 			return BitBoard(_mm256_slli_epi16(board_, 1) & kBitMaskL);
