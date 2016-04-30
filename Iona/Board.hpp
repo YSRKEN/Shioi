@@ -16,6 +16,7 @@
 #include"types.hpp"
 #include"Optional.hpp"
 #include"BitBoard.hpp"
+#include"../I401/constant_range_loop.hpp"
 
 using std::array;
 using std::cout;
@@ -70,28 +71,6 @@ class Board {
 		}
 	}
 	/**
-	* ~japanese	@brief 方向・先後・左右・シフト数に応じたシフトパターンを作成する
-	* ~english	@brief Make shift pattern
-	*/
-	ShiftPattern GetShiftPattern() {
-		ShiftPattern shift_Pattern;
-		REP(dir_, Direction::Directions) {
-			const auto dir = static_cast<Direction>(dir_);
-			auto& s_p = shift_Pattern[dir];
-			//modify shift_Pattern
-			GetShiftPattern_impl<Stone::Black, Side::Right>(s_p, dir);
-			GetShiftPattern_impl<Stone::White, Side::Right>(s_p, dir);
-			GetShiftPattern_impl<Side::Right>(s_p, Stone::None, dir);
-			GetShiftPattern_impl<Stone::Black, Side::Left >(s_p, dir);
-			GetShiftPattern_impl<Stone::White, Side::Left >(s_p, dir);
-			GetShiftPattern_impl<Side::Left >(s_p, Stone::None, dir);
-			
-			s_p[Stone::NonBlack] = s_p[Stone::Black];//copy
-			for(auto s : s_p[Stone::NonBlack]) for(auto& spss : s) spss = !spss;//否定
-		}
-		return shift_Pattern;
-	}
-	/**
 	* @fn RandInt
 	* @return Integer random number in [0, n)
 	*/
@@ -117,12 +96,48 @@ class Board {
 		}
 	}
 	/**
+	* ~japanese	@brief 方向・先後・左右・シフト数に応じたシフトパターンを作成する
+	* ~english	@brief Make shift pattern
+	*/
+	ShiftPattern GetShiftPattern() {
+		ShiftPattern shift_Pattern;
+		for(const auto dir : rep(Direction::Directions)) {
+			auto& s_p = shift_Pattern[dir];
+			//modify shift_Pattern
+			GetShiftPattern_impl<Stone::Black, Side::Right>(s_p, dir);
+			GetShiftPattern_impl<Stone::White, Side::Right>(s_p, dir);
+			GetShiftPattern_impl<Side::Right>(s_p, Stone::None, dir);
+			GetShiftPattern_impl<Stone::Black, Side::Left >(s_p, dir);
+			GetShiftPattern_impl<Stone::White, Side::Left >(s_p, dir);
+			GetShiftPattern_impl<Side::Left >(s_p, Stone::None, dir);
+			
+			s_p[Stone::NonBlack] = s_p[Stone::Black];//copy
+			for(auto s : s_p[Stone::NonBlack]) for(auto& spss : s) spss = !spss;//否定
+		}
+		return shift_Pattern;
+	}
+	/**
+	* ~japanese	@p[b][r][i]ef RenjuPatternに対し除外マスクを適用する
+	* ~english	@brief apply exclude-filter to RenjuPattern
+	*/
+	void SetPatternMask(RenjuPattern &pattern, const BitBoard &unorder_mask) noexcept {
+		for (auto &it : pattern) {
+			it = it & (!unorder_mask);
+		}
+	}
+
+#if defined(_MSC_VER) && !defined(__clang__)
+#pragma warning( push )
+//VSはどうもrepをコンテナとして使うRange-based forが実行されない可能性が無いことを見抜けないようで、警告を出す
+#pragma warning( disable : 4701 )//初期化されていない可能性のあるローカル変数 xxxx が使用されます
+#endif
+	/**
 	* ~japanese	@brief 長連を起こす石の位置を算出する(黒石用)
 	* ~english	@brief Make position mask of Cho-ren for Stone::Black
 	*/
 	BitBoard CalcChorenMaskB(const ShiftPattern &pattern) const noexcept {
 		BitBoard choren_mask;
-		REP(dir, Direction::Directions) {
+		for(const auto dir : rep(Direction::Directions)) {
 			auto& p = pattern[dir];
 			using namespace short_constant;
 
@@ -148,7 +163,7 @@ class Board {
 	*/
 	BitBoard CalcLineShiShiMaskB(const ShiftPattern &pattern) const noexcept {
 		BitBoard shishi1_mask;
-		REP(dir, Direction::Directions) {
+		for(const auto dir : rep(Direction::Directions)) {
 			auto& p = pattern[dir];
 			using namespace short_constant;
 
@@ -175,7 +190,7 @@ class Board {
 	*/
 	RenjuPattern CalcShirenMaskB(const ShiftPattern &pattern) const noexcept {
 		RenjuPattern shiren_mask;
-		REP(dir, Direction::Directions) {
+		for (const auto dir : rep(Direction::Directions)) {
 			auto& p = pattern[dir];
 			auto& m = BitBoard::kBitMaskArray[dir];
 			using namespace short_constant;
@@ -198,7 +213,7 @@ class Board {
 	*/
 	RenjuPattern CalcKatsuShiMaskB(const ShiftPattern &pattern) const noexcept {
 		RenjuPattern katsushi_mask;
-		REP(dir, Direction::Directions) {
+		for (const auto dir : rep(Direction::Directions)) {
 			auto& p = pattern[dir];
 			auto& m = BitBoard::kBitMaskArray[dir];
 			using namespace short_constant;
@@ -242,7 +257,7 @@ class Board {
 	*/
 	RenjuPattern CalcKatsuSanMaskB(const ShiftPattern &pattern, const BitBoard &unorder_mask) noexcept {
 		RenjuPattern katsusan_mask;
-		REP(dir, Direction::Directions) {
+		for (const auto dir : rep(Direction::Directions)) {
 			auto& p = pattern[dir];
 			auto& m = BitBoard::kBitMaskArray[dir];
 			using namespace short_constant;
@@ -273,15 +288,9 @@ class Board {
 		}
 		return katsusan_mask;
 	}
-	/**
-	* ~japanese	@p[b][r][i]ef RenjuPatternに対し除外マスクを適用する
-	* ~english	@brief apply exclude-filter to RenjuPattern
-	*/
-	void SetPatternMask(RenjuPattern &pattern, const BitBoard &unorder_mask) noexcept {
-		for (auto &it : pattern) {
-			it = it & (!unorder_mask);
-		}
-	}
+#if defined(_MSC_VER) && !defined(__clang__)
+#pragma warning( pop )//#pragma warning( disable : 4701 )//初期化されていない可能性のあるローカル変数 xxxx が使用されます
+#endif
 	/**
 	* ~japanese	@brief 禁手で打てない位置のビットを立てたマスクを作成する
 	* ~english	@brief Calc invaild position's mask
@@ -348,7 +357,7 @@ class Board {
 			invalid_mask = invalid_mask | CalcInValidMask();
 		}
 		BitBoard(invalid_mask).PutBoard();
-		REP(position, kAllBoardSize) {
+		for(const auto position : rep(kAllBoardSize)) {
 			//! You can only move at Stone::None in Board
 			if (0 != (BitBoard::kPositionArray[position] & invalid_mask)) continue;
 			list.push_back(position);
@@ -369,7 +378,7 @@ public:
 		if (strlen(board_text) < kAllBoardSize) {
 			throw std::invalid_argument("Too short board-text size!");
 		}
-		REP(position, kAllBoardSize) {
+		for (const auto position : rep(kAllBoardSize)) {
 			auto stone = ToStone(board_text[position]);
 			SetStone(position, stone);
 		}
@@ -380,8 +389,8 @@ public:
 	* @brief Put text of board for debug
 	*/
 	void PutBoard() const noexcept{
-		REP(y, kBoardSize) {
-			REP(x, kBoardSize) {
+		for(const auto y : rep(kBoardSize)) {
+			for (const auto x : rep(kBoardSize)) {
 				auto position = ToPosition(x, y);
 				auto stone = GetStone(position);
 				switch (stone) {
