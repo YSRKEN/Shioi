@@ -283,4 +283,5 @@ struct BitBoard {
 		board_ = ShiftRight(dir);
 	}
 	BitBoard& operator |= (const __m256i a) noexcept { board_ = _mm256_or_si256(board_, a); return *this; }
+	BitBoard& operator ^= (const __m256i a) noexcept { board_ = _mm256_xor_si256(board_, a); return *this; }
 };
