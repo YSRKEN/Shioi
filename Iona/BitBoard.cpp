@@ -64,6 +64,57 @@ BitBoard::BitBoard(const __m256i a) noexcept {
 	board_ = a;
 }
 
+void BitBoard::PutBoard() const noexcept {
+	using std::cout;
+	using std::endl;
+	for(const auto y : rep(kBoardSize)) {
+		for(const auto x : rep(kBoardSize)) {
+			auto position = ToPosition(x, y);
+			if (GetBit(position)) {
+				cout << "□";
+			}
+			else {
+				if (position == ToPosition(0, 0)) {
+					cout << "┌";
+				}
+				else if (position == ToPosition(0, kBoardSize - 1)) {
+					cout << "└";
+				}
+				else if (position == ToPosition(kBoardSize - 1, 0)) {
+					cout << "┐";
+				}
+				else if (position == ToPosition(kBoardSize - 1, kBoardSize - 1)) {
+					cout << "┘";
+				}
+				else if (position == ToPosition(3, 3)
+					|| position == ToPosition(3, 11)
+					|| position == ToPosition(11, 3)
+					|| position == ToPosition(11, 11)
+					|| position == ToPosition(7, 7)) {
+					cout << "╋";
+				}
+				else if (x == 0) {
+					cout << "├";
+				}
+				else if (x == kBoardSize - 1) {
+					cout << "┤";
+				}
+				else if (y == 0) {
+					cout << "┬";
+				}
+				else if (y == kBoardSize - 1) {
+					cout << "┴";
+				}
+				else {
+					cout << "┼";
+				}
+			}
+		}
+		cout << endl;
+	}
+	return;
+}
+
 BitBoard BitBoard::operator<<(const Direction dir) const noexcept {
 	switch (dir) {
 		case Direction::Row:

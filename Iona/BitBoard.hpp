@@ -65,55 +65,7 @@ struct BitBoard {
 	* @fn PutBoard
 	* @brief Put text of board for debug
 	*/
-	void PutBoard() const noexcept {
-		using std::cout;
-		using std::endl;
-		REP(y, kBoardSize) {
-			REP(x, kBoardSize) {
-				auto position = ToPosition(x, y);
-				if (GetBit(position)) {
-					cout << "□";
-				}else{
-					if (position == ToPosition(0, 0)) {
-						cout << "┌";
-					}
-					else if (position == ToPosition(0, kBoardSize - 1)) {
-						cout << "└";
-					}
-					else if (position == ToPosition(kBoardSize - 1, 0)) {
-						cout << "┐";
-					}
-					else if (position == ToPosition(kBoardSize - 1, kBoardSize - 1)) {
-						cout << "┘";
-					}
-					else if (position == ToPosition(3, 3)
-						|| position == ToPosition(3, 11)
-						|| position == ToPosition(11, 3)
-						|| position == ToPosition(11, 11)
-						|| position == ToPosition(7, 7)) {
-						cout << "╋";
-					}
-					else if (x == 0) {
-						cout << "├";
-					}
-					else if (x == kBoardSize - 1) {
-						cout << "┤";
-					}
-					else if (y == 0) {
-						cout << "┬";
-					}
-					else if (y == kBoardSize - 1) {
-						cout << "┴";
-					}
-					else {
-						cout << "┼";
-					}
-				}
-			}
-			cout << endl;
-		}
-		return;
-	}
+	void PutBoard() const noexcept;
 	/**
 	* ~japanese	@brief BitBoardを、dir方向における「左」にシフトする
 	* ~english	@brief shift BitBoard to "Left" direction
