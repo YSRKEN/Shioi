@@ -236,7 +236,48 @@ class Board {
 		}
 		return katsushi_mask;
 	}
-	void SetPatternMask(RenjuPattern &pattern, const BitBoard &unorder_mask) noexcept{
+	/**
+	* ~japanese	@brief 活三を作る石の位置を算出する(黒石用)
+	* ~english	@brief Make position mask of Katsu-San for Stone::Black
+	*/
+	RenjuPattern CalcKatsuSanMaskB(const ShiftPattern &pattern, const BitBoard &unorder_mask) noexcept {
+		RenjuPattern katsusan_mask;
+		REP(dir, Direction::Directions) {
+			auto& p = pattern[dir];
+			auto& m = BitBoard::kBitMaskArray[dir];
+			using namespace short_constant;
+
+			//! [XO{B3O1}OX]
+			//! XOBBBOOX
+			katsusan_mask[dir] |= p[N][L][0] & p[b][L][1] & m[L][1] /**/& p[B][R][0] & p[B][R][1] & p[N][R][2] & p[N][R][3] & p[b][R][4] & m[R][4];
+			katsusan_mask[dir] |= p[B][L][0] & p[N][L][1] & p[b][L][2] & m[L][2] /**/& p[B][R][0] & p[N][R][1] & p[N][R][2] & p[b][R][3] & m[R][3];
+			katsusan_mask[dir] |= p[B][L][0] & p[B][L][1] & p[N][L][2] & p[b][L][3] & m[L][3] /**/& p[N][R][0] & p[N][R][1] & p[b][R][2] & m[R][2];
+			//! XOBBOBOX
+			katsusan_mask[dir] |= p[N][L][0] & p[b][L][1] & m[L][1] /**/& p[B][R][0] & p[N][R][1] & p[B][R][2] & p[N][R][3] & p[b][R][4] & m[R][4];
+			katsusan_mask[dir] |= p[B][L][0] & p[N][L][1] & p[b][L][2] & m[L][2] /**/& p[N][R][0] & p[B][R][1] & p[N][R][2] & p[b][R][3] & m[R][3];
+			katsusan_mask[dir] |= p[N][L][0] & p[B][L][1] & p[B][L][2] & p[N][L][3] & p[b][L][4] & m[L][4] /**/& p[N][R][0] & p[b][R][1] & m[R][1];
+			//! XOBOBBOX
+			katsusan_mask[dir] |= p[N][L][0] & p[b][L][1] & m[L][1] /**/& p[N][R][0] & p[B][R][1] & p[B][R][2] & p[N][R][3] & p[b][R][4] & m[R][4];
+			katsusan_mask[dir] |= p[N][L][0] & p[B][L][1] & p[N][L][2] & p[b][L][3] & m[L][3] /**/& p[B][R][0] & p[N][R][1] & p[b][R][2] & m[R][2];
+			katsusan_mask[dir] |= p[B][L][0] & p[N][L][1] & p[B][L][2] & p[N][L][3] & p[b][L][4] & m[L][4] /**/& p[N][R][0] & p[b][R][1] & m[R][1];
+			//! XOOBBBOX
+			katsusan_mask[dir] |= p[N][L][0] & p[N][L][1] & p[b][L][2] & m[L][2] /**/& p[B][R][0] & p[B][R][1] & p[N][R][2] & p[b][R][3] & m[R][3];
+			katsusan_mask[dir] |= p[B][L][0] & p[N][L][1] & p[N][L][2] & p[b][L][3] & m[L][3] /**/& p[B][R][0] & p[N][R][1] & p[b][R][2] & m[R][2];
+			katsusan_mask[dir] |= p[B][L][0] & p[B][L][1] & p[N][L][2] & p[N][L][3] & p[b][L][4] & m[L][4] /**/& p[N][R][0] & p[b][R][1] & m[R][1];
+
+			//! Ina-San-San Filter
+			katsusan_mask[dir] = katsusan_mask[dir] & (!unorder_mask);
+			if (0 != katsusan_mask[dir]) {
+
+			}
+		}
+		return katsusan_mask;
+	}
+	/**
+	* ~japanese	@p[b][r][i]ef RenjuPatternに対し除外マスクを適用する
+	* ~english	@brief apply exclude-filter to RenjuPattern
+	*/
+	void SetPatternMask(RenjuPattern &pattern, const BitBoard &unorder_mask) noexcept {
 		for (auto &it : pattern) {
 			it = it & (!unorder_mask);
 		}
@@ -259,14 +300,12 @@ class Board {
 				}
 			}
 		}*/
-		BitBoard invalid_mask, unorder_mask = (black_board_ | white_board_);
+		BitBoard invalid_mask = (black_board_ | white_board_), unorder_mask = (black_board_ | white_board_);
 		//! Cho-ren check
 		BitBoard choren_mask = CalcChorenMaskB(shift_pattern);
-		invalid_mask |= choren_mask;
 		unorder_mask |= choren_mask;
 		//! Shi-Shi on 1 line check
 		BitBoard shishi1_mask = CalcLineShiShiMaskB(shift_pattern);
-		invalid_mask |= shishi1_mask;
 		unorder_mask |= shishi1_mask;
 		//! Shi-ren check
 		auto shiren_mask = CalcShirenMaskB(shift_pattern);
@@ -280,13 +319,22 @@ class Board {
 		BitBoard s1 = shiren_mask[0] | katsushi_mask[0], s2 = shiren_mask[1] | katsushi_mask[1],
 			s3 = shiren_mask[2] | katsushi_mask[2], s4 = shiren_mask[3] | katsushi_mask[3];
 		BitBoard shishi_mask = (s1 & s2) | (s1 & s3) | (s1 & s4) | (s2 & s3) | (s2 & s4) | (s3 & s4);
+		//! Katsu-San check
+		auto katsusan_mask = CalcKatsuSanMaskB(shift_pattern, unorder_mask);
+		SetPatternMask(katsusan_mask, unorder_mask);
+		//! Calc San-San point
+		BitBoard sansan_mask = (katsusan_mask[0] & katsusan_mask[1]) | (katsusan_mask[0] & katsusan_mask[2]) | (katsusan_mask[0] & katsusan_mask[3])
+			| (katsusan_mask[1] & katsusan_mask[2]) | (katsusan_mask[1] & katsusan_mask[3]) | (katsusan_mask[2] & katsusan_mask[3]);
 
-
-		choren_mask.PutBoard();
-		shishi1_mask.PutBoard();
 		BitBoard(shiren_mask[0] | shiren_mask[1] | shiren_mask[2] | shiren_mask[3]).PutBoard();
 		BitBoard(katsushi_mask[0] | katsushi_mask[1] | katsushi_mask[2] | katsushi_mask[3]).PutBoard();
-		shishi_mask.PutBoard();
+		BitBoard(katsusan_mask[0] | katsusan_mask[1] | katsusan_mask[2] | katsusan_mask[3]).PutBoard();
+
+		invalid_mask |= choren_mask;
+		invalid_mask |= shishi1_mask;
+		invalid_mask |= shishi_mask;
+		invalid_mask |= sansan_mask;
+		invalid_mask.PutBoard();
 		return invalid_mask;	//! dummy
 	}
 	/**
