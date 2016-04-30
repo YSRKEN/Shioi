@@ -29,14 +29,8 @@ std::mt19937 mt(rd());
 
 //! Definition of shift pattern
 using ShiftPattern = array<array<array<array<BitBoard, kMaxShifts>, Side::Sides>, Stone::Stones>, Direction::Directions>;
-
-/**
-* @fn RandInt
-* @return Integer random number in [0, n)
-*/
-inline size_t RandInt(const size_t n) {
-	return std::uniform_int_distribution<size_t>{0, n - 1}(mt);
-}
+//! Definition of Renju pattern
+using RenjuPattern = array<BitBoard, Direction::Directions>;
 
 /**
 * @class Board
@@ -45,24 +39,6 @@ inline size_t RandInt(const size_t n) {
 class Board {
 	BitBoard black_board_, white_board_;
 	Stone turn_;
-	/**
-	* @fn ToStone
-	* @brief Convert char to Stone
-	* @param str /[BWN]/
-	* @return 0-2[Stone::Black, Stone::White, Stone::None]
-	* ~japanese	@detail strがkStoneStringのどれにも当てはまらない場合は例外を投げる
-	* ~english	@detail If you can't find str in kStoneString, this throw exception.
-	*/
-	static Stone ToStone(const char str) {
-		constexpr static char kStoneString[] = "BWN";
-		auto find_ptr = strchr(kStoneString, str);
-		if (find_ptr != NULL) {
-			return static_cast<Stone>(find_ptr - kStoneString);
-		}
-		else {
-			throw std::invalid_argument("Can't read board/turn data.");
-		}
-	}
 	/**
 	* @fn SetStone
 	* @brief Set stone in board
@@ -116,17 +92,39 @@ class Board {
 		return shift_Pattern;
 	}
 	/**
+	* @fn RandInt
+	* @return Integer random number in [0, n)
+	*/
+	inline size_t RandInt(const size_t n) {
+		return std::uniform_int_distribution<size_t>{0, n - 1}(mt);
+	}
+	/**
+	* @fn ToStone
+	* @brief Convert char to Stone
+	* @param str /[BWN]/
+	* @return 0-2[Stone::Black, Stone::White, Stone::None]
+	* ~japanese	@detail strがkStoneStringのどれにも当てはまらない場合は例外を投げる
+	* ~english	@detail If you can't find str in kStoneString, this throw exception.
+	*/
+	static Stone ToStone(const char str) {
+		constexpr static char kStoneString[] = "BWN";
+		auto find_ptr = strchr(kStoneString, str);
+		if (find_ptr != NULL) {
+			return static_cast<Stone>(find_ptr - kStoneString);
+		}
+		else {
+			throw std::invalid_argument("Can't read board/turn data.");
+		}
+	}
+	/**
 	* ~japanese	@brief 長連を起こす石の位置を算出する(黒石用)
 	* ~english	@brief Make position mask of Cho-ren for Stone::Black
 	*/
-	BitBoard CalcChorenMaskB(const ShiftPattern &pattern) {
+	BitBoard CalcChorenMaskB(const ShiftPattern &pattern) const noexcept {
 		BitBoard choren_mask;
 		REP(dir, Direction::Directions) {
 			auto& p = pattern[dir];
-			constexpr size_t B = Stone::Black;
-			//constexpr size_t N = Stone::None;
-			constexpr size_t L = Side::Left;
-			constexpr size_t R = Side::Right;
+			using namespace short_constant;
 
 			//! [BBBBBB]
 			//! BBBBBY
@@ -148,15 +146,11 @@ class Board {
 	* ~japanese	@brief 一直線上の四々を起こす石の位置を算出する(黒石用)
 	* ~english	@brief Make position mask of Shi-Shi on 1Line for Stone::Black
 	*/
-	BitBoard CalcLineShiShiMaskB(const ShiftPattern &pattern) {
+	BitBoard CalcLineShiShiMaskB(const ShiftPattern &pattern) const noexcept {
 		BitBoard shishi1_mask;
 		REP(dir, Direction::Directions) {
 			auto& p = pattern[dir];
-			constexpr size_t B = Stone::Black;
-			constexpr size_t N = Stone::None;
-			constexpr size_t b = Stone::NonBlack;
-			constexpr size_t L = Side::Left;
-			constexpr size_t R = Side::Right;
+			using namespace short_constant;
 
 			//! [XBOYYYOBX]
 			//! XBOBBYOBX
@@ -179,16 +173,12 @@ class Board {
 	* ~japanese	@brief 四連を作る石の位置を算出する(黒石用)
 	* ~english	@brief Make position mask of Shi-ren for Stone::Black
 	*/
-	array<BitBoard, Direction::Directions> CalcShirenMaskB(const ShiftPattern &pattern) {
-		array<BitBoard, Direction::Directions> shiren_mask;
+	RenjuPattern CalcShirenMaskB(const ShiftPattern &pattern) const noexcept {
+		RenjuPattern shiren_mask;
 		REP(dir, Direction::Directions) {
 			auto& p = pattern[dir];
 			auto& m = BitBoard::kBitMaskArray[dir];
-			constexpr size_t B = Stone::Black;
-			constexpr size_t N = Stone::None;
-			constexpr size_t b = Stone::NonBlack;
-			constexpr size_t L = Side::Left;
-			constexpr size_t R = Side::Right;
+			using namespace short_constant;
 
 			//! [XOBBBBOX]
 			//! XOYBBBOX
@@ -201,6 +191,55 @@ class Board {
 			shiren_mask[dir] |= (p[N][R][0] & p[b][R][1] & m[R][1]/**/& p[B][L][0] & p[B][L][1] & p[B][L][2] & p[N][L][3] & p[b][L][4] & m[L][4]);
 		}
 		return shiren_mask;
+	}
+	/**
+	* ~japanese	@brief 活四を作る石の位置を算出する(黒石用)
+	* ~english	@brief Make position mask of Katsu-Shi for Stone::Black
+	*/
+	RenjuPattern CalcKatsuShiMaskB(const ShiftPattern &pattern) const noexcept {
+		RenjuPattern katsushi_mask;
+		REP(dir, Direction::Directions) {
+			auto& p = pattern[dir];
+			auto& m = BitBoard::kBitMaskArray[dir];
+			using namespace short_constant;
+
+			//! [[X{B4O1}X]]
+			//! [XBBBBOX]
+			katsushi_mask[dir] |= p[b][L][0] /**/& p[B][R][0] & p[B][R][1] & p[B][R][2] & p[N][R][3] & p[b][R][4] & m[R][4];
+			katsushi_mask[dir] |= p[B][L][0] & p[b][L][1] & m[L][1] /**/& p[B][R][0] & p[B][R][1] & p[N][R][2] & p[b][R][3] & m[R][3];
+			katsushi_mask[dir] |= p[B][L][0] & p[B][L][1] & p[b][L][2] & m[L][2] /**/& p[B][R][0] & p[N][R][1] & p[b][R][2] & m[R][2];
+			katsushi_mask[dir] |= p[B][L][0] & p[B][L][1] & p[B][L][2] & p[b][L][3] & m[L][3] /**/& p[N][R][0] & p[b][R][1] & m[R][1];
+
+			//! [XBBBOBX]
+			katsushi_mask[dir] |= p[b][L][0] /**/& p[B][R][0] & p[B][R][1] & p[N][R][2] & p[B][R][3] & p[b][R][4] & m[R][4];
+			katsushi_mask[dir] |= p[B][L][0] & p[b][L][1] & m[L][1] /**/& p[B][R][0] & p[N][R][1] & p[B][R][2] & p[b][R][3] & m[R][3];
+			katsushi_mask[dir] |= p[B][L][0] & p[B][L][1] & p[b][L][2] & m[L][2] /**/& p[N][R][0] & p[B][R][1] & p[b][R][2] & m[R][2];
+			katsushi_mask[dir] |= p[N][L][0] & p[B][L][1] & p[B][L][2] & p[B][L][3] & p[b][L][4] & m[L][4] /**/& p[b][R][0];
+
+			//! [XBBOBBX]
+			katsushi_mask[dir] |= p[b][L][0] /**/& p[B][R][0] & p[N][R][1] & p[B][R][2] & p[B][R][3] & p[b][R][4] & m[R][4];
+			katsushi_mask[dir] |= p[B][L][0] & p[b][L][1] & m[L][1] /**/& p[N][R][0] & p[B][R][1] & p[B][R][2] & p[b][R][3] & m[R][3];
+			katsushi_mask[dir] |= p[N][L][0] & p[B][L][1] & p[B][L][2] & p[b][L][3] & m[L][3] /**/& p[B][R][0] & p[b][R][1] & m[R][1];
+			katsushi_mask[dir] |= p[B][L][0] & p[N][L][1] & p[B][L][2] & p[B][L][3] & p[b][L][4] & m[L][4] /**/& p[b][R][0];
+
+			//! [XBOBBBX]
+			katsushi_mask[dir] |= p[b][L][0] /**/& p[N][R][0] & p[B][R][1] & p[B][R][2] & p[B][R][3] & p[b][R][4] & m[R][4];
+			katsushi_mask[dir] |= p[N][L][0] & p[B][L][1] & p[b][L][2] & m[L][2] /**/& p[B][R][0] & p[B][R][1] & p[b][R][2] & m[R][2];
+			katsushi_mask[dir] |= p[B][L][0] & p[N][L][1] & p[B][L][2] & p[b][L][3] & m[L][3] /**/& p[B][R][0] & p[b][R][1] & m[R][1];
+			katsushi_mask[dir] |= p[B][L][0] & p[B][L][1] & p[N][L][2] & p[B][L][3] & p[b][L][4] & m[L][4] /**/& p[b][R][0];
+
+			//! [XOBBBBX]
+			katsushi_mask[dir] |= p[N][L][0] & p[b][L][1] & m[L][1] /**/& p[B][R][0] & p[B][R][1] & p[B][R][2] & p[b][R][3] & m[R][3];
+			katsushi_mask[dir] |= p[B][L][0] & p[N][L][1] & p[b][L][2] & m[L][2] /**/& p[B][R][0] & p[B][R][1] & p[b][R][2] & m[R][2];
+			katsushi_mask[dir] |= p[B][L][0] & p[B][L][1] & p[N][L][2] & p[b][L][3] & m[L][3] /**/& p[B][R][0] & p[b][R][1] & m[R][1];
+			katsushi_mask[dir] |= p[B][L][0] & p[B][L][1] & p[B][L][2] & p[N][L][3] & p[b][L][4] & m[L][4] /**/& p[b][R][0];
+		}
+		return katsushi_mask;
+	}
+	void SetPatternMask(RenjuPattern &pattern, const BitBoard &unorder_mask) noexcept{
+		for (auto &it : pattern) {
+			it = it & (!unorder_mask);
+		}
 	}
 	/**
 	* ~japanese	@brief 禁手で打てない位置のビットを立てたマスクを作成する
@@ -220,19 +259,34 @@ class Board {
 				}
 			}
 		}*/
-		BitBoard invalid_mask;
+		BitBoard invalid_mask, unorder_mask = (black_board_ | white_board_);
 		//! Cho-ren check
-		auto choren_mask = CalcChorenMaskB(shift_pattern);
+		BitBoard choren_mask = CalcChorenMaskB(shift_pattern);
 		invalid_mask |= choren_mask;
+		unorder_mask |= choren_mask;
 		//! Shi-Shi on 1 line check
-		auto shishi1_mask = CalcLineShiShiMaskB(shift_pattern);
+		BitBoard shishi1_mask = CalcLineShiShiMaskB(shift_pattern);
 		invalid_mask |= shishi1_mask;
+		unorder_mask |= shishi1_mask;
 		//! Shi-ren check
 		auto shiren_mask = CalcShirenMaskB(shift_pattern);
+		SetPatternMask(shiren_mask, unorder_mask);
+		unorder_mask |= (shiren_mask[0] | shiren_mask[1] | shiren_mask[2] | shiren_mask[3]);
+		//! Katsu-Shi check
+		auto katsushi_mask = CalcKatsuShiMaskB(shift_pattern);
+		SetPatternMask(katsushi_mask, unorder_mask);
+		unorder_mask |= (katsushi_mask[0] | katsushi_mask[1] | katsushi_mask[2] | katsushi_mask[3]);
+		//! Calc Shi-Shi point
+		BitBoard s1 = shiren_mask[0] | katsushi_mask[0], s2 = shiren_mask[1] | katsushi_mask[1],
+			s3 = shiren_mask[2] | katsushi_mask[2], s4 = shiren_mask[3] | katsushi_mask[3];
+		BitBoard shishi_mask = (s1 & s2) | (s1 & s3) | (s1 & s4) | (s2 & s3) | (s2 & s4) | (s3 & s4);
+
 
 		choren_mask.PutBoard();
 		shishi1_mask.PutBoard();
 		BitBoard(shiren_mask[0] | shiren_mask[1] | shiren_mask[2] | shiren_mask[3]).PutBoard();
+		BitBoard(katsushi_mask[0] | katsushi_mask[1] | katsushi_mask[2] | katsushi_mask[3]).PutBoard();
+		shishi_mask.PutBoard();
 		return invalid_mask;	//! dummy
 	}
 	/**

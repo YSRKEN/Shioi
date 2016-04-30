@@ -176,7 +176,7 @@ struct BitBoard {
 	}
 	bool operator!=(const BitBoard& r) const noexcept { return !(*this == r); }
 	bool operator!=(std::nullptr_t) const noexcept { return !(*this == 0); }
-	BitBoard operator! () noexcept { return _mm256_xor_si256(this->board_, AllBit1); }
+	BitBoard operator! () const noexcept { return _mm256_xor_si256(this->board_, AllBit1); }
 };
 inline bool operator==(std::nullptr_t, const BitBoard& r) noexcept { return r == 0; }
 inline bool operator!=(std::nullptr_t l, const BitBoard& r) { return !(l == r); }
