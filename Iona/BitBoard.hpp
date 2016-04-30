@@ -13,8 +13,7 @@
 #include"types.hpp"
 #include"constant.hpp"
 #include"misc_functions.hpp"
-#include <type_traits>
-
+using std::array;
 /**
 * @class BitBoard
 * @brief BitBoard class for game board
@@ -22,6 +21,7 @@
 struct BitBoard {
 	//! constant table
 	static const std::array<__m256i, kAllBoardSize> kPositionArray;
+	static const array<array<array<BitBoard, kMaxShifts>, Side::Sides>, Direction::Directions> kBitMaskArray;
 	//! mask constant
 	static const __m256i kBitMaskR;
 	static const __m256i kBitMaskL;
