@@ -6,6 +6,7 @@
 * @date 2016/04/26
 */
 #pragma once
+#include<chrono>
 #include<cstring>
 #include<array>
 #include<iostream>
@@ -406,8 +407,8 @@ class Board {
 			if (!IsZero(kPositionArray[position] & invalid_mask)) continue;
 			list.push_back(position);
 		}
-		if(list.size() > 0) return optional<size_t>(list[RandInt(list.size())]);
-		return optional<size_t>(-1);
+		if(list.empty()) return optional<size_t>(-1); 
+		return optional<size_t>(list[RandInt(list.size())]);
 	}
 public:
 	/**
@@ -485,5 +486,15 @@ public:
 		auto result = FindRandomMove();
 		if (result) return *result;
 		return -1;
+	}
+	void Test() {
+		const size_t count = 1000000;
+		auto start = std::chrono::system_clock::now();
+		REP(i, count) {
+			FindRandomMove();
+		}
+		auto end = std::chrono::system_clock::now();
+		auto msec = std::chrono::duration_cast<std::chrono::milliseconds>(end - start).count();
+		cout << msec << "[ms]" << endl;
 	}
 };
