@@ -83,13 +83,6 @@ struct BitBoard {
 	*/
 	operator __m256i() const noexcept { return board_; }
 	/**
-	* ~japanese	@brief BitBoardにおけるpositionの位置のビットを調べる
-	* ~english	@brief Get bit of position in BitBoard
-	*/
-	bool GetBit(const size_t position) const noexcept {
-		return !IsZero(*this & kPositionArray[position]);
-	}
-	/**
 	* ~japanese	@brief BitBoardにおけるpositionの位置のビットを立てる
 	* ~english	@brief Set "1" to bit of position in BitBoard
 	*/
@@ -106,7 +99,7 @@ struct BitBoard {
 		REP(y, kBoardSize) {
 			REP(x, kBoardSize) {
 				auto position = ToPosition(x, y);
-				if (GetBit(position)) {
+				if ((*this)[position]) {
 					cout << "□";
 				}else{
 					if (position == ToPosition(0, 0)) {
@@ -188,6 +181,7 @@ struct BitBoard {
 	BitBoard operator & (const __m256i a) const noexcept { return _mm256_and_si256(*this, a); }
 	BitBoard operator ^ (const __m256i a) const noexcept { return _mm256_xor_si256(*this, a); }
 	BitBoard operator ! () const noexcept { return _mm256_xor_si256(*this, BoardFill); }
+	bool operator [] (const size_t p) const noexcept { return !IsZero(*this & kPositionArray[p]); }
 	bool operator == (const __m256i a) const noexcept {
 		/**
 		* 【通常のコード】

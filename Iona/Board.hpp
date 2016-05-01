@@ -52,8 +52,8 @@ class Board {
 	* @brief Get stone in board
 	*/
 	Stone GetStone(const size_t position) const noexcept {
-		if (black_board_.GetBit(position)) return Stone::Black;
-		if (white_board_.GetBit(position)) return Stone::White;
+		if (black_board_[position]) return Stone::Black;
+		if (white_board_[position]) return Stone::White;
 		return Stone::None;
 	}
 	/**
