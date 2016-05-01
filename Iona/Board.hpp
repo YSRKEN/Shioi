@@ -263,30 +263,31 @@ class Board {
 			using namespace short_constant;
 
 			//! [XO{B3O1}OX]
-			const size_t kKatsuSanPositions = 12;
-			array<BitBoard, kKatsuSanPositions> katsusan_position;
+			constexpr size_t kKatsuSanPositions = 12;
 			//static size_t offset_r[] = {3,2,1,2,1,0,1,0,0,0,0,0};
 			//static size_t offset_l[] = {0,0,0,0,0,1,0,1,2,1,2,3};
-			auto filter = !unorder_mask;
-			//! XOBBBOOX
-			katsusan_position[0] = p[N][L][0] & p[b][L][1] & m[L][1] /**/& p[B][R][0] & p[B][R][1] & p[N][R][2] & p[N][R][3] & p[b][R][4] & m[R][4] & filter;
-			katsusan_position[1] = p[B][L][0] & p[N][L][1] & p[b][L][2] & m[L][2] /**/& p[B][R][0] & p[N][R][1] & p[N][R][2] & p[b][R][3] & m[R][3] & filter;
-			katsusan_position[2] = p[B][L][0] & p[B][L][1] & p[N][L][2] & p[b][L][3] & m[L][3] /**/& p[N][R][0] & p[N][R][1] & p[b][R][2] & m[R][2] & filter;
-			//! XOBBOBOX
-			katsusan_position[3] = p[N][L][0] & p[b][L][1] & m[L][1] /**/& p[B][R][0] & p[N][R][1] & p[B][R][2] & p[N][R][3] & p[b][R][4] & m[R][4] & filter;
-			katsusan_position[4] = p[B][L][0] & p[N][L][1] & p[b][L][2] & m[L][2] /**/& p[N][R][0] & p[B][R][1] & p[N][R][2] & p[b][R][3] & m[R][3] & filter;
-			katsusan_position[5] = p[N][L][0] & p[B][L][1] & p[B][L][2] & p[N][L][3] & p[b][L][4] & m[L][4] /**/& p[N][R][0] & p[b][R][1] & m[R][1] & filter;
-			//! XOBOBBOX
-			katsusan_position[6] = p[N][L][0] & p[b][L][1] & m[L][1] /**/& p[N][R][0] & p[B][R][1] & p[B][R][2] & p[N][R][3] & p[b][R][4] & m[R][4] & filter;
-			katsusan_position[7] = p[N][L][0] & p[B][L][1] & p[N][L][2] & p[b][L][3] & m[L][3] /**/& p[B][R][0] & p[N][R][1] & p[b][R][2] & m[R][2] & filter;
-			katsusan_position[8] = p[B][L][0] & p[N][L][1] & p[B][L][2] & p[N][L][3] & p[b][L][4] & m[L][4] /**/& p[N][R][0] & p[b][R][1] & m[R][1] & filter;
-			//! XOOBBBOX
-			katsusan_position[9] = p[N][L][0] & p[N][L][1] & p[b][L][2] & m[L][2] /**/& p[B][R][0] & p[B][R][1] & p[N][R][2] & p[b][R][3] & m[R][3] & filter;
-			katsusan_position[10] = p[B][L][0] & p[N][L][1] & p[N][L][2] & p[b][L][3] & m[L][3] /**/& p[B][R][0] & p[N][R][1] & p[b][R][2] & m[R][2] & filter;
-			katsusan_position[11] = p[B][L][0] & p[B][L][1] & p[N][L][2] & p[N][L][3] & p[b][L][4] & m[L][4] /**/& p[N][R][0] & p[b][R][1] & m[R][1] & filter;
+			static const array<BitBoard, kKatsuSanPositions> katsusan_position = { {
+					//! XOBBBOOX
+					/*0*/p[N][L][0] & p[b][L][1] & m[L][1] /**/ & p[B][R][0] & p[B][R][1] & p[N][R][2] & p[N][R][3] & p[b][R][4] & m[R][4],
+					/*1*/p[B][L][0] & p[N][L][1] & p[b][L][2] & m[L][2] /**/ & p[B][R][0] & p[N][R][1] & p[N][R][2] & p[b][R][3] & m[R][3],
+					/*2*/p[B][L][0] & p[B][L][1] & p[N][L][2] & p[b][L][3] & m[L][3] /**/ & p[N][R][0] & p[N][R][1] & p[b][R][2] & m[R][2],
+					//! XOBBOBOX
+					/*3*/p[N][L][0] & p[b][L][1] & m[L][1] /**/ & p[B][R][0] & p[N][R][1] & p[B][R][2] & p[N][R][3] & p[b][R][4] & m[R][4],
+					/*4*/p[B][L][0] & p[N][L][1] & p[b][L][2] & m[L][2] /**/ & p[N][R][0] & p[B][R][1] & p[N][R][2] & p[b][R][3] & m[R][3],
+					/*5*/p[N][L][0] & p[B][L][1] & p[B][L][2] & p[N][L][3] & p[b][L][4] & m[L][4] /**/ & p[N][R][0] & p[b][R][1] & m[R][1],
+					//! XOBOBBOX
+					/*6*/p[N][L][0] & p[b][L][1] & m[L][1] /**/ & p[N][R][0] & p[B][R][1] & p[B][R][2] & p[N][R][3] & p[b][R][4] & m[R][4],
+					/*7*/p[N][L][0] & p[B][L][1] & p[N][L][2] & p[b][L][3] & m[L][3] /**/ & p[B][R][0] & p[N][R][1] & p[b][R][2] & m[R][2],
+					/*8*/p[B][L][0] & p[N][L][1] & p[B][L][2] & p[N][L][3] & p[b][L][4] & m[L][4] /**/ & p[N][R][0] & p[b][R][1] & m[R][1],
+					//! XOOBBBOX
+					/*9*/p[N][L][0] & p[N][L][1] & p[b][L][2] & m[L][2] /**/ & p[B][R][0] & p[B][R][1] & p[N][R][2] & p[b][R][3] & m[R][3],
+					/*10*/p[B][L][0] & p[N][L][1] & p[N][L][2] & p[b][L][3] & m[L][3] /**/ & p[B][R][0] & p[N][R][1] & p[b][R][2] & m[R][2],
+					/*11*/p[B][L][0] & p[B][L][1] & p[N][L][2] & p[N][L][3] & p[b][L][4] & m[L][4] /**/ & p[N][R][0] & p[b][R][1] & m[R][1]
+				} };
 
+			auto filter = !unorder_mask;
 			for(auto&& katsusan_p : katsusan_position) {
-				katsusan_mask[dir] |= katsusan_p;
+				katsusan_mask[dir] |= katsusan_p & filter;
 			}
 		}
 		return katsusan_mask;
