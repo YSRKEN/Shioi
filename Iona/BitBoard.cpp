@@ -71,7 +71,7 @@ void BitBoard::PutBoard() const noexcept {
 	for(const auto y : rep(kBoardSize)) {
 		for(const auto x : rep(kBoardSize)) {
 			auto position = ToPosition(x, y);
-			if (GetBit(position)) {
+			if ((*this)[position]) {
 				cout << "□";
 			}
 			else {
