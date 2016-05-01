@@ -18,7 +18,9 @@ struct BitBoard;
 BitBoard kPositionArray[kAllBoardSize]{};
 BitBoard kBitMaskArray[Direction::Directions][Side::Sides][kMaxShifts]{};
 //! mask constant
-const __m256i AllBit1 = _mm256_set1_epi16(0xFFFFu);
+const __m256i BoardFill = _mm256_set_epi16(
+	0x0000u, 0x7FFFu, 0x7FFFu, 0x7FFFu, 0x7FFFu, 0x7FFFu, 0x7FFFu, 0x7FFFu,
+	0x7FFFu, 0x7FFFu, 0x7FFFu, 0x7FFFu, 0x7FFFu, 0x7FFFu, 0x7FFFu, 0x7FFFu);
 /**
 * @fn IsZero
 * ~japanese	@brief __m256iのビットが全て0か調べる
@@ -185,7 +187,7 @@ struct BitBoard {
 	BitBoard operator | (const __m256i a) const noexcept { return _mm256_or_si256(*this, a); }
 	BitBoard operator & (const __m256i a) const noexcept { return _mm256_and_si256(*this, a); }
 	BitBoard operator ^ (const __m256i a) const noexcept { return _mm256_xor_si256(*this, a); }
-	BitBoard operator ! () const noexcept { return _mm256_xor_si256(*this, AllBit1); }
+	BitBoard operator ! () const noexcept { return _mm256_xor_si256(*this, BoardFill); }
 	bool operator == (const __m256i a) const noexcept {
 		/**
 		* 【通常のコード】
@@ -200,7 +202,7 @@ struct BitBoard {
 		* 二引数のXORを取れば、等しいビットは全て0、等しくないビットは全て1になる。
 		* つまり、全ビットが0ならば等しく、そうでなければ等しくないと言える。
 		*/
-		return IsZero(*this ^ a );
+		return IsZero(*this ^ a);
 	}
 	BitBoard operator << (const Direction dir) const noexcept {
 		/**
@@ -208,8 +210,6 @@ struct BitBoard {
 		* _mm256_store_si256でalignas(32) uint16_t temp[17]に書き出した後、
 		* _mm256_loadu_si256で1要素だけズラして読み込む。その際、ビットシフトなのでマスク処理を
 		* 最後に施す必要があるのと、アラインメントと16bit変数の相性が悪いので注意。
-		*/
-		/**
 		* 【高度なコード】
 		* _mm256_permute2x128_si256で適宜再配置した__m256i型を用意し、
 		* _mm256_alignr_epi8で読み出す。アラインメント処理などを考えなくていいのが利点。
@@ -221,6 +221,7 @@ struct BitBoard {
 			break;
 		case Direction::Column:
 			return BitBoard(_mm256_alignr_epi8(board_, _mm256_permute2x128_si256(board_, board_, _MM_SHUFFLE(0, 0, 2, 0)), 16 - 2)) & kBitMaskU;
+			break;
 		case Direction::DiagR:
 			return BitBoard(_mm256_srli_epi16(_mm256_alignr_epi8(board_, _mm256_permute2x128_si256(board_, board_, _MM_SHUFFLE(0, 0, 2, 0)), 16 - 2), 1)) & kBitMaskRU;
 			break;
@@ -238,8 +239,6 @@ struct BitBoard {
 		* _mm256_store_si256でalignas(32) uint16_t temp[17]に書き出した後、
 		* _mm256_loadu_si256で1要素だけズラして読み込む。その際、ビットシフトなのでマスク処理を
 		* 最後に施す必要があるのと、アラインメントと16bit変数の相性が悪いので注意。
-		*/
-		/**
 		* 【高度なコード】
 		* _mm256_permute2x128_si256で適宜再配置した__m256i型を用意し、
 		* _mm256_alignr_epi8で読み出す。アラインメント処理などを考えなくていいのが利点。
