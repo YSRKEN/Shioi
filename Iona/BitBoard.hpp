@@ -31,7 +31,10 @@ struct BitBoard {
 	static const __m256i kBitMaskRD;
 	static const __m256i kBitMaskLD;
 	static const __m256i kBitMaskLU;
-	static const __m256i AllBit1;
+	static const __m256i BoardFill;
+	/**
+	* @brief Member variable
+	*/
 	union
 	{
 		__m256i board_;
@@ -46,7 +49,7 @@ struct BitBoard {
 	/**
 	* @brief Cast operator(to __m256i)
 	*/
-	explicit operator __m256i() const { return board_; }
+	explicit operator __m256i() const noexcept { return board_; }
 	/**
 	* ~japanese	@brief BitBoardにおけるpositionの位置のビットを調べる
 	* ~english	@brief Get bit of position in BitBoard
@@ -67,8 +70,8 @@ struct BitBoard {
 	*/
 	void PutBoard() const noexcept;
 	/**
-	* ~japanese	@brief BitBoardを、dir方向における「左」にシフトする
-	* ~english	@brief shift BitBoard to "Left" direction
+	* ~japanese	@brief 各種演算子を定義する
+	* ~english	@brief Definition of operator for BitBoard
 	*/
 	BitBoard operator<<(const Direction dir) const noexcept;
 	/**
@@ -114,11 +117,6 @@ struct BitBoard {
 		* 256/8=32なので、int型の変数に集約されることになるが、先ほどより0か1かなので、
 		* 結局完全一致してたら0xFFFFFFFF、そうでなければどこかが異なることになる。
 		*/
-		/*auto temp = a & b;
-		const __m256i kPackedZero{};
-		auto temp2 = _mm256_cmpeq_epi64(temp, kPackedZero);
-		auto temp3 = _mm256_movemask_epi8(temp2);
-		return (temp3 != 0xFFFFFFFF);*/
 		/**
 		* 【高度なコード】
 		* 二引数のXORを取れば、等しいビットは全て0、等しくないビットは全て1になる。
@@ -128,7 +126,7 @@ struct BitBoard {
 	}
 	bool operator!=(const BitBoard& r) const noexcept { return !(*this == r); }
 	bool operator!=(std::nullptr_t) const noexcept { return !(*this == 0); }
-	BitBoard operator! () const noexcept { return _mm256_xor_si256(this->board_, AllBit1); }
+	BitBoard operator! () const noexcept { return _mm256_xor_si256(this->board_, BoardFill); }
 };
 inline bool operator==(std::nullptr_t, const BitBoard& r) noexcept { return r == 0; }
 inline bool operator!=(std::nullptr_t l, const BitBoard& r) { return !(l == r); }

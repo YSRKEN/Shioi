@@ -85,7 +85,7 @@ class Board {
 	* ~japanese	@detail strがkStoneStringのどれにも当てはまらない場合は例外を投げる
 	* ~english	@detail If you can't find str in kStoneString, this throw exception.
 	*/
-	static Stone ToStone(const char str) {
+	inline Stone ToStone(const char str) {
 		constexpr static char kStoneString[] = "BWN";
 		auto find_ptr = strchr(kStoneString, str);
 		if (find_ptr != NULL) {
@@ -135,7 +135,7 @@ class Board {
 	* ~japanese	@brief 長連を起こす石の位置を算出する(黒石用)
 	* ~english	@brief Make position mask of Cho-ren for Stone::Black
 	*/
-	BitBoard CalcChorenMaskB(const ShiftPattern &pattern) const noexcept {
+	inline BitBoard CalcChorenMaskB(const ShiftPattern &pattern) noexcept {
 		BitBoard choren_mask;
 		for(const auto dir : rep(Direction::Directions)) {
 			auto& p = pattern[dir];
@@ -161,7 +161,7 @@ class Board {
 	* ~japanese	@brief 一直線上の四々を起こす石の位置を算出する(黒石用)
 	* ~english	@brief Make position mask of Shi-Shi on 1Line for Stone::Black
 	*/
-	BitBoard CalcLineShiShiMaskB(const ShiftPattern &pattern) const noexcept {
+	inline BitBoard CalcLineShiShiMaskB(const ShiftPattern &pattern)  noexcept {
 		BitBoard shishi1_mask;
 		for(const auto dir : rep(Direction::Directions)) {
 			auto& p = pattern[dir];
@@ -188,7 +188,7 @@ class Board {
 	* ~japanese	@brief 四連を作る石の位置を算出する(黒石用)
 	* ~english	@brief Make position mask of Shi-ren for Stone::Black
 	*/
-	RenjuPattern CalcShirenMaskB(const ShiftPattern &pattern) const noexcept {
+	inline RenjuPattern CalcShirenMaskB(const ShiftPattern &pattern)  noexcept {
 		RenjuPattern shiren_mask;
 		for (const auto dir : rep(Direction::Directions)) {
 			auto& p = pattern[dir];
@@ -211,7 +211,7 @@ class Board {
 	* ~japanese	@brief 活四を作る石の位置を算出する(黒石用)
 	* ~english	@brief Make position mask of Katsu-Shi for Stone::Black
 	*/
-	RenjuPattern CalcKatsuShiMaskB(const ShiftPattern &pattern) const noexcept {
+	inline RenjuPattern CalcKatsuShiMaskB(const ShiftPattern &pattern)  noexcept {
 		RenjuPattern katsushi_mask;
 		for (const auto dir : rep(Direction::Directions)) {
 			auto& p = pattern[dir];
@@ -263,27 +263,30 @@ class Board {
 			using namespace short_constant;
 
 			//! [XO{B3O1}OX]
+			const size_t kKatsuSanPositions = 12;
+			array<BitBoard, kKatsuSanPositions> katsusan_position;
+			//static size_t offset_r[] = {3,2,1,2,1,0,1,0,0,0,0,0};
+			//static size_t offset_l[] = {0,0,0,0,0,1,0,1,2,1,2,3};
+			auto filter = !unorder_mask;
 			//! XOBBBOOX
-			katsusan_mask[dir] |= p[N][L][0] & p[b][L][1] & m[L][1] /**/& p[B][R][0] & p[B][R][1] & p[N][R][2] & p[N][R][3] & p[b][R][4] & m[R][4];
-			katsusan_mask[dir] |= p[B][L][0] & p[N][L][1] & p[b][L][2] & m[L][2] /**/& p[B][R][0] & p[N][R][1] & p[N][R][2] & p[b][R][3] & m[R][3];
-			katsusan_mask[dir] |= p[B][L][0] & p[B][L][1] & p[N][L][2] & p[b][L][3] & m[L][3] /**/& p[N][R][0] & p[N][R][1] & p[b][R][2] & m[R][2];
+			katsusan_position[0] = p[N][L][0] & p[b][L][1] & m[L][1] /**/& p[B][R][0] & p[B][R][1] & p[N][R][2] & p[N][R][3] & p[b][R][4] & m[R][4] & filter;
+			katsusan_position[1] = p[B][L][0] & p[N][L][1] & p[b][L][2] & m[L][2] /**/& p[B][R][0] & p[N][R][1] & p[N][R][2] & p[b][R][3] & m[R][3] & filter;
+			katsusan_position[2] = p[B][L][0] & p[B][L][1] & p[N][L][2] & p[b][L][3] & m[L][3] /**/& p[N][R][0] & p[N][R][1] & p[b][R][2] & m[R][2] & filter;
 			//! XOBBOBOX
-			katsusan_mask[dir] |= p[N][L][0] & p[b][L][1] & m[L][1] /**/& p[B][R][0] & p[N][R][1] & p[B][R][2] & p[N][R][3] & p[b][R][4] & m[R][4];
-			katsusan_mask[dir] |= p[B][L][0] & p[N][L][1] & p[b][L][2] & m[L][2] /**/& p[N][R][0] & p[B][R][1] & p[N][R][2] & p[b][R][3] & m[R][3];
-			katsusan_mask[dir] |= p[N][L][0] & p[B][L][1] & p[B][L][2] & p[N][L][3] & p[b][L][4] & m[L][4] /**/& p[N][R][0] & p[b][R][1] & m[R][1];
+			katsusan_position[3] = p[N][L][0] & p[b][L][1] & m[L][1] /**/& p[B][R][0] & p[N][R][1] & p[B][R][2] & p[N][R][3] & p[b][R][4] & m[R][4] & filter;
+			katsusan_position[4] = p[B][L][0] & p[N][L][1] & p[b][L][2] & m[L][2] /**/& p[N][R][0] & p[B][R][1] & p[N][R][2] & p[b][R][3] & m[R][3] & filter;
+			katsusan_position[5] = p[N][L][0] & p[B][L][1] & p[B][L][2] & p[N][L][3] & p[b][L][4] & m[L][4] /**/& p[N][R][0] & p[b][R][1] & m[R][1] & filter;
 			//! XOBOBBOX
-			katsusan_mask[dir] |= p[N][L][0] & p[b][L][1] & m[L][1] /**/& p[N][R][0] & p[B][R][1] & p[B][R][2] & p[N][R][3] & p[b][R][4] & m[R][4];
-			katsusan_mask[dir] |= p[N][L][0] & p[B][L][1] & p[N][L][2] & p[b][L][3] & m[L][3] /**/& p[B][R][0] & p[N][R][1] & p[b][R][2] & m[R][2];
-			katsusan_mask[dir] |= p[B][L][0] & p[N][L][1] & p[B][L][2] & p[N][L][3] & p[b][L][4] & m[L][4] /**/& p[N][R][0] & p[b][R][1] & m[R][1];
+			katsusan_position[6] = p[N][L][0] & p[b][L][1] & m[L][1] /**/& p[N][R][0] & p[B][R][1] & p[B][R][2] & p[N][R][3] & p[b][R][4] & m[R][4] & filter;
+			katsusan_position[7] = p[N][L][0] & p[B][L][1] & p[N][L][2] & p[b][L][3] & m[L][3] /**/& p[B][R][0] & p[N][R][1] & p[b][R][2] & m[R][2] & filter;
+			katsusan_position[8] = p[B][L][0] & p[N][L][1] & p[B][L][2] & p[N][L][3] & p[b][L][4] & m[L][4] /**/& p[N][R][0] & p[b][R][1] & m[R][1] & filter;
 			//! XOOBBBOX
-			katsusan_mask[dir] |= p[N][L][0] & p[N][L][1] & p[b][L][2] & m[L][2] /**/& p[B][R][0] & p[B][R][1] & p[N][R][2] & p[b][R][3] & m[R][3];
-			katsusan_mask[dir] |= p[B][L][0] & p[N][L][1] & p[N][L][2] & p[b][L][3] & m[L][3] /**/& p[B][R][0] & p[N][R][1] & p[b][R][2] & m[R][2];
-			katsusan_mask[dir] |= p[B][L][0] & p[B][L][1] & p[N][L][2] & p[N][L][3] & p[b][L][4] & m[L][4] /**/& p[N][R][0] & p[b][R][1] & m[R][1];
+			katsusan_position[9] = p[N][L][0] & p[N][L][1] & p[b][L][2] & m[L][2] /**/& p[B][R][0] & p[B][R][1] & p[N][R][2] & p[b][R][3] & m[R][3] & filter;
+			katsusan_position[10] = p[B][L][0] & p[N][L][1] & p[N][L][2] & p[b][L][3] & m[L][3] /**/& p[B][R][0] & p[N][R][1] & p[b][R][2] & m[R][2] & filter;
+			katsusan_position[11] = p[B][L][0] & p[B][L][1] & p[N][L][2] & p[N][L][3] & p[b][L][4] & m[L][4] /**/& p[N][R][0] & p[b][R][1] & m[R][1] & filter;
 
-			//! Ina-San-San Filter
-			katsusan_mask[dir] = katsusan_mask[dir] & (!unorder_mask);
-			if (0 != katsusan_mask[dir]) {
-
+			for(auto&& katsusan_p : katsusan_position) {
+				katsusan_mask[dir] |= katsusan_p;
 			}
 		}
 		return katsusan_mask;
@@ -295,9 +298,12 @@ class Board {
 	* ~japanese	@brief 禁手で打てない位置のビットを立てたマスクを作成する
 	* ~english	@brief Calc invaild position's mask
 	*/
-	BitBoard CalcInValidMask() {
+	BitBoard CalcInValidMask() noexcept{
 		//! shift_pattern[Black, White][Row, Column, DiagR, DiagL][Left, Right][Shifts]
 		auto shift_pattern = GetShiftPattern();
+		return CalcInValidMask(shift_pattern);
+	}
+	BitBoard CalcInValidMask(const ShiftPattern &shift_pattern) noexcept{
 		/*REP(dir, Direction::Directions) {
 			REP(stone, Stone::Stones) {
 				REP(side, Side::Sides) {
@@ -330,20 +336,19 @@ class Board {
 		BitBoard shishi_mask = (s1 & s2) | (s1 & s3) | (s1 & s4) | (s2 & s3) | (s2 & s4) | (s3 & s4);
 		//! Katsu-San check
 		auto katsusan_mask = CalcKatsuSanMaskB(shift_pattern, unorder_mask);
-		SetPatternMask(katsusan_mask, unorder_mask);
 		//! Calc San-San point
 		BitBoard sansan_mask = (katsusan_mask[0] & katsusan_mask[1]) | (katsusan_mask[0] & katsusan_mask[2]) | (katsusan_mask[0] & katsusan_mask[3])
 			| (katsusan_mask[1] & katsusan_mask[2]) | (katsusan_mask[1] & katsusan_mask[3]) | (katsusan_mask[2] & katsusan_mask[3]);
 
-		BitBoard(shiren_mask[0] | shiren_mask[1] | shiren_mask[2] | shiren_mask[3]).PutBoard();
-		BitBoard(katsushi_mask[0] | katsushi_mask[1] | katsushi_mask[2] | katsushi_mask[3]).PutBoard();
-		BitBoard(katsusan_mask[0] | katsusan_mask[1] | katsusan_mask[2] | katsusan_mask[3]).PutBoard();
+		//BitBoard(shiren_mask[0] | shiren_mask[1] | shiren_mask[2] | shiren_mask[3]).PutBoard();
+		//BitBoard(katsushi_mask[0] | katsushi_mask[1] | katsushi_mask[2] | katsushi_mask[3]).PutBoard();
+		//BitBoard(katsusan_mask[0] | katsusan_mask[1] | katsusan_mask[2] | katsusan_mask[3]).PutBoard();
 
 		invalid_mask |= choren_mask;
 		invalid_mask |= shishi1_mask;
 		invalid_mask |= shishi_mask;
 		invalid_mask |= sansan_mask;
-		invalid_mask.PutBoard();
+		//invalid_mask.PutBoard();
 		return invalid_mask;	//! dummy
 	}
 	/**
@@ -352,11 +357,11 @@ class Board {
 	*/
 	optional<size_t> FindRandomMove() {
 		vector<size_t> list;
-		auto invalid_mask = black_board_ | white_board_;
+		auto invalid_mask = (turn_ == Stone::Black ? CalcInValidMask() : black_board_ | white_board_);
 		if (turn_ == Stone::Black) {
 			invalid_mask = invalid_mask | CalcInValidMask();
 		}
-		BitBoard(invalid_mask).PutBoard();
+		//BitBoard(invalid_mask).PutBoard();
 		for(const auto position : rep(kAllBoardSize)) {
 			//! You can only move at Stone::None in Board
 			if (0 != (BitBoard::kPositionArray[position] & invalid_mask)) continue;
