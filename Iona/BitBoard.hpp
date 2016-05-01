@@ -13,11 +13,12 @@
 #include"constant.hpp"
 #include"misc_functions.hpp"
 
+struct BitBoard;
 //! constant table
-__m256i kPositionArray[kAllBoardSize];
-__m256i kBitMaskArray[Direction::Directions][Side::Sides][kMaxShifts];
+BitBoard kPositionArray[kAllBoardSize]{};
+BitBoard kBitMaskArray[Direction::Directions][Side::Sides][kMaxShifts]{};
 //! mask constant
-__m256i AllBit1 = _mm256_set1_epi16(0xFFFFu);
+const __m256i AllBit1 = _mm256_set1_epi16(0xFFFFu);
 /**
 * @fn IsZero
 * ~japanese	@brief __m256iのビットが全て0か調べる
@@ -32,26 +33,6 @@ bool IsZero(const __m256i a) noexcept {
 	*/
 	return (_mm256_testz_si256(a, a) != 0);
 }
-__m256i operator | (const __m256i a, const __m256i b) noexcept {return _mm256_or_si256(a, b);}
-__m256i operator & (const __m256i a, const __m256i b) noexcept {return _mm256_and_si256(a, b);}
-__m256i operator ^ (const __m256i a, const __m256i b) noexcept { return _mm256_xor_si256(a, b); }
-__m256i operator ! (const __m256i a) noexcept { return _mm256_xor_si256(a, AllBit1); }
-bool operator == (const __m256i a, const __m256i b) noexcept {
-	/**
-	* 【通常のコード】
-	* _mm256_cmpeq_epi64は、__m256iを64bit毎に分割した要素毎に比較を行い、
-	* 等しければ要素の全ビットに1を、等しくなければ0を立てる。
-	* _mm256_movemask_epi8は__m256iを8bit毎に分割した要素の最上位ビットをかき集める。
-	* 256/8=32なので、int型の変数に集約されることになるが、先ほどより0か1かなので、
-	* 結局完全一致してたら0xFFFFFFFF、そうでなければどこかが異なることになる。
-	*/
-	/**
-	* 【高度なコード】
-	* 二引数のXORを取れば、等しいビットは全て0、等しくないビットは全て1になる。
-	* つまり、全ビットが0ならば等しく、そうでなければ等しくないと言える。
-	*/
-	return IsZero(a ^ b);
-}
 //! mask constant
 const __m256i kBitMaskR = _mm256_set_epi16(
 	0x0000u, 0x3FFFu, 0x3FFFu, 0x3FFFu, 0x3FFFu, 0x3FFFu, 0x3FFFu, 0x3FFFu,
@@ -65,16 +46,19 @@ const __m256i kBitMaskU = _mm256_set_epi16(
 const __m256i kBitMaskD = _mm256_set_epi16(
 	0x0000u, 0x0000u, 0x7FFFu, 0x7FFFu, 0x7FFFu, 0x7FFFu, 0x7FFFu, 0x7FFFu,
 	0x7FFFu, 0x7FFFu, 0x7FFFu, 0x7FFFu, 0x7FFFu, 0x7FFFu, 0x7FFFu, 0x7FFFu);
-const __m256i kBitMaskRU = kBitMaskR & kBitMaskU;
-const __m256i kBitMaskRD = kBitMaskR & kBitMaskD;
-const __m256i kBitMaskLD = kBitMaskL & kBitMaskD;
-const __m256i kBitMaskLU = kBitMaskL & kBitMaskU;
+const __m256i kBitMaskRU = _mm256_and_si256(kBitMaskR, kBitMaskU);
+const __m256i kBitMaskRD = _mm256_and_si256(kBitMaskR, kBitMaskD);
+const __m256i kBitMaskLD = _mm256_and_si256(kBitMaskL, kBitMaskD);
+const __m256i kBitMaskLU = _mm256_and_si256(kBitMaskL, kBitMaskU);
 
 /**
 * @class BitBoard
 * @brief BitBoard class for game board
 */
 struct BitBoard {
+	/**
+	* @brief Member variable
+	*/
 	union
 	{
 		__m256i board_;
@@ -95,20 +79,20 @@ struct BitBoard {
 	/**
 	* @brief Cast operator(to __m256i)
 	*/
-	operator __m256i() const { return board_; }
+	operator __m256i() const noexcept { return board_; }
 	/**
 	* ~japanese	@brief BitBoardにおけるpositionの位置のビットを調べる
 	* ~english	@brief Get bit of position in BitBoard
 	*/
 	bool GetBit(const size_t position) const noexcept {
-		return !IsZero(board_ & kPositionArray[position]);
+		return !IsZero(*this & kPositionArray[position]);
 	}
 	/**
 	* ~japanese	@brief BitBoardにおけるpositionの位置のビットを立てる
 	* ~english	@brief Set "1" to bit of position in BitBoard
 	*/
 	void SetBit(const size_t position) noexcept {
-		board_ = board_ | kPositionArray[position];
+		*this |= kPositionArray[position];
 	}
 	/**
 	* @fn PutBoard
@@ -194,68 +178,85 @@ struct BitBoard {
 		}
 		return;
 	}
-	BitBoard operator << (const Direction dir) noexcept {
+	/**
+	* ~japanese	@brief 各種演算子を定義する
+	* ~english	@brief Definition of operator for BitBoard
+	*/
+	BitBoard operator | (const __m256i a) const noexcept { return _mm256_or_si256(*this, a); }
+	BitBoard operator & (const __m256i a) const noexcept { return _mm256_and_si256(*this, a); }
+	BitBoard operator ^ (const __m256i a) const noexcept { return _mm256_xor_si256(*this, a); }
+	BitBoard operator ! () const noexcept { return _mm256_xor_si256(*this, AllBit1); }
+	bool operator == (const __m256i a) const noexcept {
+		/**
+		* 【通常のコード】
+		* _mm256_cmpeq_epi64は、__m256iを64bit毎に分割した要素毎に比較を行い、
+		* 等しければ要素の全ビットに1を、等しくなければ0を立てる。
+		* _mm256_movemask_epi8は__m256iを8bit毎に分割した要素の最上位ビットをかき集める。
+		* 256/8=32なので、int型の変数に集約されることになるが、先ほどより0か1かなので、
+		* 結局完全一致してたら0xFFFFFFFF、そうでなければどこかが異なることになる。
+		*/
+		/**
+		* 【高度なコード】
+		* 二引数のXORを取れば、等しいビットは全て0、等しくないビットは全て1になる。
+		* つまり、全ビットが0ならば等しく、そうでなければ等しくないと言える。
+		*/
+		return IsZero(*this ^ a );
+	}
+	BitBoard operator << (const Direction dir) const noexcept {
+		/**
+		* 【通常のコード】
+		* _mm256_store_si256でalignas(32) uint16_t temp[17]に書き出した後、
+		* _mm256_loadu_si256で1要素だけズラして読み込む。その際、ビットシフトなのでマスク処理を
+		* 最後に施す必要があるのと、アラインメントと16bit変数の相性が悪いので注意。
+		*/
+		/**
+		* 【高度なコード】
+		* _mm256_permute2x128_si256で適宜再配置した__m256i型を用意し、
+		* _mm256_alignr_epi8で読み出す。アラインメント処理などを考えなくていいのが利点。
+		* http://stackoverflow.com/questions/25248766/emulating-shifts-on-32-bytes-with-avx
+		*/
 		switch (dir) {
 		case Direction::Row:
-			return BitBoard(_mm256_slli_epi16(board_, 1) & kBitMaskL);
+			return BitBoard(_mm256_slli_epi16(board_, 1)) & kBitMaskL;
 			break;
 		case Direction::Column:
-			//! 最初考えていた方法
-			/*{alignas(32) uint16_t temp[17]{};
-			_mm256_storeu_si256((__m256i*)(temp + 1), board_);
-			return BitBoard(_mm256_load_si256((__m256i*)temp) & kBitMaskD);}*/
-			//! 恐るべき解決手段
-			return BitBoard(_mm256_alignr_epi8(board_, _mm256_permute2x128_si256(board_, board_, _MM_SHUFFLE(0, 0, 2, 0)), 16 - 2) & kBitMaskU);
+			return BitBoard(_mm256_alignr_epi8(board_, _mm256_permute2x128_si256(board_, board_, _MM_SHUFFLE(0, 0, 2, 0)), 16 - 2)) & kBitMaskU;
 		case Direction::DiagR:
-			//! 最初考えていた方法
-			/*{alignas(32) uint16_t temp[17]{};
-			_mm256_storeu_si256((__m256i*)(temp + 1), board_);
-			return BitBoard(_mm256_srli_epi16(_mm256_load_si256((__m256i*)temp), 1) & kBitMaskRD);}*/
-			//! 恐るべき解決手段
-			return BitBoard(_mm256_srli_epi16(_mm256_alignr_epi8(board_, _mm256_permute2x128_si256(board_, board_, _MM_SHUFFLE(0, 0, 2, 0)), 16 - 2), 1) & kBitMaskRU);
+			return BitBoard(_mm256_srli_epi16(_mm256_alignr_epi8(board_, _mm256_permute2x128_si256(board_, board_, _MM_SHUFFLE(0, 0, 2, 0)), 16 - 2), 1)) & kBitMaskRU;
 			break;
 		case Direction::DiagL:
-			//! 最初考えていた方法
-			/*{alignas(32) uint16_t temp[17]{};
-			_mm256_storeu_si256((__m256i*)(temp + 1), board_);
-			return BitBoard(_mm256_slli_epi16(_mm256_load_si256((__m256i*)temp), 1) & kBitMaskLD);}*/
-			//! 恐るべき解決手段
-			return BitBoard(_mm256_slli_epi16(_mm256_alignr_epi8(board_, _mm256_permute2x128_si256(board_, board_, _MM_SHUFFLE(0, 0, 2, 0)), 16 - 2), 1) & kBitMaskLU);
+			return BitBoard(_mm256_slli_epi16(_mm256_alignr_epi8(board_, _mm256_permute2x128_si256(board_, board_, _MM_SHUFFLE(0, 0, 2, 0)), 16 - 2), 1)) & kBitMaskLU;
 			break;
 		default:
 			return *this;
 		}
 	}
 	BitBoard& operator <<= (const Direction dir) noexcept { *this = *this << dir; return *this; }
-	BitBoard operator >> (const Direction dir) noexcept {
+	BitBoard operator >> (const Direction dir) const noexcept {
+		/**
+		* 【通常のコード】
+		* _mm256_store_si256でalignas(32) uint16_t temp[17]に書き出した後、
+		* _mm256_loadu_si256で1要素だけズラして読み込む。その際、ビットシフトなのでマスク処理を
+		* 最後に施す必要があるのと、アラインメントと16bit変数の相性が悪いので注意。
+		*/
+		/**
+		* 【高度なコード】
+		* _mm256_permute2x128_si256で適宜再配置した__m256i型を用意し、
+		* _mm256_alignr_epi8で読み出す。アラインメント処理などを考えなくていいのが利点。
+		* http://stackoverflow.com/questions/25248766/emulating-shifts-on-32-bytes-with-avx
+		*/
 		switch (dir) {
 		case Direction::Row:
-			return BitBoard(_mm256_srli_epi16(board_, 1) & kBitMaskR);
+			return BitBoard(_mm256_srli_epi16(board_, 1)) & kBitMaskR;
 			break;
 		case Direction::Column:
-			//! 最初考えていた方法
-			/*{alignas(32) uint16_t temp[17]{};
-			_mm256_store_si256((__m256i*)temp, board_);
-			return BitBoard(_mm256_loadu_si256((__m256i*)(temp + 1)) & kBitMaskU);}*/
-			//! 恐るべき解決手段
-			//! http://stackoverflow.com/questions/25248766/emulating-shifts-on-32-bytes-with-avx
-			return BitBoard(_mm256_alignr_epi8(_mm256_permute2x128_si256(board_, board_, _MM_SHUFFLE(2, 0, 0, 1)), board_, 2) & kBitMaskD);
+			return BitBoard(_mm256_alignr_epi8(_mm256_permute2x128_si256(board_, board_, _MM_SHUFFLE(2, 0, 0, 1)), board_, 2)) & kBitMaskD;
 			break;
 		case Direction::DiagR:
-			//! 最初考えていた方法
-			/*{alignas(32) uint16_t temp[17]{};
-			_mm256_store_si256((__m256i*)temp, board_);
-			return BitBoard(_mm256_slli_epi16(_mm256_loadu_si256((__m256i*)(temp + 1)), 1) & kBitMaskLU);}*/
-			//! 恐るべき解決手段
-			return BitBoard(_mm256_slli_epi16(_mm256_alignr_epi8(_mm256_permute2x128_si256(board_, board_, _MM_SHUFFLE(2, 0, 0, 1)), board_, 2), 1) & kBitMaskLD);
+			return BitBoard(_mm256_slli_epi16(_mm256_alignr_epi8(_mm256_permute2x128_si256(board_, board_, _MM_SHUFFLE(2, 0, 0, 1)), board_, 2), 1)) & kBitMaskLD;
 			break;
 		case Direction::DiagL:
-			//! 最初考えていた方法
-			/*{alignas(32) uint16_t temp[17]{};
-			_mm256_store_si256((__m256i*)temp, board_);
-			return BitBoard(_mm256_srli_epi16(_mm256_loadu_si256((__m256i*)(temp + 1)), 1) & kBitMaskRU);}*/
-			//! 恐るべき解決手段
-			return BitBoard(_mm256_srli_epi16(_mm256_alignr_epi8(_mm256_permute2x128_si256(board_, board_, _MM_SHUFFLE(2, 0, 0, 1)), board_, 2), 1) & kBitMaskRD);
+			return BitBoard(_mm256_srli_epi16(_mm256_alignr_epi8(_mm256_permute2x128_si256(board_, board_, _MM_SHUFFLE(2, 0, 0, 1)), board_, 2), 1)) & kBitMaskRD;
 			break;
 		default:
 			return *this;
