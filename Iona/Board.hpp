@@ -64,10 +64,10 @@ class Board {
 		ShiftPattern shift_Pattern;
 		REP(dir_, Direction::Directions) {
 			auto dir = static_cast<Direction>(dir_);
-			auto pattern_black_right = black_board_.ShiftRight(dir);
-			auto pattern_black_left = black_board_.ShiftLeft(dir);
-			auto pattern_white_right = white_board_.ShiftRight(dir);
-			auto pattern_white_left = white_board_.ShiftLeft(dir);
+			auto pattern_black_right = black_board_ << dir;
+			auto pattern_black_left = black_board_ >> dir;
+			auto pattern_white_right = white_board_ << dir;
+			auto pattern_white_left = white_board_ >> dir;
 			REP(shift, kMaxShifts - 1) {
 				shift_Pattern[dir][Stone::Black][Side::Right][shift] = pattern_black_right;
 				shift_Pattern[dir][Stone::White][Side::Right][shift] = pattern_white_right;
@@ -77,10 +77,10 @@ class Board {
 				shift_Pattern[dir][Stone::White][Side::Left][shift] = pattern_white_left;
 				shift_Pattern[dir][Stone::None][Side::Left][shift] = !(pattern_black_left | pattern_white_left);
 				shift_Pattern[dir][Stone::NonBlack][Side::Left][shift] = !pattern_black_left;
-				pattern_black_right.ShiftRightD(dir);
-				pattern_white_right.ShiftRightD(dir);
-				pattern_black_left.ShiftLeftD(dir);
-				pattern_white_left.ShiftLeftD(dir);
+				pattern_black_right <<= dir;
+				pattern_white_right >>= dir;
+				pattern_black_left <<= dir;
+				pattern_white_left >>= dir;
 			}
 			shift_Pattern[dir][Stone::Black][Side::Right][kMaxShifts - 1] = pattern_black_right;
 			shift_Pattern[dir][Stone::White][Side::Right][kMaxShifts - 1] = pattern_white_right;
@@ -321,54 +321,6 @@ class Board {
 			katsusan_position[10] = BL0 & NL1 & NL2 & bL3 & ML3 /**/& BR0 & NR1 & bR2 & MR2 & filter;
 			katsusan_position[11] = BL0 & BL1 & NL2 & NL3 & bL4 & ML4 /**/& NR0 & bR1 & MR1 & filter;
 
-			//! Check Ina-San-San
-			/*REP(index, kKatsuSanPositions) {
-				if (IsZero(katsusan_position[index])) continue;
-				if (offset_r[index] != 0) {
-					REP(position, kAllBoardSize) {
-						if (IsZero(kPositionArray[position] & katsusan_position[index])) continue;
-						cout << index << "　" << position << "　" << offset_r[index] << endl;
-						PutBoard();
-						black_board_ ^= kPositionArray[position];
-						auto invalid_mask = CalcInValidMask();
-						black_board_ ^= kPositionArray[position];
-						BitBoard shift_katsusan_position = kPositionArray[position];
-						REP(j, offset_r[index]) {
-							shift_katsusan_position.ShiftLeftD(static_cast<Direction>(dir));
-						}
-						PutBoard();
-						katsusan_position[index].PutBoard();
-						BitBoard(kPositionArray[position]).PutBoard();
-						invalid_mask.PutBoard();
-						shift_katsusan_position.PutBoard();
-						if (!IsZero(shift_katsusan_position) && !IsZero(shift_katsusan_position & invalid_mask)) {
-							katsusan_position[index] ^= kPositionArray[position];
-						}
-					}
-				}
-				if (offset_l[index] != 0) {
-					REP(position, kAllBoardSize) {
-						if (IsZero(kPositionArray[position] & katsusan_position[index])) continue;
-						black_board_ = black_board_ ^ kPositionArray[position];
-						auto invalid_mask = CalcInValidMask();
-						black_board_ = black_board_ ^ kPositionArray[position];
-						BitBoard shift_katsusan_position = kPositionArray[position];
-						REP(j, offset_l[index]) {
-							shift_katsusan_position.ShiftRightD(static_cast<Direction>(dir));
-						}
-						cout << index << "　" << position << "　" << offset_r[index] << endl;
-						PutBoard();
-						katsusan_position[index].PutBoard();
-						BitBoard(kPositionArray[position]).PutBoard();
-						invalid_mask.PutBoard();
-						shift_katsusan_position.PutBoard();
-						if (!IsZero(shift_katsusan_position) && !IsZero(shift_katsusan_position & invalid_mask)) {
-							katsusan_position[index] ^= kPositionArray[position];
-						}
-					}
-				}
-				katsusan_mask[dir] |= katsusan_position[index];
-			}*/
 			REP(index, kKatsuSanPositions) {
 				katsusan_mask[dir] |= katsusan_position[index];
 			}
@@ -448,7 +400,7 @@ class Board {
 	optional<size_t> FindRandomMove() {
 		vector<size_t> list;
 		auto invalid_mask = (turn_ == Stone::Black ? CalcInValidMask() : black_board_ | white_board_);
-		BitBoard(invalid_mask).PutBoard();
+		//BitBoard(invalid_mask).PutBoard();
 		REP(position, kAllBoardSize) {
 			//! You can only move at Stone::None in Board
 			if (!IsZero(kPositionArray[position] & invalid_mask)) continue;
