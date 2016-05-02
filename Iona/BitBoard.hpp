@@ -20,7 +20,7 @@ using std::array;
 */
 struct BitBoard {
 	//! constant table
-	static const std::array<__m256i, kAllBoardSize> kPositionArray;
+	static const std::array<BitBoard, kAllBoardSize> kPositionArray;
 	static const array<array<array<BitBoard, kMaxShifts>, Side::Sides>, Direction::Directions> kBitMaskArray;
 	//! mask constant
 	static const __m256i kBitMaskR;

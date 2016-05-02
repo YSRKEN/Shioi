@@ -376,14 +376,15 @@ class Board {
 		//! Row
 		uint16_t mask = 0b11111;
 		REP(j, kBoardSize - 5) {
-			REP(i, kBoardSize) {
+			for(auto i : rep(kBoardSize)) {
 				if ((board.line_[i] & mask) == mask) return true;
 			}
 			mask <<= 1;
 		}
 		//! Column
+		const auto& p = BitBoard::kPositionArray;
 		auto filter_column_base =
-			kPositionArray[0] | kPositionArray[kBoardSize] | kPositionArray[kBoardSize * 2] | kPositionArray[kBoardSize * 3] | kPositionArray[kBoardSize * 4];
+			p[0] | p[kBoardSize] | p[kBoardSize * 2] | p[kBoardSize * 3] | p[kBoardSize * 4];
 		REP(j, kBoardSize - 5) {
 			auto filter_column = filter_column_base;
 			REP(i, kBoardSize) {
@@ -483,7 +484,7 @@ public:
 		return -1;
 	}
 	void Test() {
-		const size_t count = 1000000;
+		constexpr size_t count = 1000000;
 		auto start = std::chrono::system_clock::now();
 		REP(i, count) {
 			FindRandomMove();
