@@ -410,6 +410,28 @@ class Board {
 		if(list.empty()) return optional<size_t>(-1); 
 		return optional<size_t>(list[RandInt(list.size())]);
 	}
+	bool IsGameEnd(const BitBoard &board) {
+		//! Row
+		REP(i, kBoardSize) {
+			uint16_t mask = 0b11111;
+			REP(j, kBoardSize - 5) {
+				if ((board.line_[i] & mask) == mask) return true;
+				mask <<= 1;
+			}
+		}
+		//! Column
+
+		//! DiagR
+
+		//! DiagL
+
+		return false;
+	}
+	bool IsGameEnd() {
+		if (IsGameEnd(black_board_)) return true;
+		if (IsGameEnd(white_board_)) return true;
+		return false;
+	}
 public:
 	/**
 	* @fn Board
@@ -483,6 +505,7 @@ public:
 	* @brief thinking next move
 	*/
 	int NextMove() {
+		if (IsGameEnd()) return -1;
 		auto result = FindRandomMove();
 		if (result) return *result;
 		return -1;
