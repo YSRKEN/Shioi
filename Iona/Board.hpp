@@ -545,10 +545,12 @@ public:
 		return -1;
 	}
 	void Test() {
-		const size_t count = 1000000;
+		const size_t count = 10000;
 		auto start = std::chrono::system_clock::now();
 		REP(i, count) {
-			FindRandomMove();
+			REP(j, count) {
+				IsGameEnd();
+			}
 		}
 		auto end = std::chrono::system_clock::now();
 		auto msec = std::chrono::duration_cast<std::chrono::milliseconds>(end - start).count();

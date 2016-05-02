@@ -16,9 +16,6 @@
 struct BitBoard;
 extern BitBoard kPositionArray[kAllBoardSize];
 extern BitBoard kBitMaskArray[Direction::Directions][Side::Sides][kMaxShifts];
-extern const BitBoard
-		kBitMaskR, kBitMaskL, kBitMaskU, kBitMaskD,
-		kBitMaskRU, kBitMaskRD, kBitMaskLD, kBitMaskLU, BoardFill;
 bool IsZero(const BitBoard&) noexcept;
 
 /**
@@ -34,6 +31,13 @@ struct BitBoard {
 		__m256i board_;
 		uint16_t line_[16];
 	};
+	//! mask constant
+	static const BitBoard kBitMaskR, kBitMaskL, kBitMaskU, kBitMaskD;
+	static const BitBoard kBitMaskRU;
+	static const BitBoard kBitMaskRD;
+	static const BitBoard kBitMaskLD;
+	static const BitBoard kBitMaskLU;
+	static const BitBoard BoardFill;
 	/**
 	* @brief Constructor
 	*/

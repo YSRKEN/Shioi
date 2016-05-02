@@ -10,24 +10,24 @@
 //! constant table
 BitBoard kPositionArray[kAllBoardSize]{};
 BitBoard kBitMaskArray[Direction::Directions][Side::Sides][kMaxShifts]{};
-//! mask constant
-const BitBoard kBitMaskR = _mm256_set_epi16(
+//! constant mask
+const BitBoard BitBoard::kBitMaskR = _mm256_set_epi16(
 	0x0000u, 0x3FFFu, 0x3FFFu, 0x3FFFu, 0x3FFFu, 0x3FFFu, 0x3FFFu, 0x3FFFu,
 	0x3FFFu, 0x3FFFu, 0x3FFFu, 0x3FFFu, 0x3FFFu, 0x3FFFu, 0x3FFFu, 0x3FFFu);
-const BitBoard kBitMaskL = _mm256_set_epi16(
+const BitBoard BitBoard::kBitMaskL = _mm256_set_epi16(
 	0x0000u, 0x7FFEu, 0x7FFEu, 0x7FFEu, 0x7FFEu, 0x7FFEu, 0x7FFEu, 0x7FFEu,
 	0x7FFEu, 0x7FFEu, 0x7FFEu, 0x7FFEu, 0x7FFEu, 0x7FFEu, 0x7FFEu, 0x7FFEu);
-const BitBoard kBitMaskU = _mm256_set_epi16(
+const BitBoard BitBoard::kBitMaskU = _mm256_set_epi16(
 	0x0000u, 0x7FFFu, 0x7FFFu, 0x7FFFu, 0x7FFFu, 0x7FFFu, 0x7FFFu, 0x7FFFu,
 	0x7FFFu, 0x7FFFu, 0x7FFFu, 0x7FFFu, 0x7FFFu, 0x7FFFu, 0x7FFFu, 0x0000u);
-const BitBoard kBitMaskD = _mm256_set_epi16(
+const BitBoard BitBoard::kBitMaskD = _mm256_set_epi16(
 	0x0000u, 0x0000u, 0x7FFFu, 0x7FFFu, 0x7FFFu, 0x7FFFu, 0x7FFFu, 0x7FFFu,
 	0x7FFFu, 0x7FFFu, 0x7FFFu, 0x7FFFu, 0x7FFFu, 0x7FFFu, 0x7FFFu, 0x7FFFu);
-const BitBoard kBitMaskRU = _mm256_and_si256(kBitMaskR.board_, kBitMaskU.board_);
-const BitBoard kBitMaskRD = _mm256_and_si256(kBitMaskR.board_, kBitMaskD.board_);
-const BitBoard kBitMaskLD = _mm256_and_si256(kBitMaskL.board_, kBitMaskD.board_);
-const BitBoard kBitMaskLU = _mm256_and_si256(kBitMaskL.board_, kBitMaskU.board_);
-const BitBoard BoardFill = _mm256_set_epi16(
+const BitBoard BitBoard::kBitMaskRU = kBitMaskR & kBitMaskU;
+const BitBoard BitBoard::kBitMaskRD = kBitMaskR & kBitMaskD;
+const BitBoard BitBoard::kBitMaskLD = kBitMaskL & kBitMaskD;
+const BitBoard BitBoard::kBitMaskLU = kBitMaskL & kBitMaskU;
+const BitBoard BitBoard::BoardFill = _mm256_set_epi16(
 	0x0000u, 0x7FFFu, 0x7FFFu, 0x7FFFu, 0x7FFFu, 0x7FFFu, 0x7FFFu, 0x7FFFu,
 	0x7FFFu, 0x7FFFu, 0x7FFFu, 0x7FFFu, 0x7FFFu, 0x7FFFu, 0x7FFFu, 0x7FFFu);
 /**
