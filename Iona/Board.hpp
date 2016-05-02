@@ -383,20 +383,41 @@ class Board {
 		}
 		//! Column
 		const auto& p = BitBoard::kPositionArray;
-		auto filter_column_base =
-			p[0] | p[kBoardSize] | p[kBoardSize * 2] | p[kBoardSize * 3] | p[kBoardSize * 4];
-		REP(j, kBoardSize - 5) {
+		auto filter_column_base = p[0] | p[kBoardSize] | p[kBoardSize * 2] | p[kBoardSize * 3] | p[kBoardSize * 4];
+		REP(j, kBoardSize - 5 + 1) {
 			auto filter_column = filter_column_base;
 			REP(i, kBoardSize) {
-				if ((board & filter_column) == filter_column) return true;
-				filter_column >>= Direction::Row;
+				if ((board & filter_column) == filter_column) {
+					return true;
+				}
+				filter_column <<= Direction::Row;
 			}
-			filter_column_base >>= Direction::Column;
+			filter_column_base <<= Direction::Column;
 		}
 		//! DiagR
-
+		auto filter_diagr_base = p[4] | p[kBoardSize + 3] | p[kBoardSize * 2 + 2] | p[kBoardSize * 3 + 1] | p[kBoardSize * 4];
+		REP(j, kBoardSize - 5 + 1) {
+			auto filter_diagr = filter_diagr_base;
+			REP(i, kBoardSize - 5 + 1) {
+				if ((board & filter_diagr) == filter_diagr) {
+					return true;
+				}
+				filter_diagr <<= Direction::Row;
+			}
+			filter_diagr_base <<= Direction::Column;
+		}
 		//! DiagL
-
+		auto filter_diagl_base = p[0] | p[kBoardSize + 1] | p[kBoardSize * 2 + 2] | p[kBoardSize * 3 + 3] | p[kBoardSize * 4 + 4];
+		REP(j, kBoardSize - 5 + 1) {
+			auto filter_diagl = filter_diagl_base;
+			REP(i, kBoardSize - 5 + 1) {
+				if ((board & filter_diagl) == filter_diagl) {
+					return true;
+				}
+				filter_diagl <<= Direction::Row;
+			}
+			filter_diagl_base <<= Direction::Column;
+		}
 		return false;
 	}
 	bool IsGameEnd() {
@@ -477,17 +498,31 @@ public:
 	* @fn NextMove
 	* @brief thinking next move
 	*/
-	int NextMove() {
+	int NextMove(bool debug_flg = false) {
+		//! If the game is end, you don't move.
 		if (IsGameEnd()) return -1;
+		//! Opening move
+		if (debug_flg) std::cerr << "Opening" << endl;
+		if (0 == black_board_ && 0 == white_board_) return ToPosition(7, 7);
+		//! Book move
+		if (debug_flg) std::cerr << "Book" << endl;
+		//! If you can make Go-ren, you must do it.
+		if (debug_flg) std::cerr << "Goren" << endl;
+		//! If enemy can make Go-ren, you should block it.
+		if (debug_flg) std::cerr << "Stop Goren" << endl;
+		//! Random move(test)
+		if (debug_flg) std::cerr << "Random" << endl;
 		auto result = FindRandomMove();
 		if (result) return *result;
 		return -1;
 	}
 	void Test() {
-		constexpr size_t count = 1000000;
+		constexpr size_t count = 10000;
 		auto start = std::chrono::system_clock::now();
 		REP(i, count) {
-			FindRandomMove();
+			REP(j, count) {
+				IsGameEnd();
+			}
 		}
 		auto end = std::chrono::system_clock::now();
 		auto msec = std::chrono::duration_cast<std::chrono::milliseconds>(end - start).count();

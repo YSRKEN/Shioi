@@ -20,18 +20,15 @@ using std::array;
 */
 struct BitBoard {
 	//! constant table
-	static const std::array<BitBoard, kAllBoardSize> kPositionArray;
+	static const array<BitBoard, kAllBoardSize> kPositionArray;
 	static const array<array<array<BitBoard, kMaxShifts>, Side::Sides>, Direction::Directions> kBitMaskArray;
 	//! mask constant
-	static const __m256i kBitMaskR;
-	static const __m256i kBitMaskL;
-	static const __m256i kBitMaskU;
-	static const __m256i kBitMaskD;
-	static const __m256i kBitMaskRU;
-	static const __m256i kBitMaskRD;
-	static const __m256i kBitMaskLD;
-	static const __m256i kBitMaskLU;
-	static const __m256i BoardFill;
+	static const BitBoard kBitMaskR, kBitMaskL, kBitMaskU, kBitMaskD;
+	static const BitBoard kBitMaskRU;
+	static const BitBoard kBitMaskRD;
+	static const BitBoard kBitMaskLD;
+	static const BitBoard kBitMaskLU;
+	static const BitBoard BoardFill;
 	/**
 	* @brief Member variable
 	*/
@@ -91,16 +88,10 @@ struct BitBoard {
 	BitBoard operator|(const BitBoard& r) const noexcept { return _mm256_or_si256(this->board_, r.board_); }
 	BitBoard& operator|=(const BitBoard& r) noexcept { *this = *this | r; return *this; }
 	BitBoard operator&(const BitBoard& r) const noexcept { return _mm256_and_si256(this->board_, r.board_); }
-	inline bool operator==(std::nullptr_t) const noexcept {
-		/**
-		* _mm256_testz_si256は、2つの引数のANDを取り、全てのビットが0ならZFフラグを設定し、
-		* そうでなければZFフラグをクリアする。ZFフラグが設定されるとこの関数の返り値が非0になり、
-		* そうでなければ返り値が0になる。つまり、引数に両方aを噛ますと、aがオール0ならば
-		* 返り値が非0、そうでなければ返り値が0になる。
-		*/
-		return (_mm256_testz_si256(this->board_, this->board_) != 0);
-	}
+	bool operator==(std::nullptr_t) const noexcept;
 	BitBoard operator^(const BitBoard& r) const noexcept { return _mm256_xor_si256(this->board_, r.board_); }
+	BitBoard& operator ^= (const BitBoard& a) noexcept { board_ = _mm256_xor_si256(board_, a.board_); return *this; }
+	BitBoard operator! () const noexcept { return _mm256_xor_si256(this->board_, BoardFill.board_); }
 	bool operator [] (const size_t p) const noexcept { return (*this & kPositionArray[p]) != 0; }
 	bool operator == (const BitBoard& r) const noexcept {
 		/**
@@ -120,7 +111,6 @@ struct BitBoard {
 	}
 	bool operator!=(const BitBoard& r) const noexcept { return !(*this == r); }
 	bool operator!=(std::nullptr_t) const noexcept { return !(*this == 0); }
-	BitBoard operator! () const noexcept { return _mm256_xor_si256(this->board_, BoardFill); }
 };
 inline bool operator==(std::nullptr_t, const BitBoard& r) noexcept { return r == 0; }
 inline bool operator!=(std::nullptr_t l, const BitBoard& r) { return !(l == r); }

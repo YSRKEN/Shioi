@@ -4,8 +4,8 @@
 * @author YSR
 * @date 2016/04/26
 */
-
 #include<iostream>
+#include<string>
 #include"BitBoard.hpp"
 #include"Board.hpp"
 
@@ -43,7 +43,7 @@ int main(int argc, char *argv[]) {
 		Board board(argv[1], argv[2]);
 		//board.PutBoard();
 		//board.Test();
-		cout << board.NextMove() << endl;
+		cout << board.NextMove(argc >= 5 && std::string(argv[4]) == "--debug") << endl;
 	}
 	catch (const std::exception& er) {
 		std::cerr << er.what() << endl;

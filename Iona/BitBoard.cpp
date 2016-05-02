@@ -1,23 +1,23 @@
 ﻿#include "BitBoard.hpp"
 #include "../I401/constant_range_loop.hpp"
 
-const __m256i BitBoard::kBitMaskR = _mm256_set_epi16(
+const BitBoard BitBoard::kBitMaskR = _mm256_set_epi16(
 	0x0000u, 0x3FFFu, 0x3FFFu, 0x3FFFu, 0x3FFFu, 0x3FFFu, 0x3FFFu, 0x3FFFu,
 	0x3FFFu, 0x3FFFu, 0x3FFFu, 0x3FFFu, 0x3FFFu, 0x3FFFu, 0x3FFFu, 0x3FFFu);
-const __m256i BitBoard::kBitMaskL = _mm256_set_epi16(
+const BitBoard BitBoard::kBitMaskL = _mm256_set_epi16(
 	0x0000u, 0x7FFEu, 0x7FFEu, 0x7FFEu, 0x7FFEu, 0x7FFEu, 0x7FFEu, 0x7FFEu,
 	0x7FFEu, 0x7FFEu, 0x7FFEu, 0x7FFEu, 0x7FFEu, 0x7FFEu, 0x7FFEu, 0x7FFEu);
-const __m256i BitBoard::kBitMaskU = _mm256_set_epi16(
+const BitBoard BitBoard::kBitMaskU = _mm256_set_epi16(
 	0x0000u, 0x7FFFu, 0x7FFFu, 0x7FFFu, 0x7FFFu, 0x7FFFu, 0x7FFFu, 0x7FFFu,
 	0x7FFFu, 0x7FFFu, 0x7FFFu, 0x7FFFu, 0x7FFFu, 0x7FFFu, 0x7FFFu, 0x0000u);
-const __m256i BitBoard::kBitMaskD = _mm256_set_epi16(
+const BitBoard BitBoard::kBitMaskD = _mm256_set_epi16(
 	0x0000u, 0x0000u, 0x7FFFu, 0x7FFFu, 0x7FFFu, 0x7FFFu, 0x7FFFu, 0x7FFFu,
 	0x7FFFu, 0x7FFFu, 0x7FFFu, 0x7FFFu, 0x7FFFu, 0x7FFFu, 0x7FFFu, 0x7FFFu);
-const __m256i BitBoard::kBitMaskRU = _mm256_and_si256(BitBoard::kBitMaskR, BitBoard::kBitMaskU);
-const __m256i BitBoard::kBitMaskRD = _mm256_and_si256(BitBoard::kBitMaskR, BitBoard::kBitMaskD);
-const __m256i BitBoard::kBitMaskLD = _mm256_and_si256(BitBoard::kBitMaskL, BitBoard::kBitMaskD);
-const __m256i BitBoard::kBitMaskLU = _mm256_and_si256(BitBoard::kBitMaskL, BitBoard::kBitMaskU);
-const __m256i BitBoard::BoardFill = _mm256_set_epi16(
+const BitBoard BitBoard::kBitMaskRU = _mm256_and_si256(BitBoard::kBitMaskR.board_, BitBoard::kBitMaskU.board_);
+const BitBoard BitBoard::kBitMaskRD = _mm256_and_si256(BitBoard::kBitMaskR.board_, BitBoard::kBitMaskD.board_);
+const BitBoard BitBoard::kBitMaskLD = _mm256_and_si256(BitBoard::kBitMaskL.board_, BitBoard::kBitMaskD.board_);
+const BitBoard BitBoard::kBitMaskLU = _mm256_and_si256(BitBoard::kBitMaskL.board_, BitBoard::kBitMaskU.board_);
+const BitBoard BitBoard::BoardFill = _mm256_set_epi16(
 	0x0000u, 0x7FFFu, 0x7FFFu, 0x7FFFu, 0x7FFFu, 0x7FFFu, 0x7FFFu, 0x7FFFu,
 	0x7FFFu, 0x7FFFu, 0x7FFFu, 0x7FFFu, 0x7FFFu, 0x7FFFu, 0x7FFFu, 0x7FFFu);
 /**
@@ -173,3 +173,13 @@ BitBoard BitBoard::operator>>(const Direction dir) const noexcept {
 		return *this;
 	}
 }
+bool BitBoard::operator==(std::nullptr_t) const noexcept {
+	/**
+	* _mm256_testz_si256は、2つの引数のANDを取り、全てのビットが0ならZFフラグを設定し、
+	* そうでなければZFフラグをクリアする。ZFフラグが設定されるとこの関数の返り値が非0になり、
+	* そうでなければ返り値が0になる。つまり、引数に両方aを噛ますと、aがオール0ならば
+	* 返り値が非0、そうでなければ返り値が0になる。
+	*/
+	return (_mm256_testz_si256(this->board_, this->board_) != 0);
+}
+
