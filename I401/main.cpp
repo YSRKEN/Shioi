@@ -1,5 +1,6 @@
 ﻿#include <algorithm>
 #include <array>
+#include <chrono>
 #include <cmath>
 #include <cstdint>
 #include <fstream>
@@ -1753,10 +1754,16 @@ public:
 		return -1;
 	}
 	// Test Code
-	//void Test() {
-	//	auto result = FindNormalMove(0, true);
-	//	return;
-	//}
+	void Test() {
+		const size_t count = 10000;
+		auto start = std::chrono::system_clock::now();
+		for (size_t i = 0; i < count; ++i) {
+			FindRandomMove(Stone::Black);
+		}
+		auto end = std::chrono::system_clock::now();
+		auto msec = std::chrono::duration_cast<std::chrono::milliseconds>(end - start).count();
+		cout << msec << "[ms]" << endl;
+	}
 };
 
 int main(int argc, char *argv[]) {

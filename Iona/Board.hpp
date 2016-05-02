@@ -6,6 +6,7 @@
 * @date 2016/04/26
 */
 #pragma once
+#include<chrono>
 #include<cstring>
 #include<array>
 #include<iostream>
@@ -368,8 +369,30 @@ class Board {
 			if (0 != (BitBoard::kPositionArray[position] & invalid_mask)) continue;
 			list.push_back(position);
 		}
-		if(list.size() > 0) return optional<size_t>(list[RandInt(list.size())]);
+		if(!list.empty()) return optional<size_t>(list[RandInt(list.size())]);
 		return{};
+	}
+	bool IsGameEnd(const BitBoard &board) {
+		//! Row
+		REP(i, kBoardSize) {
+			uint16_t mask = 0b11111;
+			REP(j, kBoardSize - 5) {
+				if ((board.line_[i] & mask) == mask) return true;
+				mask <<= 1;
+			}
+		}
+		//! Column
+
+		//! DiagR
+
+		//! DiagL
+
+		return false;
+	}
+	bool IsGameEnd() {
+		if (IsGameEnd(black_board_)) return true;
+		if (IsGameEnd(white_board_)) return true;
+		return false;
 	}
 public:
 	/**
@@ -445,8 +468,19 @@ public:
 	* @brief thinking next move
 	*/
 	int NextMove() {
+		if (IsGameEnd()) return -1;
 		auto result = FindRandomMove();
 		if (result) return *result;
 		return -1;
+	}
+	void Test() {
+		const size_t count = 1000000;
+		auto start = std::chrono::system_clock::now();
+		REP(i, count) {
+			FindRandomMove();
+		}
+		auto end = std::chrono::system_clock::now();
+		auto msec = std::chrono::duration_cast<std::chrono::milliseconds>(end - start).count();
+		cout << msec << "[ms]" << endl;
 	}
 };
