@@ -374,15 +374,24 @@ class Board {
 	}
 	bool IsGameEnd(const BitBoard &board) {
 		//! Row
-		REP(i, kBoardSize) {
-			uint16_t mask = 0b11111;
-			REP(j, kBoardSize - 5) {
+		uint16_t mask = 0b11111;
+		REP(j, kBoardSize - 5) {
+			REP(i, kBoardSize) {
 				if ((board.line_[i] & mask) == mask) return true;
-				mask <<= 1;
 			}
+			mask <<= 1;
 		}
 		//! Column
-
+		auto filter_column_base =
+			kPositionArray[0] | kPositionArray[kBoardSize] | kPositionArray[kBoardSize * 2] | kPositionArray[kBoardSize * 3] | kPositionArray[kBoardSize * 4];
+		REP(j, kBoardSize - 5) {
+			auto filter_column = filter_column_base;
+			REP(i, kBoardSize) {
+				if ((board & filter_column) == filter_column) return true;
+				filter_column >>= Direction::Row;
+			}
+			filter_column_base >>= Direction::Column;
+		}
 		//! DiagR
 
 		//! DiagL
