@@ -8,8 +8,7 @@
 #pragma once
 #include<cstdint>
 
-using std::size_t;
-
+using std::uint8_t;
 /**
 * @enum Turn
 * Information of turn player
@@ -47,3 +46,13 @@ enum Direction : uint8_t {
 	DiagL,
 	Directions,
 };
+namespace short_constant{
+	using std::size_t;
+	constexpr size_t B = Stone::Black;
+	constexpr size_t W = Stone::Black;
+	constexpr size_t N = Stone::None;
+	constexpr size_t b = Stone::NonBlack;
+
+	constexpr size_t L = Side::Left;
+	constexpr size_t R = Side::Right;
+}

@@ -6,6 +6,8 @@
 * @date 2016/04/26
 */
 #pragma once
+#include <cstddef>
+using std::size_t;
 
 //! basic marcos(FOR)
 #define FOR(i, a, b) for(size_t i = (a); i < (b); ++i)

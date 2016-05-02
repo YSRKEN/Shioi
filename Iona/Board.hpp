@@ -17,6 +17,7 @@
 #include"types.hpp"
 #include"Optional.hpp"
 #include"BitBoard.hpp"
+#include"../I401/constant_range_loop.hpp"
 
 using std::array;
 using std::cout;
@@ -57,42 +58,18 @@ class Board {
 		if (white_board_[position]) return Stone::White;
 		return Stone::None;
 	}
-	/**
-	* ~japanese	@brief 方向・先後・左右・シフト数に応じたシフトパターンを作成する
-	* ~english	@brief Make shift pattern
-	*/
-	ShiftPattern GetShiftPattern() {
-		ShiftPattern shift_Pattern;
-		REP(dir_, Direction::Directions) {
-			auto dir = static_cast<Direction>(dir_);
-			auto pattern_black_right = black_board_ << dir;
-			auto pattern_black_left = black_board_ >> dir;
-			auto pattern_white_right = white_board_ << dir;
-			auto pattern_white_left = white_board_ >> dir;
-			REP(shift, kMaxShifts - 1) {
-				shift_Pattern[dir][Stone::Black][Side::Right][shift] = pattern_black_right;
-				shift_Pattern[dir][Stone::White][Side::Right][shift] = pattern_white_right;
-				shift_Pattern[dir][Stone::None][Side::Right][shift] = !(pattern_black_right | pattern_white_right);
-				shift_Pattern[dir][Stone::NonBlack][Side::Right][shift] = !pattern_black_right;
-				shift_Pattern[dir][Stone::Black][Side::Left][shift] = pattern_black_left;
-				shift_Pattern[dir][Stone::White][Side::Left][shift] = pattern_white_left;
-				shift_Pattern[dir][Stone::None][Side::Left][shift] = !(pattern_black_left | pattern_white_left);
-				shift_Pattern[dir][Stone::NonBlack][Side::Left][shift] = !pattern_black_left;
-				pattern_black_right <<= dir;
-				pattern_white_right >>= dir;
-				pattern_black_left <<= dir;
-				pattern_white_left >>= dir;
-			}
-			shift_Pattern[dir][Stone::Black][Side::Right][kMaxShifts - 1] = pattern_black_right;
-			shift_Pattern[dir][Stone::White][Side::Right][kMaxShifts - 1] = pattern_white_right;
-			shift_Pattern[dir][Stone::None][Side::Right][kMaxShifts - 1] = !(pattern_black_right | pattern_white_right);
-			shift_Pattern[dir][Stone::NonBlack][Side::Right][kMaxShifts - 1] = !pattern_black_right;
-			shift_Pattern[dir][Stone::Black][Side::Left][kMaxShifts - 1] = pattern_black_left;
-			shift_Pattern[dir][Stone::White][Side::Left][kMaxShifts - 1] = pattern_white_left;
-			shift_Pattern[dir][Stone::None][Side::Left][kMaxShifts - 1] = !(pattern_black_left | pattern_white_left);
-			shift_Pattern[dir][Stone::NonBlack][Side::Left][kMaxShifts - 1] = !pattern_black_left;
+	template<Stone color, enable_if_t<color == Stone::Black> = nullptr> BitBoard GetBitBoardByStoneColor() const noexcept { return black_board_; }
+	template<Stone color, enable_if_t<color == Stone::White> = nullptr> BitBoard GetBitBoardByStoneColor() const noexcept { return white_board_; }
+	template<Stone color, Side side> void GetShiftPattern_impl(array<array<array<BitBoard, kMaxShifts>, Side::Sides>, Stone::Stones>& s_p, Direction dir){
+		auto pattern = GetBitBoardByStoneColor<color>();
+		for (auto& shift : s_p[color][side])  { sift_assign<side>(pattern, dir); shift = pattern; }
+	}
+	template<Side side> void GetShiftPattern_impl(array<array<array<BitBoard, kMaxShifts>, Side::Sides>, Stone::Stones>& s_p, Stone color, Direction dir){
+		auto pattern_black = black_board_; auto pattern_white = white_board_;
+		for (auto& shift : s_p[color][side]) {
+			pattern_black >>= dir; pattern_white >>= dir;
+			shift = !(pattern_black | pattern_white);
 		}
-		return shift_Pattern;
 	}
 	/**
 	* @fn RandInt
@@ -120,36 +97,64 @@ class Board {
 		}
 	}
 	/**
+	* ~japanese	@brief 方向・先後・左右・シフト数に応じたシフトパターンを作成する
+	* ~english	@brief Make shift pattern
+	*/
+	ShiftPattern GetShiftPattern() {
+		ShiftPattern shift_Pattern{};
+		for(const auto dir : rep(Direction::Directions)) {
+			auto& s_p = shift_Pattern[dir];
+			//modify shift_Pattern
+			GetShiftPattern_impl<Stone::Black, Side::Right>(s_p, dir);
+			GetShiftPattern_impl<Stone::White, Side::Right>(s_p, dir);
+			GetShiftPattern_impl<Side::Right>(s_p, Stone::None, dir);
+			GetShiftPattern_impl<Stone::Black, Side::Left >(s_p, dir);
+			GetShiftPattern_impl<Stone::White, Side::Left >(s_p, dir);
+			GetShiftPattern_impl<Side::Left >(s_p, Stone::None, dir);
+			
+			s_p[Stone::NonBlack] = s_p[Stone::Black];//copy
+			for(auto s : s_p[Stone::NonBlack]) for(auto& spss : s) spss = !spss;//否定
+		}
+		return shift_Pattern;
+	}
+	/**
+	* ~japanese	@p[b][r][i]ef RenjuPatternに対し除外マスクを適用する
+	* ~english	@brief apply exclude-filter to RenjuPattern
+	*/
+	void SetPatternMask(RenjuPattern &pattern, const BitBoard &unorder_mask) noexcept {
+		for (auto &it : pattern) {
+			it = it & (!unorder_mask);
+		}
+	}
+
+#if defined(_MSC_VER) && !defined(__clang__)
+#pragma warning( push )
+//VSはどうもrepをコンテナとして使うRange-based forが実行されない可能性が無いことを見抜けないようで、警告を出す
+#pragma warning( disable : 4701 )//初期化されていない可能性のあるローカル変数 xxxx が使用されます
+#endif
+	/**
 	* ~japanese	@brief 長連を起こす石の位置を算出する(黒石用)
 	* ~english	@brief Make position mask of Cho-ren for Stone::Black
 	*/
 	inline BitBoard CalcChorenMaskB(const ShiftPattern &pattern) noexcept {
-		BitBoard choren_mask;
-		REP(dir, Direction::Directions) {
-			auto &BL0 = pattern[dir][Stone::Black][Side::Left][0], &NL0 = pattern[dir][Stone::None][Side::Left][0];
-			auto &BL1 = pattern[dir][Stone::Black][Side::Left][1], &NL1 = pattern[dir][Stone::None][Side::Left][1];
-			auto &BL2 = pattern[dir][Stone::Black][Side::Left][2], &NL2 = pattern[dir][Stone::None][Side::Left][2];
-			auto &BL3 = pattern[dir][Stone::Black][Side::Left][3], &NL3 = pattern[dir][Stone::None][Side::Left][3];
-			auto &BL4 = pattern[dir][Stone::Black][Side::Left][4], &NL4 = pattern[dir][Stone::None][Side::Left][4];
-			auto &BR0 = pattern[dir][Stone::Black][Side::Right][0], &NR0 = pattern[dir][Stone::None][Side::Right][0];
-			auto &BR1 = pattern[dir][Stone::Black][Side::Right][1], &NR1 = pattern[dir][Stone::None][Side::Right][1];
-			auto &BR2 = pattern[dir][Stone::Black][Side::Right][2], &NR2 = pattern[dir][Stone::None][Side::Right][2];
-			auto &BR3 = pattern[dir][Stone::Black][Side::Right][3], &NR3 = pattern[dir][Stone::None][Side::Right][3];
-			auto &BR4 = pattern[dir][Stone::Black][Side::Right][4], &NR4 = pattern[dir][Stone::None][Side::Right][4];
+		BitBoard choren_mask{};
+		for(const auto dir : rep(Direction::Directions)) {
+			auto& p = pattern[dir];
+			using namespace short_constant;
 
 			//! [BBBBBB]
 			//! BBBBBY
-			choren_mask |= (BL0 & BL1 & BL2 & BL3 & BL4);
+			choren_mask |= (p[B][L][0] & p[B][L][1] & p[B][L][2] & p[B][L][3] & p[B][L][4]);
 			//! BBBBYB
-			choren_mask |= (BL0 & BL1 & BL2 & BL3 /**/& BR0);
+			choren_mask |= (p[B][L][0] & p[B][L][1] & p[B][L][2] & p[B][L][3] /**/& p[B][R][0]);
 			//! BBBYBB
-			choren_mask |= (BL0 & BL1 & BL2 /**/& BR0 & BR1);
+			choren_mask |= (p[B][L][0] & p[B][L][1] & p[B][L][2] /**/& p[B][R][0] & p[B][R][1]);
 			//! BBYBBB
-			choren_mask |= (BL0 & BL1 /**/& BR0 & BR1 & BR2);
+			choren_mask |= (p[B][L][0] & p[B][L][1] /**/& p[B][R][0] & p[B][R][1] & p[B][R][2]);
 			//! BYBBBB
-			choren_mask |= (BL0 /**/& BR0 & BR1 & BR2 & BR3);
+			choren_mask |= (p[B][L][0] /**/& p[B][R][0] & p[B][R][1] & p[B][R][2] & p[B][R][3]);
 			//! YBBBBB
-			choren_mask |= (BR0 & BR1 & BR2 & BR3 & BR4);
+			choren_mask |= (p[B][R][0] & p[B][R][1] & p[B][R][2] & p[B][R][3] & p[B][R][4]);
 		}
 		return choren_mask;
 	}
@@ -158,33 +163,25 @@ class Board {
 	* ~english	@brief Make position mask of Shi-Shi on 1Line for Stone::Black
 	*/
 	inline BitBoard CalcLineShiShiMaskB(const ShiftPattern &pattern)  noexcept {
-		BitBoard shishi1_mask;
-		REP(dir, Direction::Directions) {
-			auto &BL0 = pattern[dir][Stone::Black][Side::Left][0], &NL0 = pattern[dir][Stone::None][Side::Left][0], &bL0 = pattern[dir][Stone::NonBlack][Side::Left][0];
-			auto &BL1 = pattern[dir][Stone::Black][Side::Left][1], &NL1 = pattern[dir][Stone::None][Side::Left][1], &bL1 = pattern[dir][Stone::NonBlack][Side::Left][1];
-			auto &BL2 = pattern[dir][Stone::Black][Side::Left][2], &NL2 = pattern[dir][Stone::None][Side::Left][2], &bL2 = pattern[dir][Stone::NonBlack][Side::Left][2];
-			auto &BL3 = pattern[dir][Stone::Black][Side::Left][3], &NL3 = pattern[dir][Stone::None][Side::Left][3], &bL3 = pattern[dir][Stone::NonBlack][Side::Left][3];
-			auto &BL4 = pattern[dir][Stone::Black][Side::Left][4], &NL4 = pattern[dir][Stone::None][Side::Left][4], &bL4 = pattern[dir][Stone::NonBlack][Side::Left][4];
-			auto &BR0 = pattern[dir][Stone::Black][Side::Right][0], &NR0 = pattern[dir][Stone::None][Side::Right][0], &bR0 = pattern[dir][Stone::NonBlack][Side::Right][0];
-			auto &BR1 = pattern[dir][Stone::Black][Side::Right][1], &NR1 = pattern[dir][Stone::None][Side::Right][1], &bR1 = pattern[dir][Stone::NonBlack][Side::Right][1];
-			auto &BR2 = pattern[dir][Stone::Black][Side::Right][2], &NR2 = pattern[dir][Stone::None][Side::Right][2], &bR2 = pattern[dir][Stone::NonBlack][Side::Right][2];
-			auto &BR3 = pattern[dir][Stone::Black][Side::Right][3], &NR3 = pattern[dir][Stone::None][Side::Right][3], &bR3 = pattern[dir][Stone::NonBlack][Side::Right][3];
-			auto &BR4 = pattern[dir][Stone::Black][Side::Right][4], &NR4 = pattern[dir][Stone::None][Side::Right][4], &bR4 = pattern[dir][Stone::NonBlack][Side::Right][4];
+		BitBoard shishi1_mask{};
+		for(const auto dir : rep(Direction::Directions)) {
+			auto& p = pattern[dir];
+			using namespace short_constant;
 
 			//! [XBOYYYOBX]
 			//! XBOBBYOBX
-			shishi1_mask |= (BL0 & BL1 & NL2 & BL3 & bL4 /**/& NR0 & BR1 & bR2);
+			shishi1_mask |= (p[B][L][0] & p[B][L][1] & p[N][L][2] & p[B][L][3] & p[b][L][4] /**/& p[N][R][0] & p[B][R][1] & p[b][R][2]);
 			//! XBOBYBOBX
-			shishi1_mask |= (BL0 & NL1 & BL2 & bL3 /**/& BR0 & NR1 & BR2 & bR3);
+			shishi1_mask |= (p[B][L][0] & p[N][L][1] & p[B][L][2] & p[b][L][3] /**/& p[B][R][0] & p[N][R][1] & p[B][R][2] & p[b][R][3]);
 			//! XBOYBBOBX
-			shishi1_mask |= (NL0 & BL1 & bL2 /**/& BR0 & BR1 & NR2 & BR3 & bR4);
+			shishi1_mask |= (p[N][L][0] & p[B][L][1] & p[b][L][2] /**/& p[B][R][0] & p[B][R][1] & p[N][R][2] & p[B][R][3] & p[b][R][4]);
 			//! [XBBOYYOBBX]
 			//! XBBOBYOBBX
-			shishi1_mask |= (BL0 & NL1 & BL2 & BL3 & bL4 /**/& NR0 & BR1 & BR2 & bR3);
+			shishi1_mask |= (p[B][L][0] & p[N][L][1] & p[B][L][2] & p[B][L][3] & p[b][L][4] /**/& p[N][R][0] & p[B][R][1] & p[B][R][2] & p[b][R][3]);
 			//! XBBOYBOBBX
-			shishi1_mask |= (NL0 & BL1 & BL2 & bL3 /**/& BR0 & NR1 & BR2 & BR3 & bR4);
+			shishi1_mask |= (p[N][L][0] & p[B][L][1] & p[B][L][2] & p[b][L][3] /**/& p[B][R][0] & p[N][R][1] & p[B][R][2] & p[B][R][3] & p[b][R][4]);
 			//! [XBBBOYOBBBX]
-			shishi1_mask |= (NR0 & BR1 & BR2 & BR3 & bR4 /**/& NL0 & BL1 & BL2 & BL3 & bL4);
+			shishi1_mask |= (p[N][R][0] & p[B][R][1] & p[B][R][2] & p[B][R][3] & p[b][R][4] /**/& p[N][L][0] & p[B][L][1] & p[B][L][2] & p[B][L][3] & p[b][L][4]);
 		}
 		return shishi1_mask;
 	}
@@ -193,32 +190,21 @@ class Board {
 	* ~english	@brief Make position mask of Shi-ren for Stone::Black
 	*/
 	inline RenjuPattern CalcShirenMaskB(const ShiftPattern &pattern)  noexcept {
-		RenjuPattern shiren_mask;
-		REP(dir, Direction::Directions) {
-			auto &BL0 = pattern[dir][Stone::Black][Side::Left][0], &NL0 = pattern[dir][Stone::None][Side::Left][0], &bL0 = pattern[dir][Stone::NonBlack][Side::Left][0];
-			auto &BL1 = pattern[dir][Stone::Black][Side::Left][1], &NL1 = pattern[dir][Stone::None][Side::Left][1], &bL1 = pattern[dir][Stone::NonBlack][Side::Left][1];
-			auto &BL2 = pattern[dir][Stone::Black][Side::Left][2], &NL2 = pattern[dir][Stone::None][Side::Left][2], &bL2 = pattern[dir][Stone::NonBlack][Side::Left][2];
-			auto &BL3 = pattern[dir][Stone::Black][Side::Left][3], &NL3 = pattern[dir][Stone::None][Side::Left][3], &bL3 = pattern[dir][Stone::NonBlack][Side::Left][3];
-			auto &BL4 = pattern[dir][Stone::Black][Side::Left][4], &NL4 = pattern[dir][Stone::None][Side::Left][4], &bL4 = pattern[dir][Stone::NonBlack][Side::Left][4];
-			auto &BR0 = pattern[dir][Stone::Black][Side::Right][0], &NR0 = pattern[dir][Stone::None][Side::Right][0], &bR0 = pattern[dir][Stone::NonBlack][Side::Right][0];
-			auto &BR1 = pattern[dir][Stone::Black][Side::Right][1], &NR1 = pattern[dir][Stone::None][Side::Right][1], &bR1 = pattern[dir][Stone::NonBlack][Side::Right][1];
-			auto &BR2 = pattern[dir][Stone::Black][Side::Right][2], &NR2 = pattern[dir][Stone::None][Side::Right][2], &bR2 = pattern[dir][Stone::NonBlack][Side::Right][2];
-			auto &BR3 = pattern[dir][Stone::Black][Side::Right][3], &NR3 = pattern[dir][Stone::None][Side::Right][3], &bR3 = pattern[dir][Stone::NonBlack][Side::Right][3];
-			auto &BR4 = pattern[dir][Stone::Black][Side::Right][4], &NR4 = pattern[dir][Stone::None][Side::Right][4], &bR4 = pattern[dir][Stone::NonBlack][Side::Right][4];
-			auto &ML1 = kBitMaskArray[dir][Side::Left][0], &ML2 = kBitMaskArray[dir][Side::Left][1];
-			auto &ML3 = kBitMaskArray[dir][Side::Left][2], &ML4 = kBitMaskArray[dir][Side::Left][3];
-			auto &MR1 = kBitMaskArray[dir][Side::Right][0], &MR2 = kBitMaskArray[dir][Side::Right][1];
-			auto &MR3 = kBitMaskArray[dir][Side::Right][2], &MR4 = kBitMaskArray[dir][Side::Right][3];
+		RenjuPattern shiren_mask{};
+		for (const auto dir : rep(Direction::Directions)) {
+			auto& p = pattern[dir];
+			auto& m = BitBoard::kBitMaskArray[dir];
+			using namespace short_constant;
 
 			//! [XOBBBBOX]
 			//! XOYBBBOX
-			shiren_mask[dir] |= (NL0 & bL1 & ML1/**/& BR0 & BR1 & BR2 & NR3 & bR4 & MR4);
+			shiren_mask[dir] |= (p[N][L][0] & p[b][L][1] & m[L][1]/**/& p[B][R][0] & p[B][R][1] & p[B][R][2] & p[N][R][3] & p[b][R][4] & m[R][4]);
 			//! XOBYBBOX
-			shiren_mask[dir] |= (BL0 & NL1 & bL2 & ML2/**/& BR0 & BR1 & NR2 & bR3 & MR3);
+			shiren_mask[dir] |= (p[B][L][0] & p[N][L][1] & p[b][L][2] & m[L][2]/**/& p[B][R][0] & p[B][R][1] & p[N][R][2] & p[b][R][3] & m[R][3]);
 			//! XOBBYBOX
-			shiren_mask[dir] |= (BR0 & NR1 & bR2 & MR2/**/& BL0 & BL1 & NL2 & bL3 & ML3);
+			shiren_mask[dir] |= (p[B][R][0] & p[N][R][1] & p[b][R][2] & m[R][2]/**/& p[B][L][0] & p[B][L][1] & p[N][L][2] & p[b][L][3] & m[L][3]);
 			//! XOBBBYOX
-			shiren_mask[dir] |= (NR0 & bR1 & MR1/**/& BL0 & BL1 & BL2 & NL3 & bL4 & ML4);
+			shiren_mask[dir] |= (p[N][R][0] & p[b][R][1] & m[R][1]/**/& p[B][L][0] & p[B][L][1] & p[B][L][2] & p[N][L][3] & p[b][L][4] & m[L][4]);
 		}
 		return shiren_mask;
 	}
@@ -227,53 +213,42 @@ class Board {
 	* ~english	@brief Make position mask of Katsu-Shi for Stone::Black
 	*/
 	inline RenjuPattern CalcKatsuShiMaskB(const ShiftPattern &pattern)  noexcept {
-		RenjuPattern katsushi_mask;
-		REP(dir, Direction::Directions) {
-			auto &BL0 = pattern[dir][Stone::Black][Side::Left][0], &NL0 = pattern[dir][Stone::None][Side::Left][0], &bL0 = pattern[dir][Stone::NonBlack][Side::Left][0];
-			auto &BL1 = pattern[dir][Stone::Black][Side::Left][1], &NL1 = pattern[dir][Stone::None][Side::Left][1], &bL1 = pattern[dir][Stone::NonBlack][Side::Left][1];
-			auto &BL2 = pattern[dir][Stone::Black][Side::Left][2], &NL2 = pattern[dir][Stone::None][Side::Left][2], &bL2 = pattern[dir][Stone::NonBlack][Side::Left][2];
-			auto &BL3 = pattern[dir][Stone::Black][Side::Left][3], &NL3 = pattern[dir][Stone::None][Side::Left][3], &bL3 = pattern[dir][Stone::NonBlack][Side::Left][3];
-			auto &BL4 = pattern[dir][Stone::Black][Side::Left][4], &NL4 = pattern[dir][Stone::None][Side::Left][4], &bL4 = pattern[dir][Stone::NonBlack][Side::Left][4];
-			auto &BR0 = pattern[dir][Stone::Black][Side::Right][0], &NR0 = pattern[dir][Stone::None][Side::Right][0], &bR0 = pattern[dir][Stone::NonBlack][Side::Right][0];
-			auto &BR1 = pattern[dir][Stone::Black][Side::Right][1], &NR1 = pattern[dir][Stone::None][Side::Right][1], &bR1 = pattern[dir][Stone::NonBlack][Side::Right][1];
-			auto &BR2 = pattern[dir][Stone::Black][Side::Right][2], &NR2 = pattern[dir][Stone::None][Side::Right][2], &bR2 = pattern[dir][Stone::NonBlack][Side::Right][2];
-			auto &BR3 = pattern[dir][Stone::Black][Side::Right][3], &NR3 = pattern[dir][Stone::None][Side::Right][3], &bR3 = pattern[dir][Stone::NonBlack][Side::Right][3];
-			auto &BR4 = pattern[dir][Stone::Black][Side::Right][4], &NR4 = pattern[dir][Stone::None][Side::Right][4], &bR4 = pattern[dir][Stone::NonBlack][Side::Right][4];
-			auto &ML1 = kBitMaskArray[dir][Side::Left][0], &ML2 = kBitMaskArray[dir][Side::Left][1];
-			auto &ML3 = kBitMaskArray[dir][Side::Left][2], &ML4 = kBitMaskArray[dir][Side::Left][3];
-			auto &MR1 = kBitMaskArray[dir][Side::Right][0], &MR2 = kBitMaskArray[dir][Side::Right][1];
-			auto &MR3 = kBitMaskArray[dir][Side::Right][2], &MR4 = kBitMaskArray[dir][Side::Right][3];
+		RenjuPattern katsushi_mask{};
+		for (const auto dir : rep(Direction::Directions)) {
+			auto& p = pattern[dir];
+			auto& m = BitBoard::kBitMaskArray[dir];
+			using namespace short_constant;
 
 			//! [[X{B4O1}X]]
 			//! [XBBBBOX]
-			katsushi_mask[dir] |= bL0 /**/& BR0 & BR1 & BR2 & NR3 & bR4 & MR4;
-			katsushi_mask[dir] |= BL0 & bL1 & ML1 /**/& BR0 & BR1 & NR2 & bR3 & MR3;
-			katsushi_mask[dir] |= BL0 & BL1 & bL2 & ML2 /**/& BR0 & NR1 & bR2 & MR2;
-			katsushi_mask[dir] |= BL0 & BL1 & BL2 & bL3 & ML3 /**/& NR0 & bR1 & MR1;
+			katsushi_mask[dir] |= p[b][L][0] /**/& p[B][R][0] & p[B][R][1] & p[B][R][2] & p[N][R][3] & p[b][R][4] & m[R][4];
+			katsushi_mask[dir] |= p[B][L][0] & p[b][L][1] & m[L][1] /**/& p[B][R][0] & p[B][R][1] & p[N][R][2] & p[b][R][3] & m[R][3];
+			katsushi_mask[dir] |= p[B][L][0] & p[B][L][1] & p[b][L][2] & m[L][2] /**/& p[B][R][0] & p[N][R][1] & p[b][R][2] & m[R][2];
+			katsushi_mask[dir] |= p[B][L][0] & p[B][L][1] & p[B][L][2] & p[b][L][3] & m[L][3] /**/& p[N][R][0] & p[b][R][1] & m[R][1];
 
 			//! [XBBBOBX]
-			katsushi_mask[dir] |= bL0 /**/& BR0 & BR1 & NR2 & BR3 & bR4 & MR4;
-			katsushi_mask[dir] |= BL0 & bL1 & ML1 /**/& BR0 & NR1 & BR2 & bR3 & MR3;
-			katsushi_mask[dir] |= BL0 & BL1 & bL2 & ML2 /**/& NR0 & BR1 & bR2 & MR2;
-			katsushi_mask[dir] |= NL0 & BL1 & BL2 & BL3 & bL4 & ML4 /**/& bR0;
+			katsushi_mask[dir] |= p[b][L][0] /**/& p[B][R][0] & p[B][R][1] & p[N][R][2] & p[B][R][3] & p[b][R][4] & m[R][4];
+			katsushi_mask[dir] |= p[B][L][0] & p[b][L][1] & m[L][1] /**/& p[B][R][0] & p[N][R][1] & p[B][R][2] & p[b][R][3] & m[R][3];
+			katsushi_mask[dir] |= p[B][L][0] & p[B][L][1] & p[b][L][2] & m[L][2] /**/& p[N][R][0] & p[B][R][1] & p[b][R][2] & m[R][2];
+			katsushi_mask[dir] |= p[N][L][0] & p[B][L][1] & p[B][L][2] & p[B][L][3] & p[b][L][4] & m[L][4] /**/& p[b][R][0];
 
 			//! [XBBOBBX]
-			katsushi_mask[dir] |= bL0 /**/& BR0 & NR1 & BR2 & BR3 & bR4 & MR4;
-			katsushi_mask[dir] |= BL0 & bL1 & ML1 /**/& NR0 & BR1 & BR2 & bR3 & MR3;
-			katsushi_mask[dir] |= NL0 & BL1 & BL2 & bL3 & ML3 /**/& BR0 & bR1 & MR1;
-			katsushi_mask[dir] |= BL0 & NL1 & BL2 & BL3 & bL4 & ML4 /**/& bR0;
+			katsushi_mask[dir] |= p[b][L][0] /**/& p[B][R][0] & p[N][R][1] & p[B][R][2] & p[B][R][3] & p[b][R][4] & m[R][4];
+			katsushi_mask[dir] |= p[B][L][0] & p[b][L][1] & m[L][1] /**/& p[N][R][0] & p[B][R][1] & p[B][R][2] & p[b][R][3] & m[R][3];
+			katsushi_mask[dir] |= p[N][L][0] & p[B][L][1] & p[B][L][2] & p[b][L][3] & m[L][3] /**/& p[B][R][0] & p[b][R][1] & m[R][1];
+			katsushi_mask[dir] |= p[B][L][0] & p[N][L][1] & p[B][L][2] & p[B][L][3] & p[b][L][4] & m[L][4] /**/& p[b][R][0];
 
 			//! [XBOBBBX]
-			katsushi_mask[dir] |= bL0 /**/& NR0 & BR1 & BR2 & BR3 & bR4 & MR4;
-			katsushi_mask[dir] |= NL0 & BL1 & bL2 & ML2 /**/& BR0 & BR1 & bR2 & MR2;
-			katsushi_mask[dir] |= BL0 & NL1 & BL2 & bL3 & ML3 /**/& BR0 & bR1 & MR1;
-			katsushi_mask[dir] |= BL0 & BL1 & NL2 & BL3 & bL4 & ML4 /**/& bR0;
+			katsushi_mask[dir] |= p[b][L][0] /**/& p[N][R][0] & p[B][R][1] & p[B][R][2] & p[B][R][3] & p[b][R][4] & m[R][4];
+			katsushi_mask[dir] |= p[N][L][0] & p[B][L][1] & p[b][L][2] & m[L][2] /**/& p[B][R][0] & p[B][R][1] & p[b][R][2] & m[R][2];
+			katsushi_mask[dir] |= p[B][L][0] & p[N][L][1] & p[B][L][2] & p[b][L][3] & m[L][3] /**/& p[B][R][0] & p[b][R][1] & m[R][1];
+			katsushi_mask[dir] |= p[B][L][0] & p[B][L][1] & p[N][L][2] & p[B][L][3] & p[b][L][4] & m[L][4] /**/& p[b][R][0];
 
 			//! [XOBBBBX]
-			katsushi_mask[dir] |= NL0 & bL1 & ML1 /**/& BR0 & BR1 & BR2 & bR3 & MR3;
-			katsushi_mask[dir] |= BL0 & NL1 & bL2 & ML2 /**/& BR0 & BR1 & bR2 & MR2;
-			katsushi_mask[dir] |= BL0 & BL1 & NL2 & bL3 & ML3 /**/& BR0 & bR1 & MR1;
-			katsushi_mask[dir] |= BL0 & BL1 & BL2 & NL3 & bL4 & ML4 /**/& bR0;
+			katsushi_mask[dir] |= p[N][L][0] & p[b][L][1] & m[L][1] /**/& p[B][R][0] & p[B][R][1] & p[B][R][2] & p[b][R][3] & m[R][3];
+			katsushi_mask[dir] |= p[B][L][0] & p[N][L][1] & p[b][L][2] & m[L][2] /**/& p[B][R][0] & p[B][R][1] & p[b][R][2] & m[R][2];
+			katsushi_mask[dir] |= p[B][L][0] & p[B][L][1] & p[N][L][2] & p[b][L][3] & m[L][3] /**/& p[B][R][0] & p[b][R][1] & m[R][1];
+			katsushi_mask[dir] |= p[B][L][0] & p[B][L][1] & p[B][L][2] & p[N][L][3] & p[b][L][4] & m[L][4] /**/& p[b][R][0];
 		}
 		return katsushi_mask;
 	}
@@ -282,61 +257,45 @@ class Board {
 	* ~english	@brief Make position mask of Katsu-San for Stone::Black
 	*/
 	RenjuPattern CalcKatsuSanMaskB(const ShiftPattern &pattern, const BitBoard &unorder_mask) noexcept {
-		RenjuPattern katsusan_mask;
-		REP(dir, Direction::Directions) {
-			auto &BL0 = pattern[dir][Stone::Black][Side::Left][0], &NL0 = pattern[dir][Stone::None][Side::Left][0], &bL0 = pattern[dir][Stone::NonBlack][Side::Left][0];
-			auto &BL1 = pattern[dir][Stone::Black][Side::Left][1], &NL1 = pattern[dir][Stone::None][Side::Left][1], &bL1 = pattern[dir][Stone::NonBlack][Side::Left][1];
-			auto &BL2 = pattern[dir][Stone::Black][Side::Left][2], &NL2 = pattern[dir][Stone::None][Side::Left][2], &bL2 = pattern[dir][Stone::NonBlack][Side::Left][2];
-			auto &BL3 = pattern[dir][Stone::Black][Side::Left][3], &NL3 = pattern[dir][Stone::None][Side::Left][3], &bL3 = pattern[dir][Stone::NonBlack][Side::Left][3];
-			auto &BL4 = pattern[dir][Stone::Black][Side::Left][4], &NL4 = pattern[dir][Stone::None][Side::Left][4], &bL4 = pattern[dir][Stone::NonBlack][Side::Left][4];
-			auto &BR0 = pattern[dir][Stone::Black][Side::Right][0], &NR0 = pattern[dir][Stone::None][Side::Right][0], &bR0 = pattern[dir][Stone::NonBlack][Side::Right][0];
-			auto &BR1 = pattern[dir][Stone::Black][Side::Right][1], &NR1 = pattern[dir][Stone::None][Side::Right][1], &bR1 = pattern[dir][Stone::NonBlack][Side::Right][1];
-			auto &BR2 = pattern[dir][Stone::Black][Side::Right][2], &NR2 = pattern[dir][Stone::None][Side::Right][2], &bR2 = pattern[dir][Stone::NonBlack][Side::Right][2];
-			auto &BR3 = pattern[dir][Stone::Black][Side::Right][3], &NR3 = pattern[dir][Stone::None][Side::Right][3], &bR3 = pattern[dir][Stone::NonBlack][Side::Right][3];
-			auto &BR4 = pattern[dir][Stone::Black][Side::Right][4], &NR4 = pattern[dir][Stone::None][Side::Right][4], &bR4 = pattern[dir][Stone::NonBlack][Side::Right][4];
-			auto &ML1 = kBitMaskArray[dir][Side::Left][0], &ML2 = kBitMaskArray[dir][Side::Left][1];
-			auto &ML3 = kBitMaskArray[dir][Side::Left][2], &ML4 = kBitMaskArray[dir][Side::Left][3];
-			auto &MR1 = kBitMaskArray[dir][Side::Right][0], &MR2 = kBitMaskArray[dir][Side::Right][1];
-			auto &MR3 = kBitMaskArray[dir][Side::Right][2], &MR4 = kBitMaskArray[dir][Side::Right][3];
+		RenjuPattern katsusan_mask{};
+		for (const auto dir : rep(Direction::Directions)) {
+			auto& p = pattern[dir];
+			auto& m = BitBoard::kBitMaskArray[dir];
+			using namespace short_constant;
 
 			//! [XO{B3O1}OX]
-			const size_t kKatsuSanPositions = 12;
-			array<BitBoard, kKatsuSanPositions> katsusan_position;
-			static size_t offset_r[] = {3,2,1,2,1,0,1,0,0,0,0,0};
-			static size_t offset_l[] = {0,0,0,0,0,1,0,1,2,1,2,3};
-			auto filter = !unorder_mask;
-			//! XOBBBOOX
-			katsusan_position[0] = NL0 & bL1 & ML1 /**/& BR0 & BR1 & NR2 & NR3 & bR4 & MR4 & filter;
-			katsusan_position[1] = BL0 & NL1 & bL2 & ML2 /**/& BR0 & NR1 & NR2 & bR3 & MR3 & filter;
-			katsusan_position[2] = BL0 & BL1 & NL2 & bL3 & ML3 /**/& NR0 & NR1 & bR2 & MR2 & filter;
-			//! XOBBOBOX
-			katsusan_position[3] = NL0 & bL1 & ML1 /**/& BR0 & NR1 & BR2 & NR3 & bR4 & MR4 & filter;
-			katsusan_position[4] = BL0 & NL1 & bL2 & ML2 /**/& NR0 & BR1 & NR2 & bR3 & MR3 & filter;
-			katsusan_position[5] = NL0 & BL1 & BL2 & NL3 & bL4 & ML4 /**/& NR0 & bR1 & MR1 & filter;
-			//! XOBOBBOX
-			katsusan_position[6] = NL0 & bL1 & ML1 /**/& NR0 & BR1 & BR2 & NR3 & bR4 & MR4 & filter;
-			katsusan_position[7] = NL0 & BL1 & NL2 & bL3 & ML3 /**/& BR0 & NR1 & bR2 & MR2 & filter;
-			katsusan_position[8] = BL0 & NL1 & BL2 & NL3 & bL4 & ML4 /**/& NR0 & bR1 & MR1 & filter;
-			//! XOOBBBOX
-			katsusan_position[9] = NL0 & NL1 & bL2 & ML2 /**/& BR0 & BR1 & NR2 & bR3 & MR3 & filter;
-			katsusan_position[10] = BL0 & NL1 & NL2 & bL3 & ML3 /**/& BR0 & NR1 & bR2 & MR2 & filter;
-			katsusan_position[11] = BL0 & BL1 & NL2 & NL3 & bL4 & ML4 /**/& NR0 & bR1 & MR1 & filter;
+			constexpr size_t kKatsuSanPositions = 12;
+			//static size_t offset_r[] = {3,2,1,2,1,0,1,0,0,0,0,0};
+			//static size_t offset_l[] = {0,0,0,0,0,1,0,1,2,1,2,3};
+			/*static */const array<BitBoard, kKatsuSanPositions> katsusan_position = { {
+					//! XOBBBOOX
+					/* 0*/p[N][L][0] & p[b][L][1] & m[L][1] /**/ & p[B][R][0] & p[B][R][1] & p[N][R][2] & p[N][R][3] & p[b][R][4] & m[R][4],
+					/* 1*/p[B][L][0] & p[N][L][1] & p[b][L][2] & m[L][2] /**/ & p[B][R][0] & p[N][R][1] & p[N][R][2] & p[b][R][3] & m[R][3],
+					/* 2*/p[B][L][0] & p[B][L][1] & p[N][L][2] & p[b][L][3] & m[L][3] /**/ & p[N][R][0] & p[N][R][1] & p[b][R][2] & m[R][2],
+					//! XOBBOBOX
+					/* 3*/p[N][L][0] & p[b][L][1] & m[L][1] /**/ & p[B][R][0] & p[N][R][1] & p[B][R][2] & p[N][R][3] & p[b][R][4] & m[R][4],
+					/* 4*/p[B][L][0] & p[N][L][1] & p[b][L][2] & m[L][2] /**/ & p[N][R][0] & p[B][R][1] & p[N][R][2] & p[b][R][3] & m[R][3],
+					/* 5*/p[N][L][0] & p[B][L][1] & p[B][L][2] & p[N][L][3] & p[b][L][4] & m[L][4] /**/ & p[N][R][0] & p[b][R][1] & m[R][1],
+					//! XOBOBBOX
+					/* 6*/p[N][L][0] & p[b][L][1] & m[L][1] /**/ & p[N][R][0] & p[B][R][1] & p[B][R][2] & p[N][R][3] & p[b][R][4] & m[R][4],
+					/* 7*/p[N][L][0] & p[B][L][1] & p[N][L][2] & p[b][L][3] & m[L][3] /**/ & p[B][R][0] & p[N][R][1] & p[b][R][2] & m[R][2],
+					/* 8*/p[B][L][0] & p[N][L][1] & p[B][L][2] & p[N][L][3] & p[b][L][4] & m[L][4] /**/ & p[N][R][0] & p[b][R][1] & m[R][1],
+					//! XOOBBBOX
+					/* 9*/p[N][L][0] & p[N][L][1] & p[b][L][2] & m[L][2] /**/ & p[B][R][0] & p[B][R][1] & p[N][R][2] & p[b][R][3] & m[R][3],
+					/*10*/p[B][L][0] & p[N][L][1] & p[N][L][2] & p[b][L][3] & m[L][3] /**/ & p[B][R][0] & p[N][R][1] & p[b][R][2] & m[R][2],
+					/*11*/p[B][L][0] & p[B][L][1] & p[N][L][2] & p[N][L][3] & p[b][L][4] & m[L][4] /**/ & p[N][R][0] & p[b][R][1] & m[R][1]
+				} };
 
-			REP(index, kKatsuSanPositions) {
-				katsusan_mask[dir] |= katsusan_position[index];
+			auto filter = !unorder_mask;
+			for(auto&& katsusan_p : katsusan_position) {
+				katsusan_mask[dir] |= katsusan_p & filter;
 			}
 		}
 		return katsusan_mask;
 	}
-	/**
-	* ~japanese	@brief RenjuPatternに対し除外マスクを適用する
-	* ~english	@brief apply exclude-filter to RenjuPattern
-	*/
-	void SetPatternMask(RenjuPattern &pattern, const BitBoard &unorder_mask) noexcept {
-		for (auto &it : pattern) {
-			it = it & (!unorder_mask);
-		}
-	}
+#if defined(_MSC_VER) && !defined(__clang__)
+#pragma warning( pop )//#pragma warning( disable : 4701 )//初期化されていない可能性のあるローカル変数 xxxx が使用されます
+#endif
 	/**
 	* ~japanese	@brief 禁手で打てない位置のビットを立てたマスクを作成する
 	* ~english	@brief Calc invaild position's mask
@@ -401,28 +360,30 @@ class Board {
 	optional<size_t> FindRandomMove() {
 		vector<size_t> list;
 		auto invalid_mask = (turn_ == Stone::Black ? CalcInValidMask() : black_board_ | white_board_);
+		if (turn_ == Stone::Black) {
+			invalid_mask = invalid_mask | CalcInValidMask();
+		}
 		//BitBoard(invalid_mask).PutBoard();
-		REP(position, kAllBoardSize) {
+		for(const auto position : rep(kAllBoardSize)) {
 			//! You can only move at Stone::None in Board
-			if (!IsZero(kPositionArray[position] & invalid_mask)) continue;
+			if (0 != (BitBoard::kPositionArray[position] & invalid_mask)) continue;
 			list.push_back(position);
 		}
-		if(list.empty()) return optional<size_t>(-1); 
-		return optional<size_t>(list[RandInt(list.size())]);
+		if(!list.empty()) return optional<size_t>(list[RandInt(list.size())]);
+		return{};
 	}
 	bool IsGameEnd(const BitBoard &board) {
 		//! Row
 		uint16_t mask = 0b11111;
 		REP(j, kBoardSize - 5) {
-			REP(i, kBoardSize) {
+			for(auto i : rep(kBoardSize)) {
 				if ((board.line_[i] & mask) == mask) return true;
 			}
 			mask <<= 1;
 		}
 		//! Column
-		auto filter_column_base =
-			kPositionArray[0] | kPositionArray[kBoardSize] | kPositionArray[kBoardSize * 2]
-			| kPositionArray[kBoardSize * 3] | kPositionArray[kBoardSize * 4];
+		const auto& p = BitBoard::kPositionArray;
+		auto filter_column_base = p[0] | p[kBoardSize] | p[kBoardSize * 2] | p[kBoardSize * 3] | p[kBoardSize * 4];
 		REP(j, kBoardSize - 5 + 1) {
 			auto filter_column = filter_column_base;
 			REP(i, kBoardSize) {
@@ -434,8 +395,7 @@ class Board {
 			filter_column_base <<= Direction::Column;
 		}
 		//! DiagR
-		auto filter_diagr_base =
-			kPositionArray[4] | kPositionArray[kBoardSize + 3] | kPositionArray[kBoardSize * 2 + 2] | kPositionArray[kBoardSize * 3 + 1] | kPositionArray[kBoardSize * 4];
+		auto filter_diagr_base = p[4] | p[kBoardSize + 3] | p[kBoardSize * 2 + 2] | p[kBoardSize * 3 + 1] | p[kBoardSize * 4];
 		REP(j, kBoardSize - 5 + 1) {
 			auto filter_diagr = filter_diagr_base;
 			REP(i, kBoardSize - 5 + 1) {
@@ -447,8 +407,7 @@ class Board {
 			filter_diagr_base <<= Direction::Column;
 		}
 		//! DiagL
-		auto filter_diagl_base =
-			kPositionArray[0] | kPositionArray[kBoardSize + 1] | kPositionArray[kBoardSize * 2 + 2] | kPositionArray[kBoardSize * 3 + 3] | kPositionArray[kBoardSize * 4 + 4];
+		auto filter_diagl_base = p[0] | p[kBoardSize + 1] | p[kBoardSize * 2 + 2] | p[kBoardSize * 3 + 3] | p[kBoardSize * 4 + 4];
 		REP(j, kBoardSize - 5 + 1) {
 			auto filter_diagl = filter_diagl_base;
 			REP(i, kBoardSize - 5 + 1) {
@@ -479,7 +438,7 @@ public:
 		if (strlen(board_text) < kAllBoardSize) {
 			throw std::invalid_argument("Too short board-text size!");
 		}
-		REP(position, kAllBoardSize) {
+		for (const auto position : rep(kAllBoardSize)) {
 			auto stone = ToStone(board_text[position]);
 			SetStone(position, stone);
 		}
@@ -490,8 +449,8 @@ public:
 	* @brief Put text of board for debug
 	*/
 	void PutBoard() const noexcept{
-		REP(y, kBoardSize) {
-			REP(x, kBoardSize) {
+		for(const auto y : rep(kBoardSize)) {
+			for (const auto x : rep(kBoardSize)) {
 				auto position = ToPosition(x, y);
 				auto stone = GetStone(position);
 				switch (stone) {
@@ -528,6 +487,7 @@ public:
 						cout << "┼";
 					}
 					break;
+				default: break;
 				}
 			}
 			cout << endl;
@@ -543,7 +503,7 @@ public:
 		if (IsGameEnd()) return -1;
 		//! Opening move
 		if (debug_flg) std::cerr << "Opening" << endl;
-		if (IsZero(black_board_) && IsZero(white_board_)) return ToPosition(7, 7);
+		if (0 == black_board_ && 0 == white_board_) return ToPosition(7, 7);
 		//! Book move
 		if (debug_flg) std::cerr << "Book" << endl;
 		//! If you can make Go-ren, you must do it.
@@ -557,7 +517,7 @@ public:
 		return -1;
 	}
 	void Test() {
-		const size_t count = 10000;
+		constexpr size_t count = 10000;
 		auto start = std::chrono::system_clock::now();
 		REP(i, count) {
 			REP(j, count) {

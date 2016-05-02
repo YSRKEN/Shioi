@@ -1016,7 +1016,7 @@ class Board {
 				for (size_t x : rep(range[0], range[2])) {
 					size_t p = ToPosition(x, y);
 					if (board_[p] != Stone::None) continue;
-					size_t block_position = kBoardSize * kBoardSize;
+					//size_t block_position = kBoardSize * kBoardSize;
 					size_t sum_4_strong = 0, sum_4_normal = 0;
 					for (uint8_t dir = 0; dir < Direction::Directions; ++dir) {
 						auto move_pattern = GetPatternW(p, static_cast<Direction>(dir));
@@ -1025,7 +1025,7 @@ class Board {
 						std::tie(s4s, s4n, blk) = CountRenW2(move_pattern, p, static_cast<Direction>(dir));
 						sum_4_strong += s4s;
 						sum_4_normal += s4n;
-						if (s4n) block_position = blk;
+						//if (s4n) block_position = blk;
 					}
 					// Shi-ren or Shi-Shi
 					if (sum_4_strong > 0) return true;
@@ -1048,7 +1048,7 @@ class Board {
 		}
 		return false;
 	}
-	bool IsBlockMove(const Stone turn, const size_t depth) {
+	bool IsBlockMove(const Stone turn, const size_t /*depth*/) {
 		auto range = GetRange();
 		if (turn == Stone::Black) {
 			for (size_t y : rep(range[1], range[3])) {
@@ -1230,7 +1230,7 @@ class Board {
 				for (size_t x : rep(range[0], range[2])) {
 					size_t p = ToPosition(x, y);
 					if (board_[p] != Stone::None) continue;
-					size_t block_position = kBoardSize * kBoardSize;
+					//size_t block_position = kBoardSize * kBoardSize;
 					size_t sum_4_strong = 0, sum_4_normal = 0;
 					for (uint8_t dir = 0; dir < Direction::Directions; ++dir) {
 						auto move_pattern = GetPatternW(p, static_cast<Direction>(dir));
@@ -1239,7 +1239,7 @@ class Board {
 						std::tie(s4s, s4n, blk) = CountRenW2(move_pattern, p, static_cast<Direction>(dir));
 						sum_4_strong += s4s;
 						sum_4_normal += s4n;
-						if (s4n) block_position = blk;
+						//if (s4n) block_position = blk;
 					}
 					// Shi-ren or Shi-Shi
 					if (sum_4_strong > 0) return Result(p, true);
