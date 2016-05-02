@@ -171,7 +171,6 @@ struct BitBoard {
 				kBitMaskArray[dir][Side::Right][shift + 1] = BitBoard(kBitMaskArray[dir][Side::Right][shift]) >> (Direction)dir;
 			}
 		}
-		return;
 	}
 	/**
 	* ~japanese	@brief 各種演算子を定義する

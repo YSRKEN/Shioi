@@ -421,19 +421,44 @@ class Board {
 		}
 		//! Column
 		auto filter_column_base =
-			kPositionArray[0] | kPositionArray[kBoardSize] | kPositionArray[kBoardSize * 2] | kPositionArray[kBoardSize * 3] | kPositionArray[kBoardSize * 4];
-		REP(j, kBoardSize - 5) {
+			kPositionArray[0] | kPositionArray[kBoardSize] | kPositionArray[kBoardSize * 2]
+			| kPositionArray[kBoardSize * 3] | kPositionArray[kBoardSize * 4];
+		REP(j, kBoardSize - 5 + 1) {
 			auto filter_column = filter_column_base;
 			REP(i, kBoardSize) {
-				if ((board & filter_column) == filter_column) return true;
-				filter_column >>= Direction::Row;
+				if ((board & filter_column) == filter_column) {
+					return true;
+				}
+				filter_column <<= Direction::Row;
 			}
-			filter_column_base >>= Direction::Column;
+			filter_column_base <<= Direction::Column;
 		}
 		//! DiagR
-
+		auto filter_diagr_base =
+			kPositionArray[4] | kPositionArray[kBoardSize + 3] | kPositionArray[kBoardSize * 2 + 2] | kPositionArray[kBoardSize * 3 + 1] | kPositionArray[kBoardSize * 4];
+		REP(j, kBoardSize - 5 + 1) {
+			auto filter_diagr = filter_diagr_base;
+			REP(i, kBoardSize - 5 + 1) {
+				if ((board & filter_diagr) == filter_diagr) {
+					return true;
+				}
+				filter_diagr <<= Direction::Row;
+			}
+			filter_diagr_base <<= Direction::Column;
+		}
 		//! DiagL
-
+		auto filter_diagl_base =
+			kPositionArray[0] | kPositionArray[kBoardSize + 1] | kPositionArray[kBoardSize * 2 + 2] | kPositionArray[kBoardSize * 3 + 3] | kPositionArray[kBoardSize * 4 + 4];
+		REP(j, kBoardSize - 5 + 1) {
+			auto filter_diagl = filter_diagl_base;
+			REP(i, kBoardSize - 5 + 1) {
+				if ((board & filter_diagl) == filter_diagl) {
+					return true;
+				}
+				filter_diagl <<= Direction::Row;
+			}
+			filter_diagl_base <<= Direction::Column;
+		}
 		return false;
 	}
 	bool IsGameEnd() {
