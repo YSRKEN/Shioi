@@ -538,8 +538,20 @@ public:
 	* @fn NextMove
 	* @brief thinking next move
 	*/
-	int NextMove() {
+	int NextMove(bool debug_flg = false) {
+		//! If the game is end, you don't move.
 		if (IsGameEnd()) return -1;
+		//! Opening move
+		if (debug_flg) std::cerr << "Opening" << endl;
+		if (IsZero(black_board_) && IsZero(white_board_)) return ToPosition(7, 7);
+		//! Book move
+		if (debug_flg) std::cerr << "Book" << endl;
+		//! If you can make Go-ren, you must do it.
+		if (debug_flg) std::cerr << "Goren" << endl;
+		//! If enemy can make Go-ren, you should block it.
+		if (debug_flg) std::cerr << "Stop Goren" << endl;
+		//! Random move(test)
+		if (debug_flg) std::cerr << "Random" << endl;
 		auto result = FindRandomMove();
 		if (result) return *result;
 		return -1;
