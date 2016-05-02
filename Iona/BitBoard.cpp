@@ -35,7 +35,7 @@ const BitBoard BoardFill = _mm256_set_epi16(
 * ~japanese	@brief __m256iのビットが全て0か調べる
 * ~english	@brief is all bits of __m256i "0" ?
 */
-bool IsZero(const BitBoard a) noexcept {
+bool IsZero(const BitBoard& a) noexcept {
 	/**
 	* _mm256_testz_si256は、2つの引数のANDを取り、全てのビットが0ならZFフラグを設定し、
 	* そうでなければZFフラグをクリアする。ZFフラグが設定されるとこの関数の返り値が非0になり、

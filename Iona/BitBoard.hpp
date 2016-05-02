@@ -19,7 +19,7 @@ extern BitBoard kBitMaskArray[Direction::Directions][Side::Sides][kMaxShifts];
 extern const BitBoard
 		kBitMaskR, kBitMaskL, kBitMaskU, kBitMaskD,
 		kBitMaskRU, kBitMaskRD, kBitMaskLD, kBitMaskLU, BoardFill;
-bool IsZero(const BitBoard a) noexcept;
+bool IsZero(const BitBoard&) noexcept;
 
 /**
 * @class BitBoard
@@ -144,12 +144,12 @@ struct BitBoard {
 	* ~japanese	@brief 各種演算子を定義する
 	* ~english	@brief Definition of operator for BitBoard
 	*/
-	BitBoard operator | (const BitBoard a) const noexcept { return _mm256_or_si256(board_, a.board_); }
-	BitBoard operator & (const BitBoard a) const noexcept { return _mm256_and_si256(board_, a.board_); }
-	BitBoard operator ^ (const BitBoard a) const noexcept { return _mm256_xor_si256(board_, a.board_); }
+	BitBoard operator | (const BitBoard& a) const noexcept { return _mm256_or_si256(board_, a.board_); }
+	BitBoard operator & (const BitBoard& a) const noexcept { return _mm256_and_si256(board_, a.board_); }
+	BitBoard operator ^ (const BitBoard& a) const noexcept { return _mm256_xor_si256(board_, a.board_); }
 	BitBoard operator ! () const noexcept { return (*this ^ BoardFill); }
 	bool operator [] (const size_t p) const noexcept { return !IsZero(*this & kPositionArray[p]); }
-	bool operator == (const BitBoard a) const noexcept {
+	bool operator == (const BitBoard& a) const noexcept {
 		/**
 		* 【通常のコード】
 		* _mm256_cmpeq_epi64は、__m256iを64bit毎に分割した要素毎に比較を行い、
@@ -223,6 +223,6 @@ struct BitBoard {
 		}
 	}
 	BitBoard& operator >>= (const Direction dir) noexcept { *this = *this >> dir; return *this; }
-	BitBoard& operator |= (const BitBoard a) noexcept { board_ = _mm256_or_si256(board_, a.board_); return *this; }
-	BitBoard& operator ^= (const BitBoard a) noexcept { board_ = _mm256_xor_si256(board_, a.board_); return *this; }
+	BitBoard& operator |= (const BitBoard& a) noexcept { board_ = _mm256_or_si256(board_, a.board_); return *this; }
+	BitBoard& operator ^= (const BitBoard& a) noexcept { board_ = _mm256_xor_si256(board_, a.board_); return *this; }
 };
