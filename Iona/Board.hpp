@@ -101,7 +101,7 @@ class Board {
 	* ~english	@brief Make shift pattern
 	*/
 	ShiftPattern GetShiftPattern() {
-		ShiftPattern shift_Pattern;
+		ShiftPattern shift_Pattern{};
 		for(const auto dir : rep(Direction::Directions)) {
 			auto& s_p = shift_Pattern[dir];
 			//modify shift_Pattern
@@ -137,7 +137,7 @@ class Board {
 	* ~english	@brief Make position mask of Cho-ren for Stone::Black
 	*/
 	inline BitBoard CalcChorenMaskB(const ShiftPattern &pattern) noexcept {
-		BitBoard choren_mask;
+		BitBoard choren_mask{};
 		for(const auto dir : rep(Direction::Directions)) {
 			auto& p = pattern[dir];
 			using namespace short_constant;
@@ -163,7 +163,7 @@ class Board {
 	* ~english	@brief Make position mask of Shi-Shi on 1Line for Stone::Black
 	*/
 	inline BitBoard CalcLineShiShiMaskB(const ShiftPattern &pattern)  noexcept {
-		BitBoard shishi1_mask;
+		BitBoard shishi1_mask{};
 		for(const auto dir : rep(Direction::Directions)) {
 			auto& p = pattern[dir];
 			using namespace short_constant;
@@ -190,7 +190,7 @@ class Board {
 	* ~english	@brief Make position mask of Shi-ren for Stone::Black
 	*/
 	inline RenjuPattern CalcShirenMaskB(const ShiftPattern &pattern)  noexcept {
-		RenjuPattern shiren_mask;
+		RenjuPattern shiren_mask{};
 		for (const auto dir : rep(Direction::Directions)) {
 			auto& p = pattern[dir];
 			auto& m = BitBoard::kBitMaskArray[dir];
@@ -213,7 +213,7 @@ class Board {
 	* ~english	@brief Make position mask of Katsu-Shi for Stone::Black
 	*/
 	inline RenjuPattern CalcKatsuShiMaskB(const ShiftPattern &pattern)  noexcept {
-		RenjuPattern katsushi_mask;
+		RenjuPattern katsushi_mask{};
 		for (const auto dir : rep(Direction::Directions)) {
 			auto& p = pattern[dir];
 			auto& m = BitBoard::kBitMaskArray[dir];
@@ -257,7 +257,7 @@ class Board {
 	* ~english	@brief Make position mask of Katsu-San for Stone::Black
 	*/
 	RenjuPattern CalcKatsuSanMaskB(const ShiftPattern &pattern, const BitBoard &unorder_mask) noexcept {
-		RenjuPattern katsusan_mask;
+		RenjuPattern katsusan_mask{};
 		for (const auto dir : rep(Direction::Directions)) {
 			auto& p = pattern[dir];
 			auto& m = BitBoard::kBitMaskArray[dir];

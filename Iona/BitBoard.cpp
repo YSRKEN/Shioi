@@ -25,8 +25,8 @@ const BitBoard BitBoard::BoardFill = _mm256_set_epi16(
 * ~english	@brief Initialize of kPositionArray
 */
 static auto init_BitBoard_PositionArray() noexcept {
-	std::array<BitBoard, kAllBoardSize> re;
-	for(auto y : rep(kBoardSize)) {
+	std::array<BitBoard, kAllBoardSize> re{};
+	for(auto y : rep(re.size())) {
 		for(auto x : rep(kBoardSize)) {
 			size_t position = ToPosition(x, y);
 			uint16_t line[sizeof(__m256i) / sizeof(uint16_t)]{};
