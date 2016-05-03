@@ -484,6 +484,28 @@ class Board {
 		return optional<size_t>();
 	}
 	/**
+	* @return Next Move(Stop Goren)
+	*/
+	optional<size_t> FindStopGorenMove(const Stone turn) noexcept {
+		auto shift_pattern = GetShiftPattern();
+		auto goren_mask = (turn == Stone::Black
+			? CalcGorenMaskW(shift_pattern) & (!black_board_)
+			: CalcGorenMaskB(shift_pattern) & (!white_board_));
+		if (IsZero(goren_mask)) return optional<size_t>();
+		if (turn == Stone::Black) {
+			auto invalid_mask = CalcInValidMask();
+			goren_mask &= !invalid_mask;
+			if(IsZero(goren_mask)) return optional<size_t>(-1);
+		}
+		REP(position, kAllBoardSize) {
+			auto temp = kPositionArray[position] & goren_mask;
+			if (!IsZero(kPositionArray[position] & goren_mask)) {
+				return optional<size_t>(position);
+			}
+		}
+		return optional<size_t>();
+	}
+	/**
 	* ~japanese	@brief 五連を起こす石の位置を算出する(黒石用)
 	* ~english	@brief Make position mask of Cho-ren for Stone::Black
 	*/
@@ -629,7 +651,7 @@ public:
 		if (result) return *result;
 		//! If enemy can make Go-ren, you should block it.
 		if (debug_flg) std::cerr << "Stop Goren" << endl;
-		result = FindGorenMove(EnemyTurn(turn_));
+		result = FindStopGorenMove(turn_);
 		if (result) return *result;
 		//! Random move(test)
 		if (debug_flg) std::cerr << "Random" << endl;

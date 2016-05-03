@@ -228,5 +228,6 @@ struct BitBoard {
 	}
 	BitBoard& operator >>= (const Direction dir) noexcept { *this = *this >> dir; return *this; }
 	BitBoard& operator |= (const BitBoard& a) noexcept { board_ = _mm256_or_si256(board_, a.board_); return *this; }
+	BitBoard& operator &= (const BitBoard& a) noexcept { board_ = _mm256_and_si256(board_, a.board_); return *this; }
 	BitBoard& operator ^= (const BitBoard& a) noexcept { board_ = _mm256_xor_si256(board_, a.board_); return *this; }
 };
