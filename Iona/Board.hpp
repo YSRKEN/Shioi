@@ -10,7 +10,6 @@
 #include<cstring>
 #include<array>
 #include<iostream>
-#include<random>
 #include<vector>
 #include"constant.hpp"
 #include"misc_functions.hpp"
@@ -24,11 +23,6 @@ using std::array;
 using std::cout;
 using std::endl;
 using std::vector;
-
-//! Definition of random_device
-std::random_device rd;
-//! Definition of pseudo-random generator
-std::mt19937 mt(rd());
 
 /**
 * @class Board
@@ -92,40 +86,6 @@ class Board {
 		return shift_Pattern;
 	}
 	/**
-	* @fn RandInt
-	* @return Integer random number in [0, n)
-	*/
-	inline size_t RandInt(const size_t n) {
-		return std::uniform_int_distribution<size_t>{0, n - 1}(mt);
-	}
-	/**
-	* @fn ToStone
-	* @brief Convert char to Stone
-	* @param str /[BWN]/
-	* @return 0-2[Stone::Black, Stone::White, Stone::None]
-	* ~japanese	@detail strがkStoneStringのどれにも当てはまらない場合は例外を投げる
-	* ~english	@detail If you can't find str in kStoneString, this throw exception.
-	*/
-	inline Stone ToStone(const char str) {
-		constexpr static char kStoneString[] = "BWN";
-		auto find_ptr = strchr(kStoneString, str);
-		if (find_ptr != NULL) {
-			return static_cast<Stone>(find_ptr - kStoneString);
-		}
-		else {
-			throw std::invalid_argument("Can't read board/turn data.");
-		}
-	}
-	/**
-	* ~japanese	@brief RenjuPatternに対し除外マスクを適用する
-	* ~english	@brief apply exclude-filter to RenjuPattern
-	*/
-	void SetPatternMask(RenjuPattern &pattern, const BitBoard &unorder_mask) noexcept {
-		for (auto &it : pattern) {
-			it = it & (!unorder_mask);
-		}
-	}
-	/**
 	* ~japanese	@brief 禁手で打てない位置のビットを立てたマスクを作成する
 	* ~english	@brief Calc invaild position's mask
 	*/
@@ -182,20 +142,10 @@ class Board {
 		//invalid_mask.PutBoard();
 		return invalid_mask;	//! dummy
 	}
-	/**
-	* @return Next Move(Random)
-	*/
-	optional<size_t> FindRandomMove() {
-		vector<size_t> list;
-		auto invalid_mask = (turn_ == Stone::Black ? CalcInValidMask() : black_board_ | white_board_);
-		//BitBoard(invalid_mask).PutBoard();
-		REP(position, kAllBoardSize) {
-			//! You can only move at Stone::None in Board
-			if (!IsZero(kPositionArray[position] & invalid_mask)) continue;
-			list.push_back(position);
-		}
-		if (list.empty()) return optional<size_t>();
-		return optional<size_t>(list[RandInt(list.size())]);
+	bool IsGameEnd() {
+		if (IsGameEnd(black_board_)) return true;
+		if (IsGameEnd(white_board_)) return true;
+		return false;
 	}
 	bool IsGameEnd(const BitBoard &board) {
 		//! Row
@@ -248,19 +198,14 @@ class Board {
 		}
 		return false;
 	}
-	bool IsGameEnd() {
-		if (IsGameEnd(black_board_)) return true;
-		if (IsGameEnd(white_board_)) return true;
-		return false;
-	}
 	/**
 	* @return Next Move(Goren)
 	*/
 	optional<size_t> FindGorenMove(const Stone turn) const noexcept{
 		auto shift_pattern = GetShiftPattern();
 		auto goren_mask = (turn == Stone::Black
-			? CalcGorenMaskB(shift_pattern) & (!white_board_)
-			: CalcGorenMaskW(shift_pattern) & (!black_board_));
+			? shift_pattern.CalcGorenMaskB() & (!white_board_)
+			: shift_pattern.CalcGorenMaskW() & (!black_board_));
 		if (IsZero(goren_mask)) return optional<size_t>();
 		REP(position, kAllBoardSize) {
 			auto temp = kPositionArray[position] & goren_mask;
@@ -276,8 +221,8 @@ class Board {
 	optional<size_t> FindStopGorenMove(const Stone turn) noexcept {
 		auto shift_pattern = GetShiftPattern();
 		auto goren_mask = (turn == Stone::Black
-			? CalcGorenMaskW(shift_pattern) & (!black_board_)
-			: CalcGorenMaskB(shift_pattern) & (!white_board_));
+			? shift_pattern.CalcGorenMaskW() & (!black_board_)
+			: shift_pattern.CalcGorenMaskB() & (!white_board_));
 		if (IsZero(goren_mask)) return optional<size_t>();
 		if (turn == Stone::Black) {
 			auto invalid_mask = CalcInValidMask();
@@ -293,66 +238,20 @@ class Board {
 		return optional<size_t>();
 	}
 	/**
-	* ~japanese	@brief 五連を起こす石の位置を算出する(黒石用)
-	* ~english	@brief Make position mask of Cho-ren for Stone::Black
+	* @return Next Move(Random)
 	*/
-	inline BitBoard CalcGorenMaskB(const ShiftPattern &pattern) const noexcept {
-		BitBoard goren_mask;
-		REP(dir_, Direction::Directions) {
-			auto dir = static_cast<Direction>(dir_);
-			using namespace omission;
-			auto &BL0 = pattern.GetData(dir, B, L, 0), &NL0 = pattern.GetData(dir, N, L, 0), &bL0 = pattern.GetData(dir, b, L, 0);
-			auto &BL1 = pattern.GetData(dir, B, L, 1), &NL1 = pattern.GetData(dir, N, L, 1), &bL1 = pattern.GetData(dir, b, L, 1);
-			auto &BL2 = pattern.GetData(dir, B, L, 2), &NL2 = pattern.GetData(dir, N, L, 2), &bL2 = pattern.GetData(dir, b, L, 2);
-			auto &BL3 = pattern.GetData(dir, B, L, 3), &NL3 = pattern.GetData(dir, N, L, 3), &bL3 = pattern.GetData(dir, b, L, 3);
-			auto &BL4 = pattern.GetData(dir, B, L, 4), &NL4 = pattern.GetData(dir, N, L, 4), &bL4 = pattern.GetData(dir, b, L, 4);
-			auto &BR0 = pattern.GetData(dir, B, R, 0), &NR0 = pattern.GetData(dir, N, R, 0), &bR0 = pattern.GetData(dir, b, R, 0);
-			auto &BR1 = pattern.GetData(dir, B, R, 1), &NR1 = pattern.GetData(dir, N, R, 1), &bR1 = pattern.GetData(dir, b, R, 1);
-			auto &BR2 = pattern.GetData(dir, B, R, 2), &NR2 = pattern.GetData(dir, N, R, 2), &bR2 = pattern.GetData(dir, b, R, 2);
-			auto &BR3 = pattern.GetData(dir, B, R, 3), &NR3 = pattern.GetData(dir, N, R, 3), &bR3 = pattern.GetData(dir, b, R, 3);
-			auto &BR4 = pattern.GetData(dir, B, R, 4), &NR4 = pattern.GetData(dir, N, R, 4), &bR4 = pattern.GetData(dir, b, R, 4);
-			auto &ML1 = kBitMaskArray[dir][L][0], &ML2 = kBitMaskArray[dir][L][1];
-			auto &ML3 = kBitMaskArray[dir][L][2], &ML4 = kBitMaskArray[dir][L][3];
-			auto &MR1 = kBitMaskArray[dir][R][0], &MR2 = kBitMaskArray[dir][R][1];
-			auto &MR3 = kBitMaskArray[dir][R][2], &MR4 = kBitMaskArray[dir][R][3];
-
-			//! [XBBBBBX]
-			goren_mask |= bL0 /**/& BR0 & BR1 & BR2 & BR3 & bR4 & MR4;
-			goren_mask |= BL0 & bL1 & ML1 /**/& BR0 & BR1 & BR2 & bR3 & MR3;
-			goren_mask |= BL0 & BL1 & bL2 & ML2 /**/& BR0 & BR1 & bR2 & MR2;
-			goren_mask |= BL0 & BL1 & BL2 & bL3 & ML3 /**/& BR0 & bR1 & MR1;
-			goren_mask |= BL0 & BL1 & BL2 & BL3 & bL4 & ML4 /**/& bR0;
+	optional<size_t> FindRandomMove() {
+		vector<size_t> list;
+		auto invalid_mask = (turn_ == Stone::Black ? CalcInValidMask() : black_board_ | white_board_);
+		//BitBoard(invalid_mask).PutBoard();
+		REP(position, kAllBoardSize) {
+			//! You can only move at Stone::None in Board
+			if (!IsZero(kPositionArray[position] & invalid_mask)) continue;
+			list.push_back(position);
 		}
-		return goren_mask;
+		if (list.empty()) return optional<size_t>();
+		return optional<size_t>(list[RandInt(list.size())]);
 	}
-	inline BitBoard CalcGorenMaskW(const ShiftPattern &pattern) const noexcept {
-		BitBoard goren_mask;
-		REP(dir_, Direction::Directions) {
-			auto dir = static_cast<Direction>(dir_);
-			using namespace omission;
-			auto &WL0 = pattern.GetData(dir, W, L, 0), &NL0 = pattern.GetData(dir, N, L, 0);
-			auto &WL1 = pattern.GetData(dir, W, L, 1), &NL1 = pattern.GetData(dir, N, L, 1);
-			auto &WL2 = pattern.GetData(dir, W, L, 2), &NL2 = pattern.GetData(dir, N, L, 2);
-			auto &WL3 = pattern.GetData(dir, W, L, 3), &NL3 = pattern.GetData(dir, N, L, 3);
-			auto &WR0 = pattern.GetData(dir, W, R, 0), &NR0 = pattern.GetData(dir, N, R, 0);
-			auto &WR1 = pattern.GetData(dir, W, R, 1), &NR1 = pattern.GetData(dir, N, R, 1);
-			auto &WR2 = pattern.GetData(dir, W, R, 2), &NR2 = pattern.GetData(dir, N, R, 2);
-			auto &WR3 = pattern.GetData(dir, W, R, 3), &NR3 = pattern.GetData(dir, N, R, 3);
-			auto &ML1 = kBitMaskArray[dir][L][0], &ML2 = kBitMaskArray[dir][L][1];
-			auto &ML3 = kBitMaskArray[dir][L][2], &ML4 = kBitMaskArray[dir][L][3];
-			auto &MR1 = kBitMaskArray[dir][R][0], &MR2 = kBitMaskArray[dir][R][1];
-			auto &MR3 = kBitMaskArray[dir][R][2], &MR4 = kBitMaskArray[dir][R][3];
-
-			//! [WWWWW]
-			goren_mask |= WR0 & WR1 & WR2 & WR3 & MR3;
-			goren_mask |= WL0 /**/& WR0 & WR1 & WR2 & MR2;
-			goren_mask |= WL0 & WL1 & ML1 /**/& WR0 & WR1 & MR1;
-			goren_mask |= WL0 & WL1 & WL2 & ML2 /**/& WR0;
-			goren_mask |= WL0 & WL1 & WL2 & WL3 & ML3;
-		}
-		return goren_mask;
-	}
-
 public:
 	/**
 	* @brief Constructor

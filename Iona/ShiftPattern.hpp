@@ -243,4 +243,78 @@ public:
 		}
 		return katsusan_mask;
 	}
+	/**
+	* ~japanese	@brief 五連を起こす石の位置を算出する(黒石用)
+	* ~english	@brief Make position mask of Cho-ren for Stone::Black
+	*/
+	BitBoard CalcGorenMaskB() const noexcept {
+		BitBoard goren_mask;
+		REP(dir_, Direction::Directions) {
+			auto dir = static_cast<Direction>(dir_);
+			using namespace omission;
+			auto &BL0 = GetData(dir, B, L, 0), &NL0 = GetData(dir, N, L, 0), &bL0 = GetData(dir, b, L, 0);
+			auto &BL1 = GetData(dir, B, L, 1), &NL1 = GetData(dir, N, L, 1), &bL1 = GetData(dir, b, L, 1);
+			auto &BL2 = GetData(dir, B, L, 2), &NL2 = GetData(dir, N, L, 2), &bL2 = GetData(dir, b, L, 2);
+			auto &BL3 = GetData(dir, B, L, 3), &NL3 = GetData(dir, N, L, 3), &bL3 = GetData(dir, b, L, 3);
+			auto &BL4 = GetData(dir, B, L, 4), &NL4 = GetData(dir, N, L, 4), &bL4 = GetData(dir, b, L, 4);
+			auto &BR0 = GetData(dir, B, R, 0), &NR0 = GetData(dir, N, R, 0), &bR0 = GetData(dir, b, R, 0);
+			auto &BR1 = GetData(dir, B, R, 1), &NR1 = GetData(dir, N, R, 1), &bR1 = GetData(dir, b, R, 1);
+			auto &BR2 = GetData(dir, B, R, 2), &NR2 = GetData(dir, N, R, 2), &bR2 = GetData(dir, b, R, 2);
+			auto &BR3 = GetData(dir, B, R, 3), &NR3 = GetData(dir, N, R, 3), &bR3 = GetData(dir, b, R, 3);
+			auto &BR4 = GetData(dir, B, R, 4), &NR4 = GetData(dir, N, R, 4), &bR4 = GetData(dir, b, R, 4);
+			auto &ML1 = kBitMaskArray[dir][L][0], &ML2 = kBitMaskArray[dir][L][1];
+			auto &ML3 = kBitMaskArray[dir][L][2], &ML4 = kBitMaskArray[dir][L][3];
+			auto &MR1 = kBitMaskArray[dir][R][0], &MR2 = kBitMaskArray[dir][R][1];
+			auto &MR3 = kBitMaskArray[dir][R][2], &MR4 = kBitMaskArray[dir][R][3];
+
+			//! [XBBBBBX]
+			goren_mask |= bL0 /**/& BR0 & BR1 & BR2 & BR3 & bR4 & MR4;
+			goren_mask |= BL0 & bL1 & ML1 /**/& BR0 & BR1 & BR2 & bR3 & MR3;
+			goren_mask |= BL0 & BL1 & bL2 & ML2 /**/& BR0 & BR1 & bR2 & MR2;
+			goren_mask |= BL0 & BL1 & BL2 & bL3 & ML3 /**/& BR0 & bR1 & MR1;
+			goren_mask |= BL0 & BL1 & BL2 & BL3 & bL4 & ML4 /**/& bR0;
+		}
+		return goren_mask;
+	}
+	/**
+	* ~japanese	@brief 五連を起こす石の位置を算出する(白石用)
+	* ~english	@brief Make position mask of Cho-ren for Stone::White
+	*/
+	BitBoard CalcGorenMaskW() const noexcept {
+		BitBoard goren_mask;
+		REP(dir_, Direction::Directions) {
+			auto dir = static_cast<Direction>(dir_);
+			using namespace omission;
+			auto &WL0 = GetData(dir, W, L, 0), &NL0 = GetData(dir, N, L, 0);
+			auto &WL1 = GetData(dir, W, L, 1), &NL1 = GetData(dir, N, L, 1);
+			auto &WL2 = GetData(dir, W, L, 2), &NL2 = GetData(dir, N, L, 2);
+			auto &WL3 = GetData(dir, W, L, 3), &NL3 = GetData(dir, N, L, 3);
+			auto &WR0 = GetData(dir, W, R, 0), &NR0 = GetData(dir, N, R, 0);
+			auto &WR1 = GetData(dir, W, R, 1), &NR1 = GetData(dir, N, R, 1);
+			auto &WR2 = GetData(dir, W, R, 2), &NR2 = GetData(dir, N, R, 2);
+			auto &WR3 = GetData(dir, W, R, 3), &NR3 = GetData(dir, N, R, 3);
+			auto &ML1 = kBitMaskArray[dir][L][0], &ML2 = kBitMaskArray[dir][L][1];
+			auto &ML3 = kBitMaskArray[dir][L][2], &ML4 = kBitMaskArray[dir][L][3];
+			auto &MR1 = kBitMaskArray[dir][R][0], &MR2 = kBitMaskArray[dir][R][1];
+			auto &MR3 = kBitMaskArray[dir][R][2], &MR4 = kBitMaskArray[dir][R][3];
+
+			//! [WWWWW]
+			goren_mask |= WR0 & WR1 & WR2 & WR3 & MR3;
+			goren_mask |= WL0 /**/& WR0 & WR1 & WR2 & MR2;
+			goren_mask |= WL0 & WL1 & ML1 /**/& WR0 & WR1 & MR1;
+			goren_mask |= WL0 & WL1 & WL2 & ML2 /**/& WR0;
+			goren_mask |= WL0 & WL1 & WL2 & WL3 & ML3;
+		}
+		return goren_mask;
+	}
 };
+
+/**
+* ~japanese	@brief RenjuPatternに対し除外マスクを適用する
+* ~english	@brief apply exclude-filter to RenjuPattern
+*/
+inline void SetPatternMask(RenjuPattern &pattern, const BitBoard &unorder_mask) {
+	for (auto &it : pattern) {
+		it = it & (!unorder_mask);
+	}
+}

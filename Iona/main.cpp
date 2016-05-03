@@ -12,6 +12,11 @@
 using std::cout;
 using std::endl;
 
+//! Definition of random_device
+std::random_device rd;
+//! Definition of pseudo-random generator
+std::mt19937 mt(rd());
+
 /**
 * @fn main
 * @brief main function
