@@ -32,7 +32,6 @@ class Board {
 	BitBoard black_board_, white_board_;
 	Stone turn_;
 	/**
-	* @fn SetStone
 	* @brief Set stone in board
 	*/
 	void SetStone(const size_t position, const Stone stone) noexcept{
@@ -40,13 +39,24 @@ class Board {
 		if (stone == Stone::White) white_board_.SetBit(position);
 	}
 	/**
-	* @fn GetStone
 	* @brief Get stone in board
 	*/
 	Stone GetStone(const size_t position) const noexcept {
 		if (black_board_[position]) return Stone::Black;
 		if (white_board_[position]) return Stone::White;
 		return Stone::None;
+	}
+	/**
+	* @brief Get stone_board in board
+	*/
+	BitBoard StoneBoard() const noexcept {
+		return (black_board_ | white_board_);
+	}
+	/**
+	* @brief Get blank_board in board
+	*/
+	BitBoard BlankBoard() const noexcept{
+		return !(black_board_ | white_board_);
 	}
 	/**
 	* ~japanese	@brief 方向・先後・左右・シフト数に応じたシフトパターンを作成する
@@ -106,7 +116,7 @@ class Board {
 				}
 			}
 		}*/
-		BitBoard invalid_mask = (black_board_ | white_board_), unorder_mask = (black_board_ | white_board_);
+		BitBoard invalid_mask = StoneBoard(), unorder_mask = StoneBoard();
 		//! Cho-ren check
 		BitBoard choren_mask = shift_pattern.CalcChorenMaskB();
 		unorder_mask |= choren_mask;
@@ -204,8 +214,8 @@ class Board {
 	optional<size_t> FindGorenMove(const Stone turn) const noexcept{
 		auto shift_pattern = GetShiftPattern();
 		auto goren_mask = (turn == Stone::Black
-			? shift_pattern.CalcGorenMaskB() & (!white_board_)
-			: shift_pattern.CalcGorenMaskW() & (!black_board_));
+			? shift_pattern.CalcGorenMaskB() & BlankBoard()
+			: shift_pattern.CalcGorenMaskW() & BlankBoard());
 		if (IsZero(goren_mask)) return optional<size_t>();
 		REP(position, kAllBoardSize) {
 			auto temp = kPositionArray[position] & goren_mask;
@@ -221,8 +231,8 @@ class Board {
 	optional<size_t> FindStopGorenMove(const Stone turn) noexcept {
 		auto shift_pattern = GetShiftPattern();
 		auto goren_mask = (turn == Stone::Black
-			? shift_pattern.CalcGorenMaskW() & (!black_board_)
-			: shift_pattern.CalcGorenMaskB() & (!white_board_));
+			? shift_pattern.CalcGorenMaskW() & BlankBoard()
+			: shift_pattern.CalcGorenMaskB() & BlankBoard());
 		if (IsZero(goren_mask)) return optional<size_t>();
 		if (turn == Stone::Black) {
 			auto invalid_mask = CalcInValidMask();
@@ -242,7 +252,7 @@ class Board {
 	*/
 	optional<size_t> FindRandomMove() {
 		vector<size_t> list;
-		auto invalid_mask = (turn_ == Stone::Black ? CalcInValidMask() : black_board_ | white_board_);
+		auto invalid_mask = (turn_ == Stone::Black ? CalcInValidMask() : StoneBoard());
 		//BitBoard(invalid_mask).PutBoard();
 		REP(position, kAllBoardSize) {
 			//! You can only move at Stone::None in Board

@@ -50,7 +50,7 @@ enum Direction : uint8_t {
 
 namespace omission {
 	constexpr auto B = Stone::Black;
-	constexpr auto W = Stone::Black;
+	constexpr auto W = Stone::White;
 	constexpr auto N = Stone::None;
 	constexpr auto b = Stone::NonBlack;
 	constexpr auto L = Side::Left;
