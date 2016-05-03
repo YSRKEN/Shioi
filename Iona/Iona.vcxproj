@@ -153,6 +153,7 @@
   <ItemGroup>
     <ClInclude Include="BitBoard.hpp" />
     <ClInclude Include="Board.hpp" />
+    <ClInclude Include="BookDB.hpp" />
     <ClInclude Include="constant.hpp" />
     <ClInclude Include="misc_functions.hpp" />
     <ClInclude Include="Optional.hpp" />

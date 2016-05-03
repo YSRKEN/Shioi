@@ -139,8 +139,8 @@ struct BitBoard {
 		kBitMaskArray[Direction::DiagL][Side::Right][0]  = kBitMaskRD;
 		REP(dir, Direction::Directions) {
 			REP(shift, kMaxShifts - 1) {
-				kBitMaskArray[dir][Side::Left][shift + 1] = BitBoard(kBitMaskArray[dir][Side::Left][shift]) << (Direction)dir;
-				kBitMaskArray[dir][Side::Right][shift + 1] = BitBoard(kBitMaskArray[dir][Side::Right][shift]) >> (Direction)dir;
+				kBitMaskArray[dir][Side::Left][shift + 1] = BitBoard(kBitMaskArray[dir][Side::Left][shift]) >> (Direction)dir;
+				kBitMaskArray[dir][Side::Right][shift + 1] = BitBoard(kBitMaskArray[dir][Side::Right][shift]) << (Direction)dir;
 			}
 		}
 	}

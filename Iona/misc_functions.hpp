@@ -9,9 +9,15 @@
 #include"constant.hpp"
 
 /**
-* @fn ToPosition
 * @brief Convert two position one position
 */
-constexpr size_t ToPosition(const size_t x, const size_t y){
+constexpr size_t ToPosition(const size_t x, const size_t y) noexcept {
 	return x + y * kBoardSize;
+}
+
+/**
+* @brief Reverse turn
+*/
+constexpr Stone EnemyTurn(const Stone turn) noexcept {
+	return (turn == Stone::Black ? Stone::White : Stone::Black);
 }

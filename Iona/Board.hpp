@@ -17,6 +17,7 @@
 #include"types.hpp"
 #include"Optional.hpp"
 #include"BitBoard.hpp"
+#include"BookDB.hpp"
 
 using std::array;
 using std::cout;
@@ -61,13 +62,13 @@ class Board {
 	* ~japanese	@brief 方向・先後・左右・シフト数に応じたシフトパターンを作成する
 	* ~english	@brief Make shift pattern
 	*/
-	ShiftPattern GetShiftPattern() {
+	ShiftPattern GetShiftPattern() const{
 		ShiftPattern shift_Pattern;
 		REP(dir_, Direction::Directions) {
 			auto dir = static_cast<Direction>(dir_);
 			auto pattern_black_right = black_board_ << dir;
-			auto pattern_black_left = black_board_ >> dir;
 			auto pattern_white_right = white_board_ << dir;
+			auto pattern_black_left = black_board_ >> dir;
 			auto pattern_white_left = white_board_ >> dir;
 			REP(shift, kMaxShifts - 1) {
 				shift_Pattern[dir][Stone::Black][Side::Right][shift] = pattern_black_right;
@@ -79,8 +80,8 @@ class Board {
 				shift_Pattern[dir][Stone::None][Side::Left][shift] = !(pattern_black_left | pattern_white_left);
 				shift_Pattern[dir][Stone::NonBlack][Side::Left][shift] = !pattern_black_left;
 				pattern_black_right <<= dir;
-				pattern_white_right >>= dir;
-				pattern_black_left <<= dir;
+				pattern_white_right <<= dir;
+				pattern_black_left >>= dir;
 				pattern_white_left >>= dir;
 			}
 			shift_Pattern[dir][Stone::Black][Side::Right][kMaxShifts - 1] = pattern_black_right;
@@ -395,7 +396,6 @@ class Board {
 		return invalid_mask;	//! dummy
 	}
 	/**
-	* @fn FindRandomMove
 	* @return Next Move(Random)
 	*/
 	optional<size_t> FindRandomMove() {
@@ -407,7 +407,7 @@ class Board {
 			if (!IsZero(kPositionArray[position] & invalid_mask)) continue;
 			list.push_back(position);
 		}
-		if(list.empty()) return optional<size_t>(-1); 
+		if (list.empty()) return optional<size_t>();
 		return optional<size_t>(list[RandInt(list.size())]);
 	}
 	bool IsGameEnd(const BitBoard &board) {
@@ -466,9 +466,82 @@ class Board {
 		if (IsGameEnd(white_board_)) return true;
 		return false;
 	}
+	/**
+	* @return Next Move(Goren)
+	*/
+	optional<size_t> FindGorenMove(const Stone turn) const noexcept{
+		auto shift_pattern = GetShiftPattern();
+		auto goren_mask = (turn == Stone::Black
+			? CalcGorenMaskB(shift_pattern) & (!white_board_)
+			: CalcGorenMaskW(shift_pattern) & (!black_board_));
+		if (IsZero(goren_mask)) return optional<size_t>();
+		REP(position, kAllBoardSize) {
+			auto temp = kPositionArray[position] & goren_mask;
+			if (!IsZero(kPositionArray[position] & goren_mask)) {
+				return optional<size_t>(position);
+			}
+		}
+		return optional<size_t>();
+	}
+	/**
+	* ~japanese	@brief 五連を起こす石の位置を算出する(黒石用)
+	* ~english	@brief Make position mask of Cho-ren for Stone::Black
+	*/
+	inline BitBoard CalcGorenMaskB(const ShiftPattern &pattern) const noexcept {
+		BitBoard goren_mask;
+		REP(dir, Direction::Directions) {
+			auto &BL0 = pattern[dir][Stone::Black][Side::Left][0], &NL0 = pattern[dir][Stone::None][Side::Left][0], &bL0 = pattern[dir][Stone::NonBlack][Side::Left][0];
+			auto &BL1 = pattern[dir][Stone::Black][Side::Left][1], &NL1 = pattern[dir][Stone::None][Side::Left][1], &bL1 = pattern[dir][Stone::NonBlack][Side::Left][1];
+			auto &BL2 = pattern[dir][Stone::Black][Side::Left][2], &NL2 = pattern[dir][Stone::None][Side::Left][2], &bL2 = pattern[dir][Stone::NonBlack][Side::Left][2];
+			auto &BL3 = pattern[dir][Stone::Black][Side::Left][3], &NL3 = pattern[dir][Stone::None][Side::Left][3], &bL3 = pattern[dir][Stone::NonBlack][Side::Left][3];
+			auto &BL4 = pattern[dir][Stone::Black][Side::Left][4], &NL4 = pattern[dir][Stone::None][Side::Left][4], &bL4 = pattern[dir][Stone::NonBlack][Side::Left][4];
+			auto &BR0 = pattern[dir][Stone::Black][Side::Right][0], &NR0 = pattern[dir][Stone::None][Side::Right][0], &bR0 = pattern[dir][Stone::NonBlack][Side::Right][0];
+			auto &BR1 = pattern[dir][Stone::Black][Side::Right][1], &NR1 = pattern[dir][Stone::None][Side::Right][1], &bR1 = pattern[dir][Stone::NonBlack][Side::Right][1];
+			auto &BR2 = pattern[dir][Stone::Black][Side::Right][2], &NR2 = pattern[dir][Stone::None][Side::Right][2], &bR2 = pattern[dir][Stone::NonBlack][Side::Right][2];
+			auto &BR3 = pattern[dir][Stone::Black][Side::Right][3], &NR3 = pattern[dir][Stone::None][Side::Right][3], &bR3 = pattern[dir][Stone::NonBlack][Side::Right][3];
+			auto &BR4 = pattern[dir][Stone::Black][Side::Right][4], &NR4 = pattern[dir][Stone::None][Side::Right][4], &bR4 = pattern[dir][Stone::NonBlack][Side::Right][4];
+			auto &ML1 = kBitMaskArray[dir][Side::Left][0], &ML2 = kBitMaskArray[dir][Side::Left][1];
+			auto &ML3 = kBitMaskArray[dir][Side::Left][2], &ML4 = kBitMaskArray[dir][Side::Left][3];
+			auto &MR1 = kBitMaskArray[dir][Side::Right][0], &MR2 = kBitMaskArray[dir][Side::Right][1];
+			auto &MR3 = kBitMaskArray[dir][Side::Right][2], &MR4 = kBitMaskArray[dir][Side::Right][3];
+
+			//! [XBBBBBX]
+			goren_mask |= bL0 /**/& BR0 & BR1 & BR2 & BR3 & bR4 & MR4;
+			goren_mask |= BL0 & bL1 & ML1 /**/& BR0 & BR1 & BR2 & bR3 & MR3;
+			goren_mask |= BL0 & BL1 & bL2 & ML2 /**/& BR0 & BR1 & bR2 & MR2;
+			goren_mask |= BL0 & BL1 & BL2 & bL3 & ML3 /**/& BR0 & bR1 & MR1;
+			goren_mask |= BL0 & BL1 & BL2 & BL3 & bL4 & ML4 /**/& bR0;
+		}
+		return goren_mask;
+	}
+	inline BitBoard CalcGorenMaskW(const ShiftPattern &pattern) const noexcept {
+		BitBoard goren_mask;
+		REP(dir, Direction::Directions) {
+			auto &WL0 = pattern[dir][Stone::White][Side::Left ][0], &NL0 = pattern[dir][Stone::None][Side::Left][0];
+			auto &WL1 = pattern[dir][Stone::White][Side::Left ][1], &NL1 = pattern[dir][Stone::None][Side::Left][1];
+			auto &WL2 = pattern[dir][Stone::White][Side::Left ][2], &NL2 = pattern[dir][Stone::None][Side::Left][2];
+			auto &WL3 = pattern[dir][Stone::White][Side::Left ][3], &NL3 = pattern[dir][Stone::None][Side::Left][3];
+			auto &WR0 = pattern[dir][Stone::White][Side::Right][0], &NR0 = pattern[dir][Stone::None][Side::Right][0];
+			auto &WR1 = pattern[dir][Stone::White][Side::Right][1], &NR1 = pattern[dir][Stone::None][Side::Right][1];
+			auto &WR2 = pattern[dir][Stone::White][Side::Right][2], &NR2 = pattern[dir][Stone::None][Side::Right][2];
+			auto &WR3 = pattern[dir][Stone::White][Side::Right][3], &NR3 = pattern[dir][Stone::None][Side::Right][3];
+			auto &ML1 = kBitMaskArray[dir][Side::Left][0], &ML2 = kBitMaskArray[dir][Side::Left][1];
+			auto &ML3 = kBitMaskArray[dir][Side::Left][2], &ML4 = kBitMaskArray[dir][Side::Left][3];
+			auto &MR1 = kBitMaskArray[dir][Side::Right][0], &MR2 = kBitMaskArray[dir][Side::Right][1];
+			auto &MR3 = kBitMaskArray[dir][Side::Right][2], &MR4 = kBitMaskArray[dir][Side::Right][3];
+
+			//! [WWWWW]
+			goren_mask |= WR0 & WR1 & WR2 & WR3 & MR3;
+			goren_mask |= WL0 /**/& WR0 & WR1 & WR2 & MR2;
+			goren_mask |= WL0 & WL1 & ML1 /**/& WR0 & WR1 & MR1;
+			goren_mask |= WL0 & WL1 & WL2 & ML2 /**/& WR0;
+			goren_mask |= WL0 & WL1 & WL2 & WL3 & ML3;
+		}
+		return goren_mask;
+	}
+
 public:
 	/**
-	* @fn Board
 	* @brief Constructor
 	* @param board_text /^[BWN]{225}$/
 	* @param turn_text /^[BWN]$/
@@ -544,15 +617,23 @@ public:
 		//! Opening move
 		if (debug_flg) std::cerr << "Opening" << endl;
 		if (IsZero(black_board_) && IsZero(white_board_)) return ToPosition(7, 7);
+		if (black_board_ == kPositionArray[112] && IsZero(white_board_)) return ToPosition(7 + RandInt(2), 6);
 		//! Book move
-		if (debug_flg) std::cerr << "Book" << endl;
+//		if (debug_flg) std::cerr << "Book" << endl;
+//		auto book = BookDB("book.csv");
+//		auto book_data = book.GetBookData(black_board_, white_board_);
+//		if (!book_data.empty()) return book_data[RandInt(book_data.size())];
 		//! If you can make Go-ren, you must do it.
 		if (debug_flg) std::cerr << "Goren" << endl;
+		auto result = FindGorenMove(turn_);
+		if (result) return *result;
 		//! If enemy can make Go-ren, you should block it.
 		if (debug_flg) std::cerr << "Stop Goren" << endl;
+		result = FindGorenMove(EnemyTurn(turn_));
+		if (result) return *result;
 		//! Random move(test)
 		if (debug_flg) std::cerr << "Random" << endl;
-		auto result = FindRandomMove();
+		result = FindRandomMove();
 		if (result) return *result;
 		return -1;
 	}
