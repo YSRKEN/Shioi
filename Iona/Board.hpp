@@ -248,6 +248,106 @@ class Board {
 		return optional<size_t>();
 	}
 	/**
+	* @return Next Move(Shioi)
+	*/
+	optional<size_t> FindShioiMoveMiniB(const size_t depth) {
+		// Calc invalid-mask
+		auto shift_pattern = GetShiftPattern();
+		auto invalid_mask = CalcInValidMask(shift_pattern);
+		// Calc Shi-ren pattern and check this pattern
+		auto shiren_mask = shift_pattern.CalcShirenMaskB();
+		SetPatternMask(shiren_mask, invalid_mask);
+		REP(i, Direction::Directions) {
+			if (IsZero(shiren_mask[i])) continue;
+			return optional<size_t>(shiren_mask[i].BoardToPosition());
+		}
+		// Calc Katsu-Shi pattern and check next move
+		if (depth > 0) {
+			auto katsushi_mask = shift_pattern.CalcKatsuShiMaskB();
+			SetPatternMask(katsushi_mask, invalid_mask);
+			REP(i, Direction::Directions) {
+				if (IsZero(katsushi_mask[i])) continue;
+				REP(position, kAllBoardSize) {
+					if (IsZero(kPositionArray[position] & katsushi_mask[i])) continue;
+					black_board_ ^= kPositionArray[position];
+					const auto block_point = FindGorenMove(Stone::Black);
+					if (block_point) {
+						white_board_ ^= kPositionArray[*block_point];
+						const auto norite_point = FindGorenMove(Stone::White);
+						if (norite_point) {
+							white_board_ ^= kPositionArray[*block_point];
+							black_board_ ^= kPositionArray[position];
+						}
+						else {
+							const auto result = FindShioiMoveMiniB(depth - 1);
+							white_board_ ^= kPositionArray[*block_point];
+							black_board_ ^= kPositionArray[position];
+							if(result) return optional<size_t>(position);
+						}
+					}
+					else {
+						black_board_ ^= kPositionArray[position];
+						return optional<size_t>(position);
+					}
+				}
+			}
+		}
+		return optional<size_t>();
+	}
+	optional<size_t> FindShioiMoveMiniW(const size_t depth) {
+		// Calc invalid-mask
+		auto shift_pattern = GetShiftPattern();
+		auto invalid_mask = StoneBoard();
+		// Calc Shi-ren pattern and check this pattern
+		auto shiren_mask = shift_pattern.CalcShirenMaskB();
+		SetPatternMask(shiren_mask, invalid_mask);
+		REP(i, Direction::Directions) {
+			if (IsZero(shiren_mask[i])) continue;
+			return optional<size_t>(shiren_mask[i].BoardToPosition());
+		}
+		// Calc Katsu-Shi pattern and check next move
+		auto katsushi_mask = shift_pattern.CalcKatsuShiMaskB();
+		SetPatternMask(katsushi_mask, invalid_mask);
+		REP(i, Direction::Directions) {
+			if (IsZero(katsushi_mask[i])) continue;
+			REP(position, kAllBoardSize) {
+				if (IsZero(kPositionArray[position] & katsushi_mask[i])) continue;
+				white_board_ ^= kPositionArray[position];
+				auto invalid_mask2 = CalcInValidMask(GetShiftPattern());
+				const auto block_point = FindGorenMove(Stone::White);
+				if (block_point) {
+					black_board_ ^= kPositionArray[*block_point];
+					const auto norite_point = FindGorenMove(Stone::Black);
+					if (norite_point) {
+						black_board_ ^= kPositionArray[*block_point];
+						white_board_ ^= kPositionArray[position];
+					}
+					else {
+						const auto result = FindShioiMoveMiniW(depth - 1);
+						black_board_ ^= kPositionArray[*block_point];
+						white_board_ ^= kPositionArray[position];
+						return result;
+					}
+				}
+				else {
+					white_board_ ^= kPositionArray[position];
+					return optional<size_t>(position);
+				}
+			}
+		}
+		return optional<size_t>();
+	}
+	optional<size_t> FindShioiMoveMini(const Stone turn, const size_t depth) {
+		return (turn == Stone::Black ? FindShioiMoveMiniB(depth) : FindShioiMoveMiniW(depth));
+	}
+	optional<size_t> FindShioiMove(const Stone turn, const size_t depth) {
+		for (size_t i = 0; i <= depth; ++i) {
+			auto result = FindShioiMoveMini(turn, i);
+			if (result) return result;
+		}
+		return optional<size_t>();
+	}
+	/**
 	* @return Next Move(Random)
 	*/
 	optional<size_t> FindRandomMove() {
@@ -341,10 +441,10 @@ public:
 		if (IsZero(black_board_) && IsZero(white_board_)) return ToPosition(7, 7);
 		if (black_board_ == kPositionArray[112] && IsZero(white_board_)) return ToPosition(7 + RandInt(2), 6);
 		//! Book move
-//		if (debug_flg) std::cerr << "Book" << endl;
-//		auto book = BookDB("book.csv");
-//		auto book_data = book.GetBookData(black_board_, white_board_);
-//		if (!book_data.empty()) return book_data[RandInt(book_data.size())];
+		if (debug_flg) std::cerr << "Book" << endl;
+		auto book = BookDB("book_.csv");	//! test
+		auto book_data = book.GetBookData(black_board_, white_board_);
+		if (!book_data.empty()) return book_data[RandInt(book_data.size())];
 		//! If you can make Go-ren, you must do it.
 		if (debug_flg) std::cerr << "Goren" << endl;
 		auto result = FindGorenMove(turn_);
@@ -353,6 +453,10 @@ public:
 		if (debug_flg) std::cerr << "Stop Goren" << endl;
 		result = FindStopGorenMove(turn_);
 		if (result) return *result;
+		//! Shioi move
+		if (debug_flg) std::cerr << "Shioi" << endl;
+		result = FindShioiMove(turn_, 20);
+		if (result) return *result;
 		//! Random move(test)
 		if (debug_flg) std::cerr << "Random" << endl;
 		result = FindRandomMove();
@@ -360,11 +464,11 @@ public:
 		return -1;
 	}
 	void Test() {
-		const size_t count = 10000;
+		const size_t count = 1000;
 		auto start = std::chrono::system_clock::now();
 		REP(i, count) {
 			REP(j, count) {
-				IsGameEnd();
+				FindRandomMove();
 			}
 		}
 		auto end = std::chrono::system_clock::now();

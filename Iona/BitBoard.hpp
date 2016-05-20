@@ -145,6 +145,16 @@ struct BitBoard {
 		}
 	}
 	/**
+	* ~japanese	@brief 指し手の位置を検索する
+	* ~english	@brief Find MSB
+	*/
+	size_t BoardToPosition() {
+		REP(position, kAllBoardSize) {
+			if ((*this)[position]) return position;
+		}
+		return kAllBoardSize;
+	}
+	/**
 	* ~japanese	@brief 各種演算子を定義する
 	* ~english	@brief Definition of operator for BitBoard
 	*/
