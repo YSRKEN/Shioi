@@ -1476,7 +1476,7 @@ class Board {
 				PackedStone match = turn;
 				for (size_t k = 1; k < kIterateTable[position][dir][it] - 1; ++k) {
 					if (move_pattern[it][k] != (match | turn)) {
-						flg1[it] = (move_pattern[it][k] == match | Stone::None);
+						flg1[it] = (move_pattern[it][k] == (match | Stone::None));
 						length += k;
 						break;
 					}

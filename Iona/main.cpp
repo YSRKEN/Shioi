@@ -47,7 +47,7 @@ int main(int argc, char *argv[]) {
 		* Calc next move
 		*/
 		Board board(argv[1], argv[2]);
-		//board.PutBoard();
+		board.PutBoard();
 		//board.Test();
 		cout << board.NextMove(argc >= 5 && std::string(argv[4]) == "--debug") << endl;
 	}
