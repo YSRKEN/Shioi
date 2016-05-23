@@ -218,7 +218,7 @@ class Board {
 			: shift_pattern.CalcGorenMaskW() & BlankBoard());
 		if (IsZero(goren_mask)) return optional<size_t>();
 		REP(position, kAllBoardSize) {
-			auto temp = kPositionArray[position] & goren_mask;
+			//auto temp = kPositionArray[position] & goren_mask;
 			if (!IsZero(kPositionArray[position] & goren_mask)) {
 				return optional<size_t>(position);
 			}
@@ -240,7 +240,7 @@ class Board {
 			if(IsZero(goren_mask)) return optional<size_t>(-1);
 		}
 		REP(position, kAllBoardSize) {
-			auto temp = kPositionArray[position] & goren_mask;
+			//auto temp = kPositionArray[position] & goren_mask;
 			if (!IsZero(kPositionArray[position] & goren_mask)) {
 				return optional<size_t>(position);
 			}
@@ -313,7 +313,7 @@ class Board {
 			REP(position, kAllBoardSize) {
 				if (IsZero(kPositionArray[position] & katsushi_mask[i])) continue;
 				white_board_ ^= kPositionArray[position];
-				auto invalid_mask2 = CalcInValidMask(GetShiftPattern());
+				//auto invalid_mask2 = CalcInValidMask(GetShiftPattern());
 				const auto block_point = FindGorenMove(Stone::White);
 				if (block_point) {
 					black_board_ ^= kPositionArray[*block_point];
@@ -423,6 +423,7 @@ public:
 						cout << "┼";
 					}
 					break;
+				default: break;
 				}
 			}
 			cout << endl;

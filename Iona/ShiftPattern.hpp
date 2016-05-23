@@ -31,32 +31,22 @@ public:
 	BitBoard CalcChorenMaskB() const noexcept {
 		BitBoard choren_mask;
 		REP(dir_, Direction::Directions) {
-			auto dir = static_cast<Direction>(dir_);
 			using namespace omission;
-			auto &BL0 = GetData(dir, B, L, 0), &NL0 = GetData(dir, N, L, 0);
-			auto &BL1 = GetData(dir, B, L, 1), &NL1 = GetData(dir, N, L, 1);
-			auto &BL2 = GetData(dir, B, L, 2), &NL2 = GetData(dir, N, L, 2);
-			auto &BL3 = GetData(dir, B, L, 3), &NL3 = GetData(dir, N, L, 3);
-			auto &BL4 = GetData(dir, B, L, 4), &NL4 = GetData(dir, N, L, 4);
-			auto &BR0 = GetData(dir, B, R, 0), &NR0 = GetData(dir, N, R, 0);
-			auto &BR1 = GetData(dir, B, R, 1), &NR1 = GetData(dir, N, R, 1);
-			auto &BR2 = GetData(dir, B, R, 2), &NR2 = GetData(dir, N, R, 2);
-			auto &BR3 = GetData(dir, B, R, 3), &NR3 = GetData(dir, N, R, 3);
-			auto &BR4 = GetData(dir, B, R, 4), &NR4 = GetData(dir, N, R, 4);
+			auto& p = this->data_[dir_];
 
 			//! [BBBBBB]
 			//! BBBBBY
-			choren_mask |= (BL0 & BL1 & BL2 & BL3 & BL4);
+			choren_mask |= (p[B][L][0] & p[B][L][1] & p[B][L][2] & p[B][L][3] & p[B][L][4]);
 			//! BBBBYB
-			choren_mask |= (BL0 & BL1 & BL2 & BL3 /**/& BR0);
+			choren_mask |= (p[B][L][0] & p[B][L][1] & p[B][L][2] & p[B][L][3] /**/& p[B][R][0]);
 			//! BBBYBB
-			choren_mask |= (BL0 & BL1 & BL2 /**/& BR0 & BR1);
+			choren_mask |= (p[B][L][0] & p[B][L][1] & p[B][L][2] /**/& p[B][R][0] & p[B][R][1]);
 			//! BBYBBB
-			choren_mask |= (BL0 & BL1 /**/& BR0 & BR1 & BR2);
+			choren_mask |= (p[B][L][0] & p[B][L][1] /**/& p[B][R][0] & p[B][R][1] & p[B][R][2]);
 			//! BYBBBB
-			choren_mask |= (BL0 /**/& BR0 & BR1 & BR2 & BR3);
+			choren_mask |= (p[B][L][0] /**/& p[B][R][0] & p[B][R][1] & p[B][R][2] & p[B][R][3]);
 			//! YBBBBB
-			choren_mask |= (BR0 & BR1 & BR2 & BR3 & BR4);
+			choren_mask |= (p[B][R][0] & p[B][R][1] & p[B][R][2] & p[B][R][3] & p[B][R][4]);
 		}
 		return choren_mask;
 	}
@@ -67,33 +57,23 @@ public:
 	BitBoard CalcLineShiShiMaskB() const noexcept {
 		BitBoard shishi1_mask;
 		REP(dir_, Direction::Directions) {
-			auto dir = static_cast<Direction>(dir_);
+			auto& p = this->data_[dir_];
 			using namespace omission;
-			auto &BL0 = GetData(dir, B, L, 0), &NL0 = GetData(dir, N, L, 0), &bL0 = GetData(dir, b, L, 0);
-			auto &BL1 = GetData(dir, B, L, 1), &NL1 = GetData(dir, N, L, 1), &bL1 = GetData(dir, b, L, 1);
-			auto &BL2 = GetData(dir, B, L, 2), &NL2 = GetData(dir, N, L, 2), &bL2 = GetData(dir, b, L, 2);
-			auto &BL3 = GetData(dir, B, L, 3), &NL3 = GetData(dir, N, L, 3), &bL3 = GetData(dir, b, L, 3);
-			auto &BL4 = GetData(dir, B, L, 4), &NL4 = GetData(dir, N, L, 4), &bL4 = GetData(dir, b, L, 4);
-			auto &BR0 = GetData(dir, B, R, 0), &NR0 = GetData(dir, N, R, 0), &bR0 = GetData(dir, b, R, 0);
-			auto &BR1 = GetData(dir, B, R, 1), &NR1 = GetData(dir, N, R, 1), &bR1 = GetData(dir, b, R, 1);
-			auto &BR2 = GetData(dir, B, R, 2), &NR2 = GetData(dir, N, R, 2), &bR2 = GetData(dir, b, R, 2);
-			auto &BR3 = GetData(dir, B, R, 3), &NR3 = GetData(dir, N, R, 3), &bR3 = GetData(dir, b, R, 3);
-			auto &BR4 = GetData(dir, B, R, 4), &NR4 = GetData(dir, N, R, 4), &bR4 = GetData(dir, b, R, 4);
 
 			//! [XBOYYYOBX]
 			//! XBOBBYOBX
-			shishi1_mask |= (BL0 & BL1 & NL2 & BL3 & bL4 /**/& NR0 & BR1 & bR2);
+			shishi1_mask |= (p[B][L][0] & p[B][L][1] & p[N][L][2] & p[B][L][3] & p[b][L][4] /**/& p[N][R][0] & p[B][R][1] & p[b][R][2]);
 			//! XBOBYBOBX
-			shishi1_mask |= (BL0 & NL1 & BL2 & bL3 /**/& BR0 & NR1 & BR2 & bR3);
+			shishi1_mask |= (p[B][L][0] & p[N][L][1] & p[B][L][2] & p[b][L][3] /**/& p[B][R][0] & p[N][R][1] & p[B][R][2] & p[b][R][3]);
 			//! XBOYBBOBX
-			shishi1_mask |= (NL0 & BL1 & bL2 /**/& BR0 & BR1 & NR2 & BR3 & bR4);
+			shishi1_mask |= (p[N][L][0] & p[B][L][1] & p[b][L][2] /**/& p[B][R][0] & p[B][R][1] & p[N][R][2] & p[B][R][3] & p[b][R][4]);
 			//! [XBBOYYOBBX]
 			//! XBBOBYOBBX
-			shishi1_mask |= (BL0 & NL1 & BL2 & BL3 & bL4 /**/& NR0 & BR1 & BR2 & bR3);
+			shishi1_mask |= (p[B][L][0] & p[N][L][1] & p[B][L][2] & p[B][L][3] & p[b][L][4] /**/& p[N][R][0] & p[B][R][1] & p[B][R][2] & p[b][R][3]);
 			//! XBBOYBOBBX
-			shishi1_mask |= (NL0 & BL1 & BL2 & bL3 /**/& BR0 & NR1 & BR2 & BR3 & bR4);
+			shishi1_mask |= (p[N][L][0] & p[B][L][1] & p[B][L][2] & p[b][L][3] /**/& p[B][R][0] & p[N][R][1] & p[B][R][2] & p[B][R][3] & p[b][R][4]);
 			//! [XBBBOYOBBBX]
-			shishi1_mask |= (NR0 & BR1 & BR2 & BR3 & bR4 /**/& NL0 & BL1 & BL2 & BL3 & bL4);
+			shishi1_mask |= (p[N][R][0] & p[B][R][1] & p[B][R][2] & p[B][R][3] & p[b][R][4] /**/& p[N][L][0] & p[B][L][1] & p[B][L][2] & p[B][L][3] & p[b][L][4]);
 		}
 		return shishi1_mask;
 	}
@@ -105,31 +85,19 @@ public:
 		RenjuPattern shiren_mask;
 		REP(dir_, Direction::Directions) {
 			auto dir = static_cast<Direction>(dir_);
+			auto& p = this->data_[dir_];
 			using namespace omission;
-			auto &BL0 = GetData(dir, B, L, 0), &NL0 = GetData(dir, N, L, 0), &bL0 = GetData(dir, b, L, 0);
-			auto &BL1 = GetData(dir, B, L, 1), &NL1 = GetData(dir, N, L, 1), &bL1 = GetData(dir, b, L, 1);
-			auto &BL2 = GetData(dir, B, L, 2), &NL2 = GetData(dir, N, L, 2), &bL2 = GetData(dir, b, L, 2);
-			auto &BL3 = GetData(dir, B, L, 3), &NL3 = GetData(dir, N, L, 3), &bL3 = GetData(dir, b, L, 3);
-			auto &BL4 = GetData(dir, B, L, 4), &NL4 = GetData(dir, N, L, 4), &bL4 = GetData(dir, b, L, 4);
-			auto &BR0 = GetData(dir, B, R, 0), &NR0 = GetData(dir, N, R, 0), &bR0 = GetData(dir, b, R, 0);
-			auto &BR1 = GetData(dir, B, R, 1), &NR1 = GetData(dir, N, R, 1), &bR1 = GetData(dir, b, R, 1);
-			auto &BR2 = GetData(dir, B, R, 2), &NR2 = GetData(dir, N, R, 2), &bR2 = GetData(dir, b, R, 2);
-			auto &BR3 = GetData(dir, B, R, 3), &NR3 = GetData(dir, N, R, 3), &bR3 = GetData(dir, b, R, 3);
-			auto &BR4 = GetData(dir, B, R, 4), &NR4 = GetData(dir, N, R, 4), &bR4 = GetData(dir, b, R, 4);
-			auto &ML1 = kBitMaskArray[dir][L][0], &ML2 = kBitMaskArray[dir][L][1];
-			auto &ML3 = kBitMaskArray[dir][L][2], &ML4 = kBitMaskArray[dir][L][3];
-			auto &MR1 = kBitMaskArray[dir][R][0], &MR2 = kBitMaskArray[dir][R][1];
-			auto &MR3 = kBitMaskArray[dir][R][2], &MR4 = kBitMaskArray[dir][R][3];
+			auto& m = kBitMaskArray[dir];
 
 			//! [XOBBBBOX]
 			//! XOYBBBOX
-			shiren_mask[dir] |= (NL0 & bL1 & ML1/**/& BR0 & BR1 & BR2 & NR3 & bR4 & MR4);
+			shiren_mask[dir] |= (p[N][L][0] & p[b][L][1] & m[L][1]/**/& p[B][R][0] & p[B][R][1] & p[B][R][2] & p[N][R][3] & p[b][R][4] & m[R][4]);
 			//! XOBYBBOX
-			shiren_mask[dir] |= (BL0 & NL1 & bL2 & ML2/**/& BR0 & BR1 & NR2 & bR3 & MR3);
+			shiren_mask[dir] |= (p[B][L][0] & p[N][L][1] & p[b][L][2] & m[L][2]/**/& p[B][R][0] & p[B][R][1] & p[N][R][2] & p[b][R][3] & m[R][3]);
 			//! XOBBYBOX
-			shiren_mask[dir] |= (BR0 & NR1 & bR2 & MR2/**/& BL0 & BL1 & NL2 & bL3 & ML3);
+			shiren_mask[dir] |= (p[B][R][0] & p[N][R][1] & p[b][R][2] & m[R][2]/**/& p[B][L][0] & p[B][L][1] & p[N][L][2] & p[b][L][3] & m[L][3]);
 			//! XOBBBYOX
-			shiren_mask[dir] |= (NR0 & bR1 & MR1/**/& BL0 & BL1 & BL2 & NL3 & bL4 & ML4);
+			shiren_mask[dir] |= (p[N][R][0] & p[b][R][1] & m[R][1]/**/& p[B][L][0] & p[B][L][1] & p[B][L][2] & p[N][L][3] & p[b][L][4] & m[L][4]);
 		}
 		return shiren_mask;
 	}
@@ -141,52 +109,40 @@ public:
 		RenjuPattern katsushi_mask;
 		REP(dir_, Direction::Directions) {
 			auto dir = static_cast<Direction>(dir_);
+			auto& p = this->data_[dir_];
 			using namespace omission;
-			auto &BL0 = GetData(dir, B, L, 0), &NL0 = GetData(dir, N, L, 0), &bL0 = GetData(dir, b, L, 0);
-			auto &BL1 = GetData(dir, B, L, 1), &NL1 = GetData(dir, N, L, 1), &bL1 = GetData(dir, b, L, 1);
-			auto &BL2 = GetData(dir, B, L, 2), &NL2 = GetData(dir, N, L, 2), &bL2 = GetData(dir, b, L, 2);
-			auto &BL3 = GetData(dir, B, L, 3), &NL3 = GetData(dir, N, L, 3), &bL3 = GetData(dir, b, L, 3);
-			auto &BL4 = GetData(dir, B, L, 4), &NL4 = GetData(dir, N, L, 4), &bL4 = GetData(dir, b, L, 4);
-			auto &BR0 = GetData(dir, B, R, 0), &NR0 = GetData(dir, N, R, 0), &bR0 = GetData(dir, b, R, 0);
-			auto &BR1 = GetData(dir, B, R, 1), &NR1 = GetData(dir, N, R, 1), &bR1 = GetData(dir, b, R, 1);
-			auto &BR2 = GetData(dir, B, R, 2), &NR2 = GetData(dir, N, R, 2), &bR2 = GetData(dir, b, R, 2);
-			auto &BR3 = GetData(dir, B, R, 3), &NR3 = GetData(dir, N, R, 3), &bR3 = GetData(dir, b, R, 3);
-			auto &BR4 = GetData(dir, B, R, 4), &NR4 = GetData(dir, N, R, 4), &bR4 = GetData(dir, b, R, 4);
-			auto &ML1 = kBitMaskArray[dir][L][0], &ML2 = kBitMaskArray[dir][L][1];
-			auto &ML3 = kBitMaskArray[dir][L][2], &ML4 = kBitMaskArray[dir][L][3];
-			auto &MR1 = kBitMaskArray[dir][R][0], &MR2 = kBitMaskArray[dir][R][1];
-			auto &MR3 = kBitMaskArray[dir][R][2], &MR4 = kBitMaskArray[dir][R][3];
+			auto& m = kBitMaskArray[dir];
 
 			//! [[X{B4O1}X]]
 			//! [XBBBBOX]
-			katsushi_mask[dir] |= bL0 /**/& BR0 & BR1 & BR2 & NR3 & bR4 & MR4;
-			katsushi_mask[dir] |= BL0 & bL1 & ML1 /**/& BR0 & BR1 & NR2 & bR3 & MR3;
-			katsushi_mask[dir] |= BL0 & BL1 & bL2 & ML2 /**/& BR0 & NR1 & bR2 & MR2;
-			katsushi_mask[dir] |= BL0 & BL1 & BL2 & bL3 & ML3 /**/& NR0 & bR1 & MR1;
+			katsushi_mask[dir] |= p[b][L][0] /**/& p[B][R][0] & p[B][R][1] & p[B][R][2] & p[N][R][3] & p[b][R][4] & m[R][4];
+			katsushi_mask[dir] |= p[B][L][0] & p[b][L][1] & m[L][1] /**/& p[B][R][0] & p[B][R][1] & p[N][R][2] & p[b][R][3] & m[R][3];
+			katsushi_mask[dir] |= p[B][L][0] & p[B][L][1] & p[b][L][2] & m[L][2] /**/& p[B][R][0] & p[N][R][1] & p[b][R][2] & m[R][2];
+			katsushi_mask[dir] |= p[B][L][0] & p[B][L][1] & p[B][L][2] & p[b][L][3] & m[L][3] /**/& p[N][R][0] & p[b][R][1] & m[R][1];
 
 			//! [XBBBOBX]
-			katsushi_mask[dir] |= bL0 /**/& BR0 & BR1 & NR2 & BR3 & bR4 & MR4;
-			katsushi_mask[dir] |= BL0 & bL1 & ML1 /**/& BR0 & NR1 & BR2 & bR3 & MR3;
-			katsushi_mask[dir] |= BL0 & BL1 & bL2 & ML2 /**/& NR0 & BR1 & bR2 & MR2;
-			katsushi_mask[dir] |= NL0 & BL1 & BL2 & BL3 & bL4 & ML4 /**/& bR0;
+			katsushi_mask[dir] |= p[b][L][0] /**/& p[B][R][0] & p[B][R][1] & p[N][R][2] & p[B][R][3] & p[b][R][4] & m[R][4];
+			katsushi_mask[dir] |= p[B][L][0] & p[b][L][1] & m[L][1] /**/& p[B][R][0] & p[N][R][1] & p[B][R][2] & p[b][R][3] & m[R][3];
+			katsushi_mask[dir] |= p[B][L][0] & p[B][L][1] & p[b][L][2] & m[L][2] /**/& p[N][R][0] & p[B][R][1] & p[b][R][2] & m[R][2];
+			katsushi_mask[dir] |= p[N][L][0] & p[B][L][1] & p[B][L][2] & p[B][L][3] & p[b][L][4] & m[L][4] /**/& p[b][R][0];
 
 			//! [XBBOBBX]
-			katsushi_mask[dir] |= bL0 /**/& BR0 & NR1 & BR2 & BR3 & bR4 & MR4;
-			katsushi_mask[dir] |= BL0 & bL1 & ML1 /**/& NR0 & BR1 & BR2 & bR3 & MR3;
-			katsushi_mask[dir] |= NL0 & BL1 & BL2 & bL3 & ML3 /**/& BR0 & bR1 & MR1;
-			katsushi_mask[dir] |= BL0 & NL1 & BL2 & BL3 & bL4 & ML4 /**/& bR0;
+			katsushi_mask[dir] |= p[b][L][0] /**/& p[B][R][0] & p[N][R][1] & p[B][R][2] & p[B][R][3] & p[b][R][4] & m[R][4];
+			katsushi_mask[dir] |= p[B][L][0] & p[b][L][1] & m[L][1] /**/& p[N][R][0] & p[B][R][1] & p[B][R][2] & p[b][R][3] & m[R][3];
+			katsushi_mask[dir] |= p[N][L][0] & p[B][L][1] & p[B][L][2] & p[b][L][3] & m[L][3] /**/& p[B][R][0] & p[b][R][1] & m[R][1];
+			katsushi_mask[dir] |= p[B][L][0] & p[N][L][1] & p[B][L][2] & p[B][L][3] & p[b][L][4] & m[L][4] /**/& p[b][R][0];
 
 			//! [XBOBBBX]
-			katsushi_mask[dir] |= bL0 /**/& NR0 & BR1 & BR2 & BR3 & bR4 & MR4;
-			katsushi_mask[dir] |= NL0 & BL1 & bL2 & ML2 /**/& BR0 & BR1 & bR2 & MR2;
-			katsushi_mask[dir] |= BL0 & NL1 & BL2 & bL3 & ML3 /**/& BR0 & bR1 & MR1;
-			katsushi_mask[dir] |= BL0 & BL1 & NL2 & BL3 & bL4 & ML4 /**/& bR0;
+			katsushi_mask[dir] |= p[b][L][0] /**/& p[N][R][0] & p[B][R][1] & p[B][R][2] & p[B][R][3] & p[b][R][4] & m[R][4];
+			katsushi_mask[dir] |= p[N][L][0] & p[B][L][1] & p[b][L][2] & m[L][2] /**/& p[B][R][0] & p[B][R][1] & p[b][R][2] & m[R][2];
+			katsushi_mask[dir] |= p[B][L][0] & p[N][L][1] & p[B][L][2] & p[b][L][3] & m[L][3] /**/& p[B][R][0] & p[b][R][1] & m[R][1];
+			katsushi_mask[dir] |= p[B][L][0] & p[B][L][1] & p[N][L][2] & p[B][L][3] & p[b][L][4] & m[L][4] /**/& p[b][R][0];
 
 			//! [XOBBBBX]
-			katsushi_mask[dir] |= NL0 & bL1 & ML1 /**/& BR0 & BR1 & BR2 & bR3 & MR3;
-			katsushi_mask[dir] |= BL0 & NL1 & bL2 & ML2 /**/& BR0 & BR1 & bR2 & MR2;
-			katsushi_mask[dir] |= BL0 & BL1 & NL2 & bL3 & ML3 /**/& BR0 & bR1 & MR1;
-			katsushi_mask[dir] |= BL0 & BL1 & BL2 & NL3 & bL4 & ML4 /**/& bR0;
+			katsushi_mask[dir] |= p[N][L][0] & p[b][L][1] & m[L][1] /**/& p[B][R][0] & p[B][R][1] & p[B][R][2] & p[b][R][3] & m[R][3];
+			katsushi_mask[dir] |= p[B][L][0] & p[N][L][1] & p[b][L][2] & m[L][2] /**/& p[B][R][0] & p[B][R][1] & p[b][R][2] & m[R][2];
+			katsushi_mask[dir] |= p[B][L][0] & p[B][L][1] & p[N][L][2] & p[b][L][3] & m[L][3] /**/& p[B][R][0] & p[b][R][1] & m[R][1];
+			katsushi_mask[dir] |= p[B][L][0] & p[B][L][1] & p[B][L][2] & p[N][L][3] & p[b][L][4] & m[L][4] /**/& p[b][R][0];
 		}
 		return katsushi_mask;
 	}
@@ -198,44 +154,32 @@ public:
 		RenjuPattern katsusan_mask;
 		REP(dir_, Direction::Directions) {
 			auto dir = static_cast<Direction>(dir_);
+			auto& p = this->data_[dir_];
 			using namespace omission;
-			auto &BL0 = GetData(dir, B, L, 0), &NL0 = GetData(dir, N, L, 0), &bL0 = GetData(dir, b, L, 0);
-			auto &BL1 = GetData(dir, B, L, 1), &NL1 = GetData(dir, N, L, 1), &bL1 = GetData(dir, b, L, 1);
-			auto &BL2 = GetData(dir, B, L, 2), &NL2 = GetData(dir, N, L, 2), &bL2 = GetData(dir, b, L, 2);
-			auto &BL3 = GetData(dir, B, L, 3), &NL3 = GetData(dir, N, L, 3), &bL3 = GetData(dir, b, L, 3);
-			auto &BL4 = GetData(dir, B, L, 4), &NL4 = GetData(dir, N, L, 4), &bL4 = GetData(dir, b, L, 4);
-			auto &BR0 = GetData(dir, B, R, 0), &NR0 = GetData(dir, N, R, 0), &bR0 = GetData(dir, b, R, 0);
-			auto &BR1 = GetData(dir, B, R, 1), &NR1 = GetData(dir, N, R, 1), &bR1 = GetData(dir, b, R, 1);
-			auto &BR2 = GetData(dir, B, R, 2), &NR2 = GetData(dir, N, R, 2), &bR2 = GetData(dir, b, R, 2);
-			auto &BR3 = GetData(dir, B, R, 3), &NR3 = GetData(dir, N, R, 3), &bR3 = GetData(dir, b, R, 3);
-			auto &BR4 = GetData(dir, B, R, 4), &NR4 = GetData(dir, N, R, 4), &bR4 = GetData(dir, b, R, 4);
-			auto &ML1 = kBitMaskArray[dir][L][0], &ML2 = kBitMaskArray[dir][L][1];
-			auto &ML3 = kBitMaskArray[dir][L][2], &ML4 = kBitMaskArray[dir][L][3];
-			auto &MR1 = kBitMaskArray[dir][R][0], &MR2 = kBitMaskArray[dir][R][1];
-			auto &MR3 = kBitMaskArray[dir][R][2], &MR4 = kBitMaskArray[dir][R][3];
+			auto& m = kBitMaskArray[dir];
 
 			//! [XO{B3O1}OX]
 			const size_t kKatsuSanPositions = 12;
 			array<BitBoard, kKatsuSanPositions> katsusan_position;
-			static size_t offset_r[] = { 3,2,1,2,1,0,1,0,0,0,0,0 };
-			static size_t offset_l[] = { 0,0,0,0,0,1,0,1,2,1,2,3 };
+			//static size_t offset_r[] = { 3,2,1,2,1,0,1,0,0,0,0,0 };
+			//static size_t offset_l[] = { 0,0,0,0,0,1,0,1,2,1,2,3 };
 			auto filter = !unorder_mask;
 			//! XOBBBOOX
-			katsusan_position[0] = NL0 & bL1 & ML1 /**/& BR0 & BR1 & NR2 & NR3 & bR4 & MR4 & filter;
-			katsusan_position[1] = BL0 & NL1 & bL2 & ML2 /**/& BR0 & NR1 & NR2 & bR3 & MR3 & filter;
-			katsusan_position[2] = BL0 & BL1 & NL2 & bL3 & ML3 /**/& NR0 & NR1 & bR2 & MR2 & filter;
+			katsusan_position[0] = p[N][L][0] & p[b][L][1] & m[L][1] /**/& p[B][R][0] & p[B][R][1] & p[N][R][2] & p[N][R][3] & p[b][R][4] & m[R][4] & filter;
+			katsusan_position[1] = p[B][L][0] & p[N][L][1] & p[b][L][2] & m[L][2] /**/& p[B][R][0] & p[N][R][1] & p[N][R][2] & p[b][R][3] & m[R][3] & filter;
+			katsusan_position[2] = p[B][L][0] & p[B][L][1] & p[N][L][2] & p[b][L][3] & m[L][3] /**/& p[N][R][0] & p[N][R][1] & p[b][R][2] & m[R][2] & filter;
 			//! XOBBOBOX
-			katsusan_position[3] = NL0 & bL1 & ML1 /**/& BR0 & NR1 & BR2 & NR3 & bR4 & MR4 & filter;
-			katsusan_position[4] = BL0 & NL1 & bL2 & ML2 /**/& NR0 & BR1 & NR2 & bR3 & MR3 & filter;
-			katsusan_position[5] = NL0 & BL1 & BL2 & NL3 & bL4 & ML4 /**/& NR0 & bR1 & MR1 & filter;
+			katsusan_position[3] = p[N][L][0] & p[b][L][1] & m[L][1] /**/& p[B][R][0] & p[N][R][1] & p[B][R][2] & p[N][R][3] & p[b][R][4] & m[R][4] & filter;
+			katsusan_position[4] = p[B][L][0] & p[N][L][1] & p[b][L][2] & m[L][2] /**/& p[N][R][0] & p[B][R][1] & p[N][R][2] & p[b][R][3] & m[R][3] & filter;
+			katsusan_position[5] = p[N][L][0] & p[B][L][1] & p[B][L][2] & p[N][L][3] & p[b][L][4] & m[L][4] /**/& p[N][R][0] & p[b][R][1] & m[R][1] & filter;
 			//! XOBOBBOX
-			katsusan_position[6] = NL0 & bL1 & ML1 /**/& NR0 & BR1 & BR2 & NR3 & bR4 & MR4 & filter;
-			katsusan_position[7] = NL0 & BL1 & NL2 & bL3 & ML3 /**/& BR0 & NR1 & bR2 & MR2 & filter;
-			katsusan_position[8] = BL0 & NL1 & BL2 & NL3 & bL4 & ML4 /**/& NR0 & bR1 & MR1 & filter;
+			katsusan_position[6] = p[N][L][0] & p[b][L][1] & m[L][1] /**/& p[N][R][0] & p[B][R][1] & p[B][R][2] & p[N][R][3] & p[b][R][4] & m[R][4] & filter;
+			katsusan_position[7] = p[N][L][0] & p[B][L][1] & p[N][L][2] & p[b][L][3] & m[L][3] /**/& p[B][R][0] & p[N][R][1] & p[b][R][2] & m[R][2] & filter;
+			katsusan_position[8] = p[B][L][0] & p[N][L][1] & p[B][L][2] & p[N][L][3] & p[b][L][4] & m[L][4] /**/& p[N][R][0] & p[b][R][1] & m[R][1] & filter;
 			//! XOOBBBOX
-			katsusan_position[9] = NL0 & NL1 & bL2 & ML2 /**/& BR0 & BR1 & NR2 & bR3 & MR3 & filter;
-			katsusan_position[10] = BL0 & NL1 & NL2 & bL3 & ML3 /**/& BR0 & NR1 & bR2 & MR2 & filter;
-			katsusan_position[11] = BL0 & BL1 & NL2 & NL3 & bL4 & ML4 /**/& NR0 & bR1 & MR1 & filter;
+			katsusan_position[9] = p[N][L][0] & p[N][L][1] & p[b][L][2] & m[L][2] /**/& p[B][R][0] & p[B][R][1] & p[N][R][2] & p[b][R][3] & m[R][3] & filter;
+			katsusan_position[10] = p[B][L][0] & p[N][L][1] & p[N][L][2] & p[b][L][3] & m[L][3] /**/& p[B][R][0] & p[N][R][1] & p[b][R][2] & m[R][2] & filter;
+			katsusan_position[11] = p[B][L][0] & p[B][L][1] & p[N][L][2] & p[N][L][3] & p[b][L][4] & m[L][4] /**/& p[N][R][0] & p[b][R][1] & m[R][1] & filter;
 
 			REP(index, kKatsuSanPositions) {
 				katsusan_mask[dir] |= katsusan_position[index];
@@ -251,28 +195,16 @@ public:
 		BitBoard goren_mask;
 		REP(dir_, Direction::Directions) {
 			auto dir = static_cast<Direction>(dir_);
+			auto& p = this->data_[dir_];
 			using namespace omission;
-			auto &BL0 = GetData(dir, B, L, 0), &NL0 = GetData(dir, N, L, 0), &bL0 = GetData(dir, b, L, 0);
-			auto &BL1 = GetData(dir, B, L, 1), &NL1 = GetData(dir, N, L, 1), &bL1 = GetData(dir, b, L, 1);
-			auto &BL2 = GetData(dir, B, L, 2), &NL2 = GetData(dir, N, L, 2), &bL2 = GetData(dir, b, L, 2);
-			auto &BL3 = GetData(dir, B, L, 3), &NL3 = GetData(dir, N, L, 3), &bL3 = GetData(dir, b, L, 3);
-			auto &BL4 = GetData(dir, B, L, 4), &NL4 = GetData(dir, N, L, 4), &bL4 = GetData(dir, b, L, 4);
-			auto &BR0 = GetData(dir, B, R, 0), &NR0 = GetData(dir, N, R, 0), &bR0 = GetData(dir, b, R, 0);
-			auto &BR1 = GetData(dir, B, R, 1), &NR1 = GetData(dir, N, R, 1), &bR1 = GetData(dir, b, R, 1);
-			auto &BR2 = GetData(dir, B, R, 2), &NR2 = GetData(dir, N, R, 2), &bR2 = GetData(dir, b, R, 2);
-			auto &BR3 = GetData(dir, B, R, 3), &NR3 = GetData(dir, N, R, 3), &bR3 = GetData(dir, b, R, 3);
-			auto &BR4 = GetData(dir, B, R, 4), &NR4 = GetData(dir, N, R, 4), &bR4 = GetData(dir, b, R, 4);
-			auto &ML1 = kBitMaskArray[dir][L][0], &ML2 = kBitMaskArray[dir][L][1];
-			auto &ML3 = kBitMaskArray[dir][L][2], &ML4 = kBitMaskArray[dir][L][3];
-			auto &MR1 = kBitMaskArray[dir][R][0], &MR2 = kBitMaskArray[dir][R][1];
-			auto &MR3 = kBitMaskArray[dir][R][2], &MR4 = kBitMaskArray[dir][R][3];
+			auto& m = kBitMaskArray[dir];
 
 			//! [XBBBBBX]
-			goren_mask |= bL0 /**/& BR0 & BR1 & BR2 & BR3 & bR4 & MR4;
-			goren_mask |= BL0 & bL1 & ML1 /**/& BR0 & BR1 & BR2 & bR3 & MR3;
-			goren_mask |= BL0 & BL1 & bL2 & ML2 /**/& BR0 & BR1 & bR2 & MR2;
-			goren_mask |= BL0 & BL1 & BL2 & bL3 & ML3 /**/& BR0 & bR1 & MR1;
-			goren_mask |= BL0 & BL1 & BL2 & BL3 & bL4 & ML4 /**/& bR0;
+			goren_mask |= p[b][L][0] /**/& p[B][R][0] & p[B][R][1] & p[B][R][2] & p[B][R][3] & p[b][R][4] & m[R][4];
+			goren_mask |= p[B][L][0] & p[b][L][1] & m[L][1] /**/& p[B][R][0] & p[B][R][1] & p[B][R][2] & p[b][R][3] & m[R][3];
+			goren_mask |= p[B][L][0] & p[B][L][1] & p[b][L][2] & m[L][2] /**/& p[B][R][0] & p[B][R][1] & p[b][R][2] & m[R][2];
+			goren_mask |= p[B][L][0] & p[B][L][1] & p[B][L][2] & p[b][L][3] & m[L][3] /**/& p[B][R][0] & p[b][R][1] & m[R][1];
+			goren_mask |= p[B][L][0] & p[B][L][1] & p[B][L][2] & p[B][L][3] & p[b][L][4] & m[L][4] /**/& p[b][R][0];
 		}
 		return goren_mask;
 	}
@@ -284,26 +216,16 @@ public:
 		BitBoard goren_mask;
 		REP(dir_, Direction::Directions) {
 			auto dir = static_cast<Direction>(dir_);
+			auto& p = this->data_[dir_];
 			using namespace omission;
-			auto &WL0 = GetData(dir, W, L, 0), &NL0 = GetData(dir, N, L, 0);
-			auto &WL1 = GetData(dir, W, L, 1), &NL1 = GetData(dir, N, L, 1);
-			auto &WL2 = GetData(dir, W, L, 2), &NL2 = GetData(dir, N, L, 2);
-			auto &WL3 = GetData(dir, W, L, 3), &NL3 = GetData(dir, N, L, 3);
-			auto &WR0 = GetData(dir, W, R, 0), &NR0 = GetData(dir, N, R, 0);
-			auto &WR1 = GetData(dir, W, R, 1), &NR1 = GetData(dir, N, R, 1);
-			auto &WR2 = GetData(dir, W, R, 2), &NR2 = GetData(dir, N, R, 2);
-			auto &WR3 = GetData(dir, W, R, 3), &NR3 = GetData(dir, N, R, 3);
-			auto &ML1 = kBitMaskArray[dir][L][0], &ML2 = kBitMaskArray[dir][L][1];
-			auto &ML3 = kBitMaskArray[dir][L][2], &ML4 = kBitMaskArray[dir][L][3];
-			auto &MR1 = kBitMaskArray[dir][R][0], &MR2 = kBitMaskArray[dir][R][1];
-			auto &MR3 = kBitMaskArray[dir][R][2], &MR4 = kBitMaskArray[dir][R][3];
+			auto& m = kBitMaskArray[dir];
 
 			//! [WWWWW]
-			goren_mask |= WR0 & WR1 & WR2 & WR3 & MR3;
-			goren_mask |= WL0 /**/& WR0 & WR1 & WR2 & MR2;
-			goren_mask |= WL0 & WL1 & ML1 /**/& WR0 & WR1 & MR1;
-			goren_mask |= WL0 & WL1 & WL2 & ML2 /**/& WR0;
-			goren_mask |= WL0 & WL1 & WL2 & WL3 & ML3;
+			goren_mask |= p[W][R][0] & p[W][R][1] & p[W][R][2] & p[W][R][3] & m[R][3];
+			goren_mask |= p[W][L][0] /**/& p[W][R][0] & p[W][R][1] & p[W][R][2] & m[R][2];
+			goren_mask |= p[W][L][0] & p[W][L][1] & m[L][1] /**/& p[W][R][0] & p[W][R][1] & m[R][1];
+			goren_mask |= p[W][L][0] & p[W][L][1] & p[W][L][2] & m[L][2] /**/& p[W][R][0];
+			goren_mask |= p[W][L][0] & p[W][L][1] & p[W][L][2] & p[W][L][3] & m[L][3];
 		}
 		return goren_mask;
 	}
