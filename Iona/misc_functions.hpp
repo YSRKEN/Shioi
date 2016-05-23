@@ -6,7 +6,8 @@
 * @date 2016/04/26
 */
 #pragma once
-#include<random>
+#include <random>
+#include <cstring>
 #include"constant.hpp"
 
 //! Definition of random_device
@@ -44,7 +45,7 @@ inline size_t RandInt(const size_t n) {
 */
 inline Stone ToStone(const char str) {
 	constexpr static char kStoneString[] = "BWN";
-	auto find_ptr = strchr(kStoneString, str);
+	auto find_ptr = std::strchr(kStoneString, str);
 	if (find_ptr != NULL) {
 		return static_cast<Stone>(find_ptr - kStoneString);
 	}
